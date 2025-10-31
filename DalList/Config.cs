@@ -14,6 +14,7 @@ static internal class Config
     /// Gets the next sequential Order ID and increments the counter.
     /// </summary>
     internal static int NextOrderId { get => s_nextOrderId++; }
+    internal static int MaxRange { get; set; } = 4;
 
     // --- Delivery ID Generation ---
     internal const int startDeliveryId = 1;
