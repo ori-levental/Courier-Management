@@ -16,7 +16,7 @@
 public record Order
 (
     int Id,
-    Enums Type,
+    Enums.OrderType Type,
     string? Description,    // Nullable
     string Addres,
     double Latitude,
@@ -30,5 +30,5 @@ public record Order
     /// Default constructor for Order.
     /// Initializes a new instance with default values.
     /// </summary>
-    public Order() : this(0, new Enums(), "", "", 0, 0, "", "", default(DateTime)) { }
+    public Order() : this(0, new Enums.OrderType(), "", "", 0, 0, "", "", default(DateTime)) { }
 }

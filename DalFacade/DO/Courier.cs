@@ -22,7 +22,7 @@ public record Courier
     string password,
     bool Active,
     double? DistanceToDelivery,   // Nullable 
-    Enums? DeliveryType,          // Nullable 
+    Enums.ShippingType? DeliveryType,          // Nullable 
     DateTime? EmploymentStartDate // Nullable 
 )
 {

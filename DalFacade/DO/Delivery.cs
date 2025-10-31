@@ -19,10 +19,10 @@ public record Delivery
     int Id,
     int OrderId,
     int CourierId,
-    Enums DeliveryType,
+    Enums.ShippingType DeliveryType,
     DateTime StartOrderTime,
     double? Distance,        // Nullable
-    Enums? EndType,          // Nullable
+    Enums.ShipmentCompletionStatus? EndType,          // Nullable
     DateTime? EndOrderTime   // Nullable
 )
 {
@@ -30,5 +30,5 @@ public record Delivery
     /// Default constructor for Delivery.
     /// Initializes a new instance with default values.
     /// </summary>
-    public Delivery() : this(0, 0, 0, new Enums(), default(DateTime), 0, null, null) { }
+    public Delivery() : this(0, 0, 0, new Enums.ShippingType(), default(DateTime), 0, null, null) { }
 }

@@ -55,7 +55,7 @@ static internal class Config
 
     // Average speeds for different transport modes (for ETA calculations)
     internal static Double AvgCarSpeed;
-    internal static Double AvgMotorcycle;
+    internal static Double AvgMotorcycleSpeed;
     internal static Double AvgBicycleSpeed;
     internal static Double AvgWalkSpeed;
 
@@ -87,7 +87,7 @@ static internal class Config
         // Reset credentials
         ManagerId = ManagerPassword = 0;
         // Resetting all numeric and location values to 0
-        Latitude = Longitude = MaxAirDistance = AvgCarSpeed = AvgMotorcycle = AvgBicycleSpeed = AvgWalkSpeed = 0;
+        Latitude = Longitude = MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 0;
         // Resetting all TimeSpans to zero
         MaxDeliveryTime = RiskRange = CourierInactivityTime = default(TimeSpan);
     }
