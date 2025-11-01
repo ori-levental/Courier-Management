@@ -22,7 +22,7 @@ static internal class Config
     /// <summary>
     /// Gets the next sequential Delivery ID and increments the counter.
     /// </summary>
-    internal static int NextDeliveryType { get => s_nextDeliveryId++; }
+    internal static int NextDeliveryId { get => s_nextDeliveryId++; }
 
     // --- System Simulated Clock ---
     /// <summary>

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DO;
+﻿namespace DO;
 
 /// <summary>
 /// Record representing a Delivery entity in the Data Object layer.

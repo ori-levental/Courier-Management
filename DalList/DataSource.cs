@@ -8,15 +8,15 @@ internal static class DataSource
     /// <summary>
     /// List of all Couriers. nullable.
     /// </summary>
-    internal static List<DO.Courier?> Couriers { get; } = new();
+    internal static List<DO.Courier> Couriers { get; } = new();
 
     /// <summary>
     /// List of all Deliveries. nullable.
     /// </summary>
-    internal static List<DO.Delivery?> Deliveries { get; } = new();
+    internal static List<DO.Delivery> Deliveries { get; } = new();
 
     /// <summary>
     /// List of all Orders. nullable.
     /// </summary>
-    internal static List<DO.Order?> Orders { get; } = new();
+    internal static List<DO.Order> Orders { get; } = new();
 }
