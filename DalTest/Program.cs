@@ -70,7 +70,7 @@ namespace DalTest
                 Console.WriteLine("Courier menu, press: \n0 - back to main menu \n1 - Create \n2 - Read\n3 - Read All\n" +
                     "4 - Update \n5 - Delete \n6 - Delete All");
 
-                choice = (CrudMenu)(MainMenu)GetInt("your choice (0-6)");
+                choice = (CrudMenu)GetInt("your choice (0-6)");
                 if (choice == CrudMenu.Back) break;
                 switch (choice) 
                 {
@@ -103,7 +103,7 @@ namespace DalTest
                 Console.WriteLine("Order menu, press: \n0 - back to main menu \n1 - Create \n2 - Read\n3 - Read All\n" +
                     "4 - Update \n5 - Delete \n6 - Delete All");
 
-                choice = (CrudMenu)(MainMenu)GetInt("your choice (0-6)");
+                choice = (CrudMenu)GetInt("your choice (0-6)");
                 if (choice == CrudMenu.Back) break;
                 switch (choice)
                 {
@@ -136,7 +136,7 @@ namespace DalTest
                 Console.WriteLine("Delivery menu, press: \n0 - back to main menu \n1 - Create \n2 - Read\n3 - Read All\n" +
                     "4 - Update \n5 - Delete \n6 - Delete All");
 
-                choice = (CrudMenu)(MainMenu)GetInt("your choice (0-6)");
+                choice = (CrudMenu)GetInt("your choice (0-6)");
                 if (choice == CrudMenu.Back) break;
                 switch (choice)
                 {
@@ -162,8 +162,6 @@ namespace DalTest
             } while (true);
         }
 
-        internal static void DeliveryMenu() { }
-        internal static void OrderMenu() { }
 
         internal static void Init() { 
             Intialization.Do(s_dalCourier,s_dalDelivery,s_dalOrder,s_dalConfig);}
