@@ -81,7 +81,7 @@ public static class Intialization
                 int id;
                 do
                     id = s_rand.Next(200000000, 400000000);
-                while (s_dalDelivery!.Read(id) != null);
+                while (s_dalOrder!.Read(id) != null);
                 Enums.OrderType Type = (Enums.OrderType)s_rand.Next(0, 3);
                 string? description = "I want: " + i + "apple pies";
                 string addres = "D.Trump Blvd " + s_rand.Next(1, 100) + ", New-York, America";
