@@ -33,6 +33,17 @@ namespace DalTest
             Delete,
             DeleteAll
         }
+        private enum Config
+        {
+            Back,
+            AdvanceClockBy1Minute,
+            AdvanceClockBy1Hour,
+            AdvanceClock1day,
+            ShowCurrentClockValue,
+            SetAConfigurationVariable,
+            ShowAConfigurationVariableValue,
+            ResetAllConfigurationsToDefault
+        }
 
         static void Main(string[] args)
         {
@@ -42,7 +53,7 @@ namespace DalTest
                 MainMenu choice;
                 do
                 {
-                    Console.WriteLine("Main mune, Press: \n1 to choose Courier \n2 to Delivery \n3 to Order \n4 to init \n" +
+                    Console.WriteLine("Main menu, Press: \n1 to choose Courier \n2 to Delivery \n3 to Order \n4 to init \n" +
                                         "5 to print all \n6 to Config \n7 to reset \n0 to exit");
                     choice = (MainMenu)GetInt("your choice (0-7)");
                     if (choice == 0) break;
@@ -165,9 +176,57 @@ namespace DalTest
 
         internal static void Init() { 
             Intialization.Do(s_dalCourier,s_dalDelivery,s_dalOrder,s_dalConfig);}
-        internal static void PrintAll() { }
-        internal static void ConfigMenu() { }
-        internal static void Reset() { }
+        internal static void PrintAll() {
+            ShowAllCourier();
+            ShowAllDelivery();
+            ShowAllOrder();
+        
+        }
+        internal static void ConfigMenu() {
+            Config choice;
+            do
+            {
+                 Console.WriteLine("choose an action:\r\n\r\n0 - Exit (Return to the previous menu)\r\n\r\n1 - Advance Clock by 1 Minute\r\n\r\n2 - Advance Clock by 1 Hour" +
+                "\r\n\r\n3 - Advance Clock 1 day\r\n\r\n4 - Show Current Clock Value\r\n\r\n5 - Set a configuration variable\r\n\r\n6 - Show a configuration variable's value\r\n\r\n7 - Reset All configurations to default\r\n\r\nEnter your choice (0-7): ");
+                choice = (Config)GetInt("your choice (0-7)");
+                if (choice == Config.Back) break;
+                switch
+                    (choice)
+                {
+                    case Config.AdvanceClockBy1Minute:
+                        s_dalConfig.Clock.AddMinutes(1);
+                        break;
+                    case Config.AdvanceClockBy1Hour:
+                        s_dalConfig.Clock.AddHours(1);
+                        break;
+                    case Config.AdvanceClock1day:
+                        s_dalConfig.Clock.AddDays(1);
+                        break;
+                    case Config.ShowCurrentClockValue:
+                        Console.WriteLine(s_dalConfig.Clock);
+                        break;
+                    case Config.SetAConfigurationVariable:
+                        int valueToSet = GetInt("value to set");
+                        s_dalConfig.MaxRange = valueToSet;
+                        break;
+                    case Config.ShowAConfigurationVariableValue:
+                        Console.WriteLine("the current Value is: " + s_dalConfig.MaxRange);
+                        break;
+                    case Config.ResetAllConfigurationsToDefault:
+                        s_dalConfig.Reset();
+                        break;
+                }
+            }
+            while (true);
+        }
+           
+        internal static void Reset() {
+            s_dalCourier.DeleteAll();
+            s_dalDelivery.DeleteAll();
+            s_dalOrder.DeleteAll();
+            s_dalConfig.Reset();
+            Console.WriteLine("All data reseted\n");
+        }
 
         // courier
         private static void AddCourier()
