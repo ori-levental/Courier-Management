@@ -33,7 +33,7 @@ public class OrderImplementation : IOrder
     /// <exception cref="Exception">Throws if an order with the ID is not found.</exception>
     public void Delete(int id)
     {
-        Order? temp = Read(id) ?? throw new Exception(@"An object of type Order with such ID not exists.");
+        Order? temp = Read(id) ?? throw new Exception($"Order with ID={id} does Not exists");
         // else
         DataSource.Orders.Remove(temp);
     }

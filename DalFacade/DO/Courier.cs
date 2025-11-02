@@ -21,9 +21,9 @@ public record Courier
     string Email,
     string password,
     bool Active,
-    double? DistanceToDelivery,   // Nullable 
-    Enums.ShippingType? DeliveryType,          // Nullable 
-    DateTime? EmploymentStartDate // Nullable 
+    double? DistanceToDelivery,       // Nullable 
+    Enums.ShippingType? DeliveryType, // Nullable 
+    DateTime? EmploymentStartDate     // Nullable 
 )
 {
     /// <summary>

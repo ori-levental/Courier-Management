@@ -6,7 +6,7 @@ public class Enums
 {
     public enum ShippingType
     {
-        car,
+        Car,
         Motorcycle,
         Bicycle,
         Walk

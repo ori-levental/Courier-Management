@@ -34,7 +34,7 @@ public class DeliveryImplementation : IDelivery
     public void Delete(int id)
     {
         // Find the item to delete, throw exception if not found
-        Delivery? temp = Read(id) ?? throw new Exception(@"An object of type Delivery with such ID not exists.");
+        Delivery? temp = Read(id) ?? throw new Exception($"Delivery with ID={id} does Not exists");
 
         // else
         DataSource.Deliveries.Remove(temp);
