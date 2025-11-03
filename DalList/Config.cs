@@ -14,7 +14,6 @@ static internal class Config
     /// Gets the next sequential Order ID and increments the counter.
     /// </summary>
     internal static int NextOrderId { get => s_nextOrderId++; }
-    internal static int MaxRange { get; set; } = 4;
 
     // --- Delivery ID Generation ---
     internal const int startDeliveryId = 1;
@@ -32,7 +31,7 @@ static internal class Config
 
     // --- Manager Credentials ---
     internal static int ManagerId;
-    internal static int ManagerPassword;
+    internal static string ManagerPassword;
 
     // --- Company Location Details ---
     /// <summary>
@@ -42,11 +41,11 @@ static internal class Config
     /// <summary>
     /// Latitude coordinate of the company's address.
     /// </summary>
-    internal static Double? Latitude;
+    internal static double? Latitude;
     /// <summary>
     /// Longitude coordinate of the company's address.
     /// </summary>
-    internal static Double? Longitude;
+    internal static double? Longitude;
 
     // --- Business Logic Constants ---
     /// <summary>
@@ -55,10 +54,10 @@ static internal class Config
     internal static double? MaxAirDistance;
 
     // Average speeds for different transport modes (for ETA calculations)
-    internal static Double AvgCarSpeed;
-    internal static Double AvgMotorcycleSpeed;
-    internal static Double AvgBicycleSpeed;
-    internal static Double AvgWalkSpeed;
+    internal static double AvgCarSpeed;
+    internal static double AvgMotorcycleSpeed;
+    internal static double AvgBicycleSpeed;
+    internal static double AvgWalkSpeed;
 
     // Time-based rules
     /// <summary>
@@ -86,7 +85,8 @@ static internal class Config
         // Reset clock
         Clock = default(DateTime);
         // Reset credentials
-        ManagerId = ManagerPassword = 0;
+        ManagerId = 0;
+        ManagerPassword = "";
         // Resetting all numeric and location values to 0
         Latitude = Longitude = MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 0;
         // Resetting all TimeSpans to zero
