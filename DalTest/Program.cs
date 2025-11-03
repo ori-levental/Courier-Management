@@ -107,7 +107,7 @@ internal class Program
             Console.WriteLine("--------------------");
             choice = (CrudMenu)GetInt("\nyour choice (0-6)");
             if (choice == CrudMenu.Back) break;
-            try // Add try-catch block to handle DAL exceptions gracefully
+            try // Local catch block to handle errors without exiting menu
             {
                 switch (choice)
                 {
@@ -141,7 +141,7 @@ internal class Program
             Console.WriteLine("------------------");
             choice = (CrudMenu)GetInt("\nyour choice (0-6)");
             if (choice == CrudMenu.Back) break;
-            try // Add try-catch block
+            try // Local catch block
             {
                 switch (choice)
                 {
@@ -175,7 +175,7 @@ internal class Program
             Console.WriteLine("---------------------");
             choice = (CrudMenu)GetInt("\nyour choice (0-6)");
             if (choice == CrudMenu.Back) break;
-            try // Add try-catch block
+            try // Local catch block
             {
                 switch (choice)
                 {
@@ -309,7 +309,8 @@ internal class Program
         var existCourier = s_dalCourier?.Read(id);
         if (existCourier != null)
         {
-            Console.WriteLine($"Updating Courier ID: {id}. Enter new values:");
+            Console.WriteLine($"Current details: {existCourier}");
+            Console.WriteLine("Enter new values:");
             string fullName = GetString("Full Name");
             string PhoneNumber = GetString("Phone Number");
             string Email = GetString("Email");
@@ -381,7 +382,8 @@ internal class Program
         var existOrder = s_dalOrder?.Read(id);
         if (existOrder != null)
         {
-            Console.WriteLine($"Updating Order ID: {id}. Enter new values:");
+            Console.WriteLine($"Current details: {existOrder}");
+            Console.WriteLine("Enter new values:");
             Enums.OrderType OrderType = GetOrderType("Order Type");
             string? Description = GetString("Description");
             string Addres = GetString("Address");
@@ -451,7 +453,8 @@ internal class Program
         var existDelivery = s_dalDelivery?.Read(id);
         if (existDelivery != null)
         {
-            Console.WriteLine($"Updating Delivery ID: {id}. Enter new values:");
+            Console.WriteLine($"Current details: {existDelivery}");
+            Console.WriteLine("Enter new values:");
             int OrderId = GetInt("Order ID");
             int CourierId = GetInt("Courier ID");
             Enums.ShippingType DeliveryType = GetShippingType("Delivery Type");
