@@ -89,19 +89,20 @@ internal class Program
         { Console.WriteLine($"\n*** ERROR: {exp.Message} ***\n"); }
     }
 
-    internal static void CourierMenu()
+    // --- Generic CRUD Menu ---
+    internal static void GenericCrudMenu(string title, Action addAction, Action showAction, Action showAllAction, Action updateAction, Action deleteAction, Action deleteAllAction)
     {
         CrudMenu choice;
         do
         {
-            Console.WriteLine("\n--- Courier Menu ---");
+            Console.WriteLine($"\n--- {title} Menu ---");
             Console.WriteLine(
-                "1. Add Courier\n" +
-                "2. Show Courier (by ID)\n" +
-                "3. Show All Couriers\n" +
-                "4. Update Courier\n" +
-                "5. Delete Courier\n" +
-                "6. Delete All Couriers\n" +
+                "1. Add\n" +
+                "2. Show (by ID)\n" +
+                "3. Show All\n" +
+                "4. Update\n" +
+                "5. Delete\n" +
+                "6. Delete All\n" +
                 "0. Back to Main Menu"
             );
             Console.WriteLine("--------------------");
@@ -111,86 +112,37 @@ internal class Program
             {
                 switch (choice)
                 {
-                    case CrudMenu.Add: AddCourier(); break;
-                    case CrudMenu.Show: ShowCourier(); break;
-                    case CrudMenu.ShowAll: ShowAllCourier(); break;
-                    case CrudMenu.Update: UpdateCourier(); break;
-                    case CrudMenu.Delete: DeleteCourier(); break;
-                    case CrudMenu.DeleteAll: DeleteAllCourier(); break;
+                    case CrudMenu.Add: addAction(); break;
+                    case CrudMenu.Show: showAction(); break;
+                    case CrudMenu.ShowAll: showAllAction(); break;
+                    case CrudMenu.Update: updateAction(); break;
+                    case CrudMenu.Delete: deleteAction(); break;
+                    case CrudMenu.DeleteAll: deleteAllAction(); break;
                 }
             }
             catch (Exception exp)
             { Console.WriteLine($"\n*** ERROR: {exp.Message} ***\n"); }
         } while (true);
+    }
+
+    // --- Refactored CRUD Menus ---
+    internal static void CourierMenu()
+    {
+        GenericCrudMenu("Courier",
+            AddCourier, ShowCourier, ShowAllCourier, UpdateCourier, DeleteCourier, DeleteAllCourier);
     }
     internal static void OrderMenu()
     {
-        CrudMenu choice;
-        do
-        {
-            Console.WriteLine("\n--- Order Menu ---");
-            Console.WriteLine(
-                "1. Add Order\n" +
-                "2. Show Order (by ID)\n" +
-                "3. Show All Orders\n" +
-                "4. Update Order\n" +
-                "5. Delete Order\n" +
-                "6. Delete All Orders\n" +
-                "0. Back to Main Menu"
-            );
-            Console.WriteLine("------------------");
-            choice = (CrudMenu)GetInt("\nyour choice (0-6)");
-            if (choice == CrudMenu.Back) break;
-            try // Local catch block
-            {
-                switch (choice)
-                {
-                    case CrudMenu.Add: AddOrder(); break;
-                    case CrudMenu.Show: ShowOrder(); break;
-                    case CrudMenu.ShowAll: ShowAllOrder(); break;
-                    case CrudMenu.Update: UpdateOrder(); break;
-                    case CrudMenu.Delete: DeleteOrder(); break;
-                    case CrudMenu.DeleteAll: DeleteAllOrder(); break;
-                }
-            }
-            catch (Exception exp)
-            { Console.WriteLine($"\n*** ERROR: {exp.Message} ***\n"); }
-        } while (true);
+        GenericCrudMenu("Order",
+            AddOrder, ShowOrder, ShowAllOrder, UpdateOrder, DeleteOrder, DeleteAllOrder);
     }
     internal static void DeliveryMenu()
     {
-        CrudMenu choice;
-        do
-        {
-            Console.WriteLine("\n--- Delivery Menu ---");
-            Console.WriteLine(
-                "1. Add Delivery\n" +
-                "2. Show Delivery (by ID)\n" +
-                "3. Show All Deliveries\n" +
-                "4. Update Delivery\n" +
-                "5. Delete Delivery\n" +
-                "6. Delete All Deliveries\n" +
-                "0. Back to Main Menu"
-            );
-            Console.WriteLine("---------------------");
-            choice = (CrudMenu)GetInt("\nyour choice (0-6)");
-            if (choice == CrudMenu.Back) break;
-            try // Local catch block
-            {
-                switch (choice)
-                {
-                    case CrudMenu.Add: AddDelivery(); break;
-                    case CrudMenu.Show: ShowDelivery(); break;
-                    case CrudMenu.ShowAll: ShowAllDelivery(); break;
-                    case CrudMenu.Update: UpdateDelivery(); break;
-                    case CrudMenu.Delete: DeleteDelivery(); break;
-                    case CrudMenu.DeleteAll: DeleteAllDelivery(); break;
-                }
-            }
-            catch (Exception exp)
-            { Console.WriteLine($"\n*** ERROR: {exp.Message} ***\n"); }
-        } while (true);
+        GenericCrudMenu("Delivery",
+            AddDelivery, ShowDelivery, ShowAllDelivery, UpdateDelivery, DeleteDelivery, DeleteAllDelivery);
     }
+
+    // --- Main Menu Functions ---
     internal static void Init()
     {
         Initialization.Do(s_dalCourier, s_dalDelivery, s_dalOrder, s_dalConfig);
@@ -226,7 +178,6 @@ internal class Program
             switch (choice)
             {
                 case ConfigMenuOptions.AdvanceClockBy1Minute:
-                    // DateTime is immutable, must re-assign the new value
                     s_dalConfig!.Clock = s_dalConfig.Clock.AddMinutes(1);
                     Console.WriteLine($"Clock advanced to: {s_dalConfig.Clock}");
                     break;
@@ -266,7 +217,7 @@ internal class Program
         Console.WriteLine("\nAll data has been reset.");
     }
 
-    // --- Courier ---
+    // --- Courier Functions ---
     private static void AddCourier()
     {
         int id = GetInt("ID");
@@ -296,7 +247,7 @@ internal class Program
         if (couriers != null && couriers.Count > 0)
         {
             foreach (var courier in couriers)
-                Console.WriteLine(courier);
+                Console.WriteLine($"{courier}\n");
         }
         else
         {
@@ -339,7 +290,7 @@ internal class Program
         Console.WriteLine("\nAll couriers deleted.");
     }
 
-    // --- Order ---
+    // --- Order Functions ---
     private static void AddOrder()
     {
         Enums.OrderType OrderType = GetOrderType("Order Type");
@@ -351,7 +302,6 @@ internal class Program
         string phoneNumber = GetString("Phone Number");
         DateTime StartOrderTime = GetDateTime("Start Order Time");
 
-        // ID is set to 0, DAL logic will assign a new ID
         Order newOrder = new Order(0, OrderType, Description, Addres, Latitude, Longitude, OrderingName, phoneNumber, StartOrderTime);
         s_dalOrder!.Create(newOrder);
         Console.WriteLine("\nOrder was added.");
@@ -369,7 +319,7 @@ internal class Program
         if (orders != null && orders.Count > 0)
         {
             foreach (var order in orders)
-                Console.WriteLine(order);
+                Console.WriteLine($"{order}\n");
         }
         else
         {
@@ -411,7 +361,7 @@ internal class Program
         Console.WriteLine("\nAll orders deleted.");
     }
 
-    // --- Delivery ---
+    // --- Delivery Functions ---
     private static void AddDelivery()
     {
         int OrderId = GetInt("Order ID");
@@ -422,7 +372,6 @@ internal class Program
         Enums.ShipmentCompletionStatus? EndType = GetShipmentCompletionStatus("End Type (optional, press Enter to skip)");
         DateTime? EndOrderTime = GetNullableDateTime("End Order Time (optional, press Enter to skip)");
 
-        // ID is set to 0, DAL logic will assign a new ID
         Delivery newDelivery = new Delivery(0, OrderId, CourierId, DeliveryType, StartOrderTime, Distance, EndType, EndOrderTime);
         s_dalDelivery!.Create(newDelivery);
         Console.WriteLine("\nDelivery was added.");
@@ -440,7 +389,7 @@ internal class Program
         if (deliverys != null && deliverys.Count > 0)
         {
             foreach (var delivery in deliverys)
-                Console.WriteLine(delivery);
+                Console.WriteLine($"{delivery}\n");
         }
         else
         {
@@ -503,39 +452,49 @@ internal class Program
         Console.Write($"{prompt} (true/false): ");
         return bool.Parse(Console.ReadLine()!);
     }
-    private static Enums.ShippingType GetShippingType(string prompt)
+
+    // --- Generic Enum Getters ---
+    private static T GetEnum<T>(string prompt) where T : struct, Enum
     {
         Console.Write($"Enter {prompt}: ");
         string input = Console.ReadLine()!;
-        return (Enums.ShippingType)Enum.Parse(typeof(Enums.ShippingType), input, true);
+        return (T)Enum.Parse(typeof(T), input, true);
+    }
+    private static T? GetNullableEnum<T>(string prompt) where T : struct, Enum
+    {
+        Console.Write($"Enter {prompt}: ");
+        string input = Console.ReadLine()!;
+        if (string.IsNullOrEmpty(input))
+            return null;
+        return (T)Enum.Parse(typeof(T), input, true);
+    }
+
+    // --- Refactored Enum Getters ---
+    private static Enums.ShippingType GetShippingType(string prompt)
+    {
+        return GetEnum<Enums.ShippingType>(prompt);
     }
     private static Enums.OrderType GetOrderType(string prompt)
     {
-        Console.Write($"Enter {prompt}: ");
-        string input = Console.ReadLine()!;
-        return (Enums.OrderType)Enum.Parse(typeof(Enums.OrderType), input, true);
+        return GetEnum<Enums.OrderType>(prompt);
     }
     private static Enums.ShipmentCompletionStatus? GetShipmentCompletionStatus(string prompt)
     {
-        Console.Write($"Enter {prompt}: ");
-        string input = Console.ReadLine()!;
-        if (string.IsNullOrEmpty(input)) // Allow skipping for nullable enums
-            return null;
-        return (Enums.ShipmentCompletionStatus)Enum.Parse(typeof(Enums.ShipmentCompletionStatus), input, true);
+        return GetNullableEnum<Enums.ShipmentCompletionStatus>(prompt);
     }
+
+    // --- DateTime Getters ---
     private static DateTime GetDateTime(string prompt)
     {
         Console.Write($"Enter {prompt}: ");
         string input = Console.ReadLine()!;
         return DateTime.Parse(input);
     }
-
-    // Special getter for nullable DateTime
     private static DateTime? GetNullableDateTime(string prompt)
     {
         Console.Write($"Enter {prompt}: ");
         string input = Console.ReadLine()!;
-        if (string.IsNullOrEmpty(input)) // Allow skipping for nullable DateTime
+        if (string.IsNullOrEmpty(input))
             return null;
         return DateTime.Parse(input);
     }
