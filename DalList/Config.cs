@@ -31,7 +31,7 @@ static internal class Config
 
     // --- Manager Credentials ---
     internal static int ManagerId;
-    internal static string ManagerPassword;
+    internal static string ManagerPassword = "";
 
     // --- Company Location Details ---
     /// <summary>

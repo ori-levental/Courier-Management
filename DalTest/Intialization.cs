@@ -273,7 +273,7 @@ public static class Initialization
             // Check for time overlaps
             foreach (var courier in availableCouriersByDistance)
             {
-                double speed = GetSpeed(courier.DeliveryType.Value);
+                double speed = GetSpeed(courier.DeliveryType!.Value);
                 double distance = GetDistanceByTransport(addressInfo, courier.DeliveryType.Value);
                 double durationInHours = distance / speed;
                 DateTime potentialEndTime = potentialStartTime.AddHours(durationInHours);
@@ -294,7 +294,7 @@ public static class Initialization
             if (trulyAvailableCouriers.Count == 0) continue; // All suitable couriers are busy at this time
 
             Courier chosenCourier = trulyAvailableCouriers[s_rand.Next(trulyAvailableCouriers.Count)];
-            double? deliveryDistance = GetDistanceByTransport(addressInfo, chosenCourier.DeliveryType.Value);
+            double? deliveryDistance = GetDistanceByTransport(addressInfo, chosenCourier.DeliveryType!.Value);
 
             DateTime? endOrderTime = null;
             Enums.ShipmentCompletionStatus? endType = null;
