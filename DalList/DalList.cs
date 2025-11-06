@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Dal;
 using DalApi;
 
-internal class DalList : IDal
+public class DalList : IDal
 {
     public ICourier Courier { get; } = new CourierImplementation();
 

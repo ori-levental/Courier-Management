@@ -2,6 +2,7 @@
 using DalApi;
 using DO;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -10,10 +11,7 @@ namespace DalTest;
 
 internal class Program
 {
-    private static ICourier? s_dalCourier = new CourierImplementation();
-    private static IDelivery? s_dalDelivery = new DeliveryImplementation();
-    private static IOrder? s_dalOrder = new OrderImplementation();
-    private static IConfig? s_dalConfig = new ConfigImplementation();
+    static readonly IDal s_dal = new DalList(); //stage 2
     private enum MainMenu
     {
         Exit,
@@ -145,7 +143,7 @@ internal class Program
     // --- Main Menu Functions ---
     internal static void Init()
     {
-        Initialization.Do(s_dalCourier, s_dalDelivery, s_dalOrder, s_dalConfig);
+        Initialization.Do(s_dal);
     }
     internal static void PrintAll()
     {
@@ -178,30 +176,30 @@ internal class Program
             switch (choice)
             {
                 case ConfigMenuOptions.AdvanceClockBy1Minute:
-                    s_dalConfig!.Clock = s_dalConfig.Clock.AddMinutes(1);
-                    Console.WriteLine($"Clock advanced to: {s_dalConfig.Clock}");
+                    s_dal.Config!.Clock = s_dal.Config.Clock.AddMinutes(1);
+                    Console.WriteLine($"Clock advanced to: {s_dal.Config.Clock}");
                     break;
                 case ConfigMenuOptions.AdvanceClockBy1Hour:
-                    s_dalConfig!.Clock = s_dalConfig.Clock.AddHours(1);
-                    Console.WriteLine($"Clock advanced to: {s_dalConfig.Clock}");
+                    s_dal.Config!.Clock = s_dal.Config.Clock.AddHours(1);
+                    Console.WriteLine($"Clock advanced to: {s_dal.Config.Clock}");
                     break;
                 case ConfigMenuOptions.AdvanceClock1day:
-                    s_dalConfig!.Clock = s_dalConfig.Clock.AddDays(1);
-                    Console.WriteLine($"Clock advanced to: {s_dalConfig.Clock}");
+                    s_dal.Config!.Clock = s_dal.Config.Clock.AddDays(1);
+                    Console.WriteLine($"Clock advanced to: {s_dal.Config.Clock}");
                     break;
                 case ConfigMenuOptions.ShowCurrentClockValue:
-                    Console.WriteLine($"Current Clock Value: {s_dalConfig!.Clock}");
+                    Console.WriteLine($"Current Clock Value: {s_dal.Config!.Clock}");
                     break;
                 case ConfigMenuOptions.SetMaxAirDistance:
                     double? valueToSet = GetDouble("value to set");
-                    s_dalConfig!.MaxAirDistance = valueToSet;
-                    Console.WriteLine($"Max Air Distance set to: {s_dalConfig.MaxAirDistance}");
+                    s_dal.Config!.MaxAirDistance = valueToSet;
+                    Console.WriteLine($"Max Air Distance set to: {s_dal.Config.MaxAirDistance}");
                     break;
                 case ConfigMenuOptions.ShowMaxAirDistance:
-                    Console.WriteLine($"Current Max Air Distance: {s_dalConfig!.MaxAirDistance}");
+                    Console.WriteLine($"Current Max Air Distance: {s_dal.Config!.MaxAirDistance}");
                     break;
                 case ConfigMenuOptions.ResetAllConfigurationsToDefault:
-                    s_dalConfig!.Reset();
+                    s_dal.Config!.Reset();
                     Console.WriteLine("Configuration reset to defaults.");
                     break;
             }
@@ -210,10 +208,11 @@ internal class Program
     }
     internal static void Reset()
     {
-        s_dalCourier!.DeleteAll();
-        s_dalDelivery!.DeleteAll();
-        s_dalOrder!.DeleteAll();
-        s_dalConfig!.Reset();
+        s_dal.Courier!.DeleteAll();
+        s_dal.Delivery!.DeleteAll();
+        s_dal.Order!.DeleteAll();
+        s_dal.Config!.Reset();
+       //s_dal.ResetDB(); 
         Console.WriteLine("\nAll data has been reset.");
     }
 
@@ -231,19 +230,19 @@ internal class Program
         DateTime EmploymentStartDate = GetDateTime("Employment Start Date");
 
         Courier newCourier = new Courier(id, fullName, PhoneNumber, Email, Password, Active, DistanceToDelivery, DeliveryType, EmploymentStartDate);
-        s_dalCourier!.Create(newCourier);
+        s_dal.Courier!.Create(newCourier);
         Console.WriteLine("\nCourier was added.");
     }
     private static void ShowCourier()
     {
         int id = GetInt("ID to show");
-        var courier = s_dalCourier!.Read(id);
+        var courier = s_dal.Courier!.Read(id);
         Console.WriteLine(courier != null ? courier.ToString() : "Courier not found.");
     }
     private static void ShowAllCourier()
     {
         Console.WriteLine("\n--- All Couriers ---");
-        var couriers = s_dalCourier?.ReadAll();
+        var couriers = s_dal.Courier?.ReadAll();
         if (couriers != null && couriers.Count > 0)
         {
             foreach (var courier in couriers)
@@ -257,7 +256,7 @@ internal class Program
     internal static void UpdateCourier()
     {
         int id = GetInt("ID to update");
-        var existCourier = s_dalCourier?.Read(id);
+        var existCourier = s_dal.Courier?.Read(id);
         if (existCourier != null)
         {
             Console.WriteLine($"Current details: {existCourier}");
@@ -272,7 +271,7 @@ internal class Program
             DateTime EmploymentStartDate = GetDateTime("Employment Start Date");
 
             Courier UpdateCourier = new Courier(id, fullName, PhoneNumber, Email, Password, Active, DistanceToDelivery, DeliveryType, EmploymentStartDate);
-            s_dalCourier!.Update(UpdateCourier);
+            s_dal.Courier!.Update(UpdateCourier);
             Console.WriteLine("\nCourier was updated.");
         }
         else { Console.WriteLine("Courier not found."); }
@@ -280,13 +279,13 @@ internal class Program
     internal static void DeleteCourier()
     {
         int id = GetInt("ID of the courier for deletion");
-        s_dalCourier!.Delete(id);
+        s_dal.Courier!.Delete(id);
         Console.WriteLine("\nCourier was deleted.");
 
     }
     internal static void DeleteAllCourier()
     {
-        s_dalCourier!.DeleteAll();
+        s_dal.Courier!.DeleteAll();
         Console.WriteLine("\nAll couriers deleted.");
     }
 
@@ -303,19 +302,19 @@ internal class Program
         DateTime StartOrderTime = GetDateTime("Start Order Time");
 
         Order newOrder = new Order(0, OrderType, Description, Addres, Latitude, Longitude, OrderingName, phoneNumber, StartOrderTime);
-        s_dalOrder!.Create(newOrder);
+        s_dal.Order!.Create(newOrder);
         Console.WriteLine("\nOrder was added.");
     }
     private static void ShowOrder()
     {
         int id = GetInt("ID to show");
-        var order = s_dalOrder!.Read(id);
+        var order = s_dal.Order!.Read(id);
         Console.WriteLine(order != null ? order.ToString() : "Order not found.");
     }
     private static void ShowAllOrder()
     {
         Console.WriteLine("\n--- All Orders ---");
-        var orders = s_dalOrder?.ReadAll();
+        var orders = s_dal.Order?.ReadAll();
         if (orders != null && orders.Count > 0)
         {
             foreach (var order in orders)
@@ -329,7 +328,7 @@ internal class Program
     private static void UpdateOrder()
     {
         int id = GetInt("ID to update");
-        var existOrder = s_dalOrder?.Read(id);
+        var existOrder = s_dal.Order?.Read(id);
         if (existOrder != null)
         {
             Console.WriteLine($"Current details: {existOrder}");
@@ -344,7 +343,7 @@ internal class Program
             DateTime StartOrderTime = GetDateTime("Start Order Time");
 
             Order newOrder = new Order(id, OrderType, Description, Addres, Latitude, Longitude, OrderingName, phoneNumber, StartOrderTime);
-            s_dalOrder!.Update(newOrder);
+            s_dal.Order!.Update(newOrder);
             Console.WriteLine("\nOrder was updated.");
         }
         else { Console.WriteLine("Order not found."); }
@@ -352,12 +351,12 @@ internal class Program
     private static void DeleteOrder()
     {
         int id = GetInt("ID of the order for deletion");
-        s_dalOrder!.Delete(id);
+        s_dal.Order!.Delete(id);
         Console.WriteLine("\nOrder was deleted.");
     }
     private static void DeleteAllOrder()
     {
-        s_dalOrder!.DeleteAll();
+        s_dal.Order!.DeleteAll();
         Console.WriteLine("\nAll orders deleted.");
     }
 
@@ -373,19 +372,19 @@ internal class Program
         DateTime? EndOrderTime = GetNullableDateTime("End Order Time (optional, press Enter to skip)");
 
         Delivery newDelivery = new Delivery(0, OrderId, CourierId, DeliveryType, StartOrderTime, Distance, EndType, EndOrderTime);
-        s_dalDelivery!.Create(newDelivery);
+        s_dal.Delivery!.Create(newDelivery);
         Console.WriteLine("\nDelivery was added.");
     }
     private static void ShowDelivery()
     {
         int id = GetInt("ID to show");
-        var delivery = s_dalDelivery!.Read(id);
+        var delivery = s_dal.Delivery!.Read(id);
         Console.WriteLine(delivery != null ? delivery.ToString() : "Delivery not found.");
     }
     private static void ShowAllDelivery()
     {
         Console.WriteLine("\n--- All Deliveries ---");
-        var deliverys = s_dalDelivery?.ReadAll();
+        var deliverys = s_dal.Delivery?.ReadAll();
         if (deliverys != null && deliverys.Count > 0)
         {
             foreach (var delivery in deliverys)
@@ -399,7 +398,7 @@ internal class Program
     private static void UpdateDelivery()
     {
         int id = GetInt("ID to update");
-        var existDelivery = s_dalDelivery?.Read(id);
+        var existDelivery = s_dal.Delivery?.Read(id);
         if (existDelivery != null)
         {
             Console.WriteLine($"Current details: {existDelivery}");
@@ -413,7 +412,7 @@ internal class Program
             DateTime? EndOrderTime = GetNullableDateTime("End Order Time (optional, press Enter to skip)");
 
             Delivery newDelivery = new Delivery(id, OrderId, CourierId, DeliveryType, StartOrderTime, Distance, EndType, EndOrderTime);
-            s_dalDelivery!.Update(newDelivery);
+            s_dal.Delivery!.Update(newDelivery);
             Console.WriteLine("\nDelivery was updated.");
         }
         else { Console.WriteLine("Delivery not found."); }
@@ -421,12 +420,12 @@ internal class Program
     private static void DeleteDelivery()
     {
         int id = GetInt("ID of the delivery for deletion");
-        s_dalDelivery!.Delete(id);
+        s_dal.Delivery!.Delete(id);
         Console.WriteLine("\nDelivery was deleted.");
     }
     private static void DeleteAllDelivery()
     {
-        s_dalDelivery!.DeleteAll();
+        s_dal.Delivery!.DeleteAll();
         Console.WriteLine("\nAll deliveries deleted.");
     }
 
