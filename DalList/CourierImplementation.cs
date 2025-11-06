@@ -7,7 +7,7 @@ using System.ComponentModel;
 /// Implements the ICourier interface for managing Courier data
 /// using an in-memory list (DataSource).
 /// </summary>
-public class CourierImplementation : ICourier
+internal class CourierImplementation : ICourier
 {
     /// <summary>
     /// Adds a new Courier to the data source.

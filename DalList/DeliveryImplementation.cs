@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// Implements the IDelivery interface for managing Delivery data
 /// using an in-memory list (DataSource).
 /// </summary>
-public class DeliveryImplementation : IDelivery
+internal class DeliveryImplementation : IDelivery
 {
     /// <summary>
     /// Creates a new delivery. 

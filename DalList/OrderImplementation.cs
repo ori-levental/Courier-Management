@@ -7,7 +7,7 @@ using System.Collections.Generic;
 /// Implements the IOrder interface for managing Order data
 /// using an in-memory list (DataSource).
 /// </summary>
-public class OrderImplementation : IOrder
+internal class OrderImplementation : IOrder
 {
     /// <summary>
     /// Creates a new order. 
