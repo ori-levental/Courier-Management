@@ -33,7 +33,7 @@ internal class OrderImplementation : IOrder
     /// <exception cref="Exception">Throws if an order with the ID is not found.</exception>
     public void Delete(int id)
     {
-        Order? temp = Read(id) ?? throw new Exception($"Order with ID={id} does Not exists");
+        Order? temp = Read(id) ?? throw new DalDoesNotExistException($"Order with ID={id} does Not exists");
         // else
         DataSource.Orders.Remove(temp);
     }
@@ -53,17 +53,30 @@ internal class OrderImplementation : IOrder
     /// <returns>The found order object, or null if not found.</returns>
     public Order? Read(int id)
     {
-        return DataSource.Orders.Find(T => T.Id == id);
+        return DataSource.Orders.FirstOrDefault(T => T.Id == id);
+    }
+    /// <summary>
+    /// Finds and returns the first entity that matches a specific condition.
+    /// </summary>
+    /// <param name="filter">A lambda expression (predicate) to filter the entities.</param>
+    /// <returns>The first matching entity, or null if no entity is found.</returns>
+    public Order? Read(Func<Order, bool> filter)
+    {
+        return DataSource.Orders.FirstOrDefault(filter);
     }
 
     /// <summary>
     /// Returns a copy of the entire list of orders.
     /// </summary>
     /// <returns>A new list containing all order objects.</returns>
-    public List<Order> ReadAll()
+    public IEnumerable<Order> ReadAll(Func<Order, bool>? filter = null) //stage 2
     {
-        // Creates a (shallow) copy of the list.
-        return new List<DO.Order>(DataSource.Orders);
+        // without filter - return the list
+        if (filter == null)
+            return DataSource.Orders;
+
+        // whith filter - use at him
+        return DataSource.Orders.Where(filter);
     }
 
     /// <summary>

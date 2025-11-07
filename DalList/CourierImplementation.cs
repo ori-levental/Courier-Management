@@ -1,7 +1,6 @@
 ﻿namespace Dal;
 using DalApi;
 using DO;
-using System.ComponentModel;
 
 /// <summary>
 /// Implements the ICourier interface for managing Courier data
@@ -18,7 +17,7 @@ internal class CourierImplementation : ICourier
     {
         if (Read(item.Id) != null)
         {
-            throw new Exception($"Courier with ID={item.Id} already exists");
+            throw new DalAlreadyExistsException($"Courier with ID={item.Id} already exists");
         }
         // else
         DataSource.Couriers.Add(item);
@@ -31,17 +30,32 @@ internal class CourierImplementation : ICourier
     /// <returns>The found Courier object, or null if not found.</returns>
     public Courier? Read(int id)
     {
-        return DataSource.Couriers.Find(T => T.Id == id);
+        return DataSource.Couriers.FirstOrDefault(T => T.Id == id);
+    }
+    /// <summary>
+    /// Finds and returns the first entity that matches a specific condition.
+    /// </summary>
+    /// <param name="filter">A lambda expression (predicate) to filter the entities.</param>
+    /// <returns>The first matching entity, or null if no entity is found.</returns>
+    public Courier? Read(Func<Courier, bool> filter)
+    {
+        return DataSource.Couriers.FirstOrDefault(filter);
     }
 
     /// <summary>
     /// Returns a copy of the entire list of Couriers.
     /// </summary>
     /// <returns>A new list containing all Courier objects.</returns>
-    public List<DO.Courier> ReadAll()
+    public IEnumerable<Courier> ReadAll(Func<Courier, bool>? filter = null) //stage 2
     {
-        return new List<DO.Courier>(DataSource.Couriers);
+        // without filter - return the list
+        if (filter == null)
+            return DataSource.Couriers;
+
+        // whith filter - use at him
+        return DataSource.Couriers.Where(filter);
     }
+
 
     /// <summary>
     /// Updates an existing Courier's details.
@@ -62,7 +76,7 @@ internal class CourierImplementation : ICourier
     /// <exception cref="Exception">Throws an exception if a Courier with the specified ID does not exist.</exception>
     public void Delete(int id)
     {
-        Courier? temp = Read(id) ?? throw new Exception($"Courier with ID={id} does Not exists");
+        Courier? temp = Read(id) ?? throw new DalDoesNotExistException($"Courier with ID={id} does Not exists");
         // else
         DataSource.Couriers.Remove(temp);
     }
@@ -74,4 +88,5 @@ internal class CourierImplementation : ICourier
     {
         DataSource.Couriers.Clear();
     }
+
 }

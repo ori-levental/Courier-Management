@@ -243,7 +243,7 @@ internal class Program
     {
         Console.WriteLine("\n--- All Couriers ---");
         var couriers = s_dal.Courier?.ReadAll();
-        if (couriers != null && couriers.Count > 0)
+        if (couriers != null && couriers.Count() > 0)
         {
             foreach (var courier in couriers)
                 Console.WriteLine($"{courier}\n");
@@ -315,7 +315,7 @@ internal class Program
     {
         Console.WriteLine("\n--- All Orders ---");
         var orders = s_dal.Order?.ReadAll();
-        if (orders != null && orders.Count > 0)
+        if (orders != null && orders.Count() > 0)
         {
             foreach (var order in orders)
                 Console.WriteLine($"{order}\n");
@@ -385,7 +385,7 @@ internal class Program
     {
         Console.WriteLine("\n--- All Deliveries ---");
         var deliverys = s_dal.Delivery?.ReadAll();
-        if (deliverys != null && deliverys.Count > 0)
+        if (deliverys != null && deliverys.Count() > 0)
         {
             foreach (var delivery in deliverys)
                 Console.WriteLine($"{delivery}\n");

@@ -233,21 +233,26 @@ public static class Initialization
 
     private static void CreateDeliveries()
     {
-        var couriers = s_dal!.Courier!.ReadAll();
-        var orders = s_dal!.Order!.ReadAll().ToList();
-        var existingDeliveries = s_dal!.Delivery!.ReadAll(); // Get initial list of deliveries
+        var couriers = s_dal!.Courier.ReadAll();
+        var orders = s_dal!.Order.ReadAll().ToList();
+
+        // helped by gemini - prompt "'IEnumerable<Delivery>' does not contain a definition for 'Add' and no accessible extension
+        // method 'Add' accepting a first argument of type 'IEnumerable<Delivery>' could be found (are you missing a using
+        // directive or an assembly reference?)"
+        // Convert to List so we can call .Add() later
+        var existingDeliveries = s_dal!.Delivery.ReadAll().ToList();
 
         int deliveriesToCreate = 30;
         int closedCount = 20; // 20 closed, 10 in-progress
 
         for (int i = 0; i < deliveriesToCreate; i++)
         {
-            if (orders.Count == 0) break; // Stop if no orders left to assign
+            if (orders.Count == 0) break;
 
             Order order = orders[s_rand.Next(orders.Count)];
 
             AddressInfo? addressInfo = s_addresses.FirstOrDefault(a => a.Address == order.Address);
-            if (addressInfo == null) continue; // Skip if address is not in our list
+            if (addressInfo == null) continue;
 
             double orderAirDistance = GetAirDistance(s_hqLat, s_hqLon, addressInfo.Latitude, addressInfo.Longitude);
 
@@ -258,14 +263,14 @@ public static class Initialization
                 return !c.DistanceToDelivery.HasValue || c.DistanceToDelivery >= orderAirDistance;
             }).ToList();
 
-            if (availableCouriersByDistance.Count == 0) continue; // No courier can travel this far
+            if (availableCouriersByDistance.Count == 0) continue;
 
-            // Set a logical start time (after order, before now)
             DateTime potentialStartTime = order.StartOrderTime.AddMinutes(s_rand.Next(5, 60));
             if (potentialStartTime > s_dal!.Config!.Clock)
                 potentialStartTime = s_dal!.Config!.Clock.AddMinutes(-s_rand.Next(1, 30));
 
             var trulyAvailableCouriers = new List<Courier>();
+            var courierDurations = new Dictionary<int, double>(); // Store calculated duration per courier
 
             // Check for time overlaps
             foreach (var courier in availableCouriersByDistance)
@@ -275,7 +280,7 @@ public static class Initialization
                 double durationInHours = distance / speed;
                 DateTime potentialEndTime = potentialStartTime.AddHours(durationInHours);
 
-                // Check only against deliveries for *this* courier that are not yet ended
+                // Check only against *this* courier's active deliveries
                 var couriersDeliveries = existingDeliveries.Where(d => d.CourierId == courier.Id && d.EndOrderTime == null);
 
                 // Check if the potential new delivery overlaps with any existing ones
@@ -285,21 +290,25 @@ public static class Initialization
                 if (!hasOverlap)
                 {
                     trulyAvailableCouriers.Add(courier);
+                    courierDurations[courier.Id] = durationInHours; // Save the calculated duration
                 }
             }
 
-            if (trulyAvailableCouriers.Count == 0) continue; // All suitable couriers are busy at this time
+            if (trulyAvailableCouriers.Count == 0) continue;
 
             Courier chosenCourier = trulyAvailableCouriers[s_rand.Next(trulyAvailableCouriers.Count)];
             double? deliveryDistance = GetDistanceByTransport(addressInfo, chosenCourier.DeliveryType!.Value);
+            double deliveryDurationHours = courierDurations[chosenCourier.Id]; // Get the pre-calculated duration
 
             DateTime? endOrderTime = null;
             Enums.ShipmentCompletionStatus? endType = null;
 
             if (i < closedCount) // Create a "closed" delivery
             {
-                endOrderTime = potentialStartTime.AddHours(s_rand.Next(1, 6));
-                if (endOrderTime > s_dal!.Config!.Clock)
+                // Set logical end time based on calculated duration
+                endOrderTime = potentialStartTime.AddHours(deliveryDurationHours);
+
+                if (endOrderTime > s_dal!.Config!.Clock) // Ensure end time is in the past
                     endOrderTime = s_dal!.Config!.Clock.AddMinutes(-s_rand.Next(1, 15));
 
                 endType = (Enums.ShipmentCompletionStatus)s_rand.Next(0, 5);
@@ -308,13 +317,12 @@ public static class Initialization
             var newDelivery = new Delivery(0, order.Id, chosenCourier.Id, chosenCourier.DeliveryType.Value, potentialStartTime, deliveryDistance, endType, endOrderTime);
             s_dal!.Delivery!.Create(newDelivery);
 
-            // Add the newly created delivery (with its new ID) to the local list for the next iteration's overlap check
-            existingDeliveries.Add(newDelivery with { Id = s_dal!.Delivery!.ReadAll().Last().Id });
+            // This line now works because 'existingDeliveries' is a List
+            existingDeliveries.Add(newDelivery with { Id = s_dal!.Delivery.ReadAll().Last().Id });
 
             orders.Remove(order); // Remove order from the pool
         }
     }
-
     public static void Do(IDal dal)
     {
         s_dal = dal ?? throw new NullReferenceException("DAL object can not be null!"); // stage 2
@@ -323,12 +331,6 @@ public static class Initialization
         // Reset config to defaults before loading new initialization values
         s_dal.ResetDB();
         InitializeConfig();
-
-        Console.WriteLine("Deleting all data...");
-        // Clear all existing data from lists before seeding
-        s_dal!.Courier!.DeleteAll();
-        s_dal!.Delivery!.DeleteAll();
-        s_dal!.Order!.DeleteAll();
 
         Console.WriteLine("Creating Couriers...");
         CreateCouriers();

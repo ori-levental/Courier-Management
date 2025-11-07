@@ -3,7 +3,7 @@ using System.Security.AccessControl;
 
 namespace Dal;
 
-public class ConfigImplementation : IConfig
+internal class ConfigImplementation : IConfig
 {
     //  Manager order 
     public DateTime Clock

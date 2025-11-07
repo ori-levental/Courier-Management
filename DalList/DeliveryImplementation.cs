@@ -2,6 +2,7 @@
 using DalApi;
 using DO;
 using System.Collections.Generic;
+using System.Linq;
 
 /// <summary>
 /// Implements the IDelivery interface for managing Delivery data
@@ -34,7 +35,7 @@ internal class DeliveryImplementation : IDelivery
     public void Delete(int id)
     {
         // Find the item to delete, throw exception if not found
-        Delivery? temp = Read(id) ?? throw new Exception($"Delivery with ID={id} does Not exists");
+        Delivery? temp = Read(id) ?? throw new DalDoesNotExistException($"Delivery with ID={id} does Not exists");
 
         // else
         DataSource.Deliveries.Remove(temp);
@@ -55,17 +56,30 @@ internal class DeliveryImplementation : IDelivery
     /// <returns>The found delivery object, or null if not found.</returns>
     public Delivery? Read(int id)
     {
-        return DataSource.Deliveries.Find(T => T.Id == id);
+        return DataSource.Deliveries.FirstOrDefault(T => T.Id == id);
+    }
+    /// <summary>
+    /// Finds and returns the first entity that matches a specific condition.
+    /// </summary>
+    /// <param name="filter">A lambda expression (predicate) to filter the entities.</param>
+    /// <returns>The first matching entity, or null if no entity is found.</returns>
+    public Delivery? Read(Func<Delivery, bool> filter)
+    {
+        return DataSource.Deliveries.FirstOrDefault(filter);
     }
 
     /// <summary>
     /// Returns a copy of the entire list of deliveries.
     /// </summary>
     /// <returns>A new list containing all delivery objects.</returns>
-    public List<Delivery> ReadAll()
+    public IEnumerable<Delivery> ReadAll(Func<Delivery, bool>? filter = null) //stage 2
     {
-        // Creates a (shallow) copy of the list.
-        return new List<DO.Delivery>(DataSource.Deliveries);
+        // without filter - return the list
+        if (filter == null)
+            return DataSource.Deliveries;
+
+        // whith filter - use at him
+        return DataSource.Deliveries.Where(filter);
     }
 
     /// <summary>
