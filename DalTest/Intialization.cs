@@ -21,6 +21,7 @@ public static class Initialization
     private static readonly double s_hqLat = 32.0749;
     private static readonly double s_hqLon = 34.7923;
 
+    #region dataToFullTheTest
     private static readonly List<AddressInfo> s_addresses = new()
     {
         new("Sarona Market, Tel Aviv", 32.0717, 34.7865, 1.0, 0.9),
@@ -101,6 +102,7 @@ public static class Initialization
         "Shiri Weiss", "Noga Weiss", "Emily Hand", "Hila Rotem Shoshani", "Maya Regev", "Shoshan Haran", "Adi Shoham",
         "Nave Shoham", "Avigail Idan", "Hagar Brodutch", "Ofri Brodutch", "Judith Raanan", "Natalie Raanan"
     };
+    #endregion
 
     // Haversine formula for air distance calculation
     private static double GetAirDistance(double lat1, double lon1, double lat2, double lon2)
