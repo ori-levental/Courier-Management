@@ -1,3 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+	<NextOrderId>1</NextOrderId>
+	<NextDeliveryId>1</NextDeliveryId>
+	<Clock>1/1/0001 12:00:00 AM</Clock>
+	<ManagerId>0</ManagerId>
+	<ManagerPassword></ManagerPassword>
+	<CompanyAddress></CompanyAddress>
+	<Latitude>0</Latitude>
+	<Longitude>0</Longitude>
+	<MaxAirDistance>0</MaxAirDistance>
+	<AvgCarSpeed>0</AvgCarSpeed>
+	<AvgMotorcycleSpeed>0</AvgMotorcycleSpeed>
+	<AvgBicycleSpeed>0</AvgBicycleSpeed>
+	<AvgWalkSpeed>0</AvgWalkSpeed>
+	<MaxDeliveryTime>00:00:00</MaxDeliveryTime>
+	<RiskRange>00:00:00</RiskRange>
+	<CourierInactivityTime>00:00:00</CourierInactivityTime>
 </config>

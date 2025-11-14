@@ -95,10 +95,33 @@ static class XMLTools
         int num = root.ToIntNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
         return num;
     }
+    public static double GetConfigDoubleVal(string xmlFileName, string elemName)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        double num = root.ToDoubleNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
+        return num;
+    }
+    public static double? GetConfigNullableDoubleVal(string xmlFileName, string elemName)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        return root.ToDoubleNullable(elemName);
+    }
     public static DateTime GetConfigDateVal(string xmlFileName, string elemName)
     {
         XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
         DateTime dt = root.ToDateTimeNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
+        return dt;
+    }
+    public static TimeSpan GetConfigTimeSpanVal(string xmlFileName, string elemName)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        TimeSpan dt = root.ToTimeSpanNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
+        return dt;
+    }
+    public static string GetConfigStringVal(string xmlFileName, string elemName)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        string dt = root.ToStringNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
         return dt;
     }
     public static void SetConfigIntVal(string xmlFileName, string elemName, int elemVal)
@@ -113,6 +136,30 @@ static class XMLTools
         root.Element(elemName)?.SetValue((elemVal).ToString());
         XMLTools.SaveListToXMLElement(root, xmlFileName);
     }
+    public static void SetConfigTimeSpanVal(string xmlFileName, string elemName, TimeSpan elemVal)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        root.Element(elemName)?.SetValue((elemVal).ToString());
+        XMLTools.SaveListToXMLElement(root, xmlFileName);
+    }
+    public static void SetConfigStringVal(string xmlFileName, string elemName, string elemVal)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        root.Element(elemName)?.SetValue((elemVal).ToString());
+        XMLTools.SaveListToXMLElement(root, xmlFileName);
+    }
+    public static void SetConfigDoubleVal(string xmlFileName, string elemName, double elemVal)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        root.Element(elemName)?.SetValue((elemVal).ToString());
+        XMLTools.SaveListToXMLElement(root, xmlFileName);
+    }
+    public static void SetConfigNullableDoubleVal(string xmlFileName, string elemName, double? elemVal)
+    {
+        XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
+        root.Element(elemName)?.SetValue(elemVal.ToString() ?? string.Empty);
+        XMLTools.SaveListToXMLElement(root, xmlFileName);
+    }
     #endregion
 
 
@@ -121,6 +168,11 @@ static class XMLTools
         Enum.TryParse<T>((string?)element.Element(name), out var result) ? (T?)result : null;
     public static DateTime? ToDateTimeNullable(this XElement element, string name) =>
         DateTime.TryParse((string?)element.Element(name), out var result) ? (DateTime?)result : null;
+    public static TimeSpan? ToTimeSpanNullable(this XElement element, string name) =>
+    TimeSpan.TryParse((string?)element.Element(name), out var result) ? (TimeSpan?)result : null;
+    public static string? ToStringNullable(this XElement element, string name)=>
+         (string?)element.Element(name);
+    
     public static double? ToDoubleNullable(this XElement element, string name) =>
         double.TryParse((string?)element.Element(name), out var result) ? (double?)result : null;
     public static int? ToIntNullable(this XElement element, string name) =>
