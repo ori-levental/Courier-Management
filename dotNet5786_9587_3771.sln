@@ -20,8 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "xml", "xml", "{02EA681E-C7D
 	ProjectSection(SolutionItems) = preProject
 		xml\couriers.xml = xml\couriers.xml
 		xml\data-config.xml = xml\data-config.xml
-		xml\deliveries..xml = xml\deliveries..xml
 		xml\orders.xml = xml\orders.xml
+		xml\deliveries.xml = xml\deliveries.xml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DalXml", "DalXml\DalXml.csproj", "{8BA10A13-5F49-027B-C99E-77A6D7C9943B}"
