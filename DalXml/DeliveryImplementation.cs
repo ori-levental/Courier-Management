@@ -1,9 +1,6 @@
 ﻿namespace Dal;
 using DalApi;
 using DO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 internal class DeliveryImplementation : IDelivery
 {
