@@ -325,9 +325,9 @@ public static class Initialization
             orders.Remove(order); // Remove order from the pool
         }
     }
-    public static void Do(IDal dal)
+    public static void Do()
     {
-        s_dal = dal ?? throw new NullReferenceException("DAL object can not be null!"); // stage 2
+        s_dal = DalApi.Factory.Get;
 
         Console.WriteLine("Resetting and Initializing Configuration...");
         // Reset config to defaults before loading new initialization values
