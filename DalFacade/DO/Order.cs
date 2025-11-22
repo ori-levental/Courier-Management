@@ -11,7 +11,7 @@
 /// <param name="Latitude">The geographic latitude of the delivery address.</param>
 /// <param name="Longitude">The geographic longitude of the delivery address.</param>
 /// <param name="OrderingName">The name of the customer who placed the order.</param>
-/// <param name="phoneNumber">The phone number of the customer.</param>
+/// <param name="PhoneNumber">The phone number of the customer.</param>
 /// <param name="StartOrderTime">The date and time when the order was placed.</param>
 public record Order
 (
@@ -22,7 +22,7 @@ public record Order
     double Latitude,
     double Longitude,
     string OrderingName,
-    string phoneNumber,
+    string PhoneNumber,
     DateTime StartOrderTime
 )
 {

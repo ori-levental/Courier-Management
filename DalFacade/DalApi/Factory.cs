@@ -1,6 +1,15 @@
 ﻿namespace DalApi;
+/// <summary>
+/// Implements the Simple Factory pattern to dynamically load the selected Data Access Layer (DAL) implementation at runtime.
+/// This mechanism forces the target class to adhere to the Singleton pattern.
+/// </summary>
 public static class Factory
 {
+    /// <summary>
+    /// Retrieves the Singleton instance of the active DAL implementation (DalXml or DalList) based on the configuration file (dal-config.xml).
+    /// </summary>
+    /// <exception cref="DalConfigException">Thrown if the configuration file is missing, invalid, or the specified DAL implementation cannot be loaded or is not a Singleton.</exception>
+    /// <returns>The Singleton instance of the selected class implementing IDal.</returns>
     public static IDal Get
     {
         get

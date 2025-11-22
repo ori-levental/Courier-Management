@@ -6,8 +6,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
+/// <summary>
+/// XML (XElement) implementation of the ICourier interface.
+/// </summary>
 internal class CourierImplementation : ICourier
 {
+    /// <summary>
+    /// Helper: Converts an XElement to a Courier entity.
+    /// </summary>
     static Courier getCourier(XElement s)
     {
         return new DO.Courier()
@@ -23,6 +29,10 @@ internal class CourierImplementation : ICourier
             EmploymentStartDate = s.ToDateTimeNullable("EmploymentStartDate"),
         };
     }
+
+    /// <summary>
+    /// Helper: Converts a Courier entity to an XElement.
+    /// </summary>
     static XElement ToXElement(Courier courier)
     {
         return new XElement("Courier",
@@ -38,6 +48,9 @@ internal class CourierImplementation : ICourier
         );
     }
 
+    /// <summary>
+    /// Adds a new Courier to the XML file. Throws if ID exists.
+    /// </summary>
     public void Create(Courier item)
     {
         // load the list
@@ -55,6 +68,9 @@ internal class CourierImplementation : ICourier
         }
     }
 
+    /// <summary>
+    /// Deletes a Courier by ID. Throws if not found.
+    /// </summary>
     public void Delete(int id)
     {
         // load the list
@@ -74,6 +90,9 @@ internal class CourierImplementation : ICourier
         }
     }
 
+    /// <summary>
+    /// Removes all Couriers from the XML file.
+    /// </summary>
     public void DeleteAll()
     {
         // load the list
@@ -84,6 +103,9 @@ internal class CourierImplementation : ICourier
         XMLTools.SaveListToXMLElement(root, Config.s_couriers_xml);
     }
 
+    /// <summary>
+    /// Retrieves a Courier by ID, or null if not found.
+    /// </summary>
     public Courier? Read(int id)
     {
         XElement? courierElem =
@@ -91,21 +113,28 @@ internal class CourierImplementation : ICourier
         return courierElem is null ? null : getCourier(courierElem);
     }
 
-
+    /// <summary>
+    /// Retrieves the first Courier matching the filter condition.
+    /// </summary>
     public Courier? Read(Func<Courier, bool> filter)
     {
         return XMLTools.LoadListFromXMLElement(Config.s_couriers_xml).Elements().Select(c => getCourier(c)).FirstOrDefault(filter);
     }
 
-
+    /// <summary>
+    /// Retrieves all Couriers, optionally filtered by a predicate.
+    /// </summary>
     public IEnumerable<Courier> ReadAll(Func<Courier, bool>? filter = null)
     {
         // load the list
         XElement root = XMLTools.LoadListFromXMLElement(Config.s_couriers_xml);
-        var couriers = root.Elements("Courier").Select(c=>getCourier(c));
+        var couriers = root.Elements("Courier").Select(c => getCourier(c));
         return filter == null ? couriers : couriers.Where(filter);
     }
 
+    /// <summary>
+    /// Updates an existing Courier. Throws if ID not found.
+    /// </summary>
     public void Update(Courier item)
     {
         // load the courier XML
