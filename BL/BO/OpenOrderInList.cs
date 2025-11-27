@@ -13,5 +13,7 @@ public class OpenOrderInList
     public DateTime MaxArrivalTime { get; init; }
     public TimeSpan TimeRemaining { get; init; }
     public ScheduleStatus ScheduleStatus { get; init; }
+    public override string ToString() => this.ToStringProperty();
+
 }
 

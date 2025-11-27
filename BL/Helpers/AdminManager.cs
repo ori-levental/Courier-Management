@@ -37,7 +37,7 @@ internal static class AdminManager //stage 4
         // - (students become not active after 5 years etc.)
 
         //TO_DO: //stage 4
-        StudentManager.PeriodicStudentsUpdates(oldClock, newClock); //stage 4. to be removed in stage 7 and replaced as below
+     //   StudentManager.PeriodicStudentsUpdates(oldClock, newClock); //stage 4. to be removed in stage 7 and replaced as below
         //...
 
         //TO_DO: //stage 7
@@ -56,10 +56,9 @@ internal static class AdminManager //stage 4
     internal static BO.Config GetConfig() //stage 4
     => new BO.Config()
     {
-        MaxRange = s_dal.Config.MaxRange
-        //TO_DO: //stage 4
-        //add an assignment for each configuration property
-        //...
+        MaxRange = s_dal.Config.MaxAirDistance,
+        Clock = s_dal.Config.Clock,
+
     };
 
     /// <summary>
@@ -70,9 +69,19 @@ internal static class AdminManager //stage 4
     {
         bool configChanged = false; // stage 5
 
-        if (s_dal.Config.MaxRange != configuration.MaxRange) //stage 4
+        if (s_dal.Config.MaxAirDistance != configuration.MaxRange) //stage 4
         {
-            s_dal.Config.MaxRange = configuration.MaxRange;
+            s_dal.Config.MaxAirDistance = configuration.MaxRange;
+            configChanged = true;
+        }
+        if (s_dal.Config.Clock != configuration.Clock)
+        {
+            s_dal.Config.Clock = configuration.Clock;
+            configChanged = true;
+        }
+        if(s_dal.Config.ManagerPassword != configuration.ManagerPassword)
+        {
+            s_dal.Config.ManagerPassword = configuration.ManagerPassword;
             configChanged = true;
         }
         //TO_DO: //stage 4

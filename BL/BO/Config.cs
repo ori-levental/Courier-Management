@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace BO;
 
-namespace BO
+public class Config
 {
-    public class Config
-    {
-        public int MaxRange { get; set; }
+    public double? MaxRange { get; set; }
+    public  DateTime Clock {  get; set; }
+    public string ManagerPassword { get; set; }
+    public  string CompanyAdress { get; set; }
 
 
-    }
 }

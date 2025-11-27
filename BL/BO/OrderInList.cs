@@ -11,4 +11,6 @@ public class OrderInList
     public TimeSpan TimeRemaining { get; init; }
     public TimeSpan TotalProcessingTime { get; init; }
     public int TotalDeliveries { get; init; }
+    public override string ToString() => this.ToStringProperty();
+
 }

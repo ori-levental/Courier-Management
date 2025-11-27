@@ -9,4 +9,7 @@ public class DeliveryPerOrderInList
     public DateTime DeliveryStartTime { get; init; }
     public ShipmentCompletionStatus? DeliveryEndType { get; init; }
     public DateTime? DeliveryEndTime { get; init; }
+    public override string ToString() => this.ToStringProperty();
+
+
 }

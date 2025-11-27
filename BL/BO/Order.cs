@@ -28,4 +28,6 @@ public class Order
 
     // --- WORKFLOW & HISTORY ---
     public List<DeliveryPerOrderInList>? DeliveryHistory { get; init; } // List of linked deliveries
+    public override string ToString() => this.ToStringProperty();
+
 }
