@@ -54,12 +54,13 @@ internal static class AdminManager //stage 4
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     internal static BO.Config GetConfig() //stage 4
-    => new BO.Config()
-    {
-        MaxRange = s_dal.Config.MaxAirDistance,
-        Clock = s_dal.Config.Clock,
-
-    };
+=> new BO.Config()
+{
+    MaxRange = s_dal.Config.MaxAirDistance,
+    Clock = s_dal.Config.Clock,
+    CompanyAddress = s_dal.Config.CompanyAddress,
+    ManagerPassword = s_dal.Config.ManagerPassword
+};
 
     /// <summary>
     /// Method for setting current configuration variables values for any BL class that may need it
@@ -82,6 +83,11 @@ internal static class AdminManager //stage 4
         if(s_dal.Config.ManagerPassword != configuration.ManagerPassword)
         {
             s_dal.Config.ManagerPassword = configuration.ManagerPassword;
+            configChanged = true;
+        }
+        if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
+        {
+            s_dal.Config.CompanyAddress = configuration.CompanyAddress;
             configChanged = true;
         }
         //TO_DO: //stage 4
