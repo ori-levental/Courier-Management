@@ -7,15 +7,12 @@ internal class CourierImplementationcs : ICourier
 {
     public void AddCourier(int requesterId, Courier courier)
     {
-        try
-        {
-            if (courier == null)
-                throw new BO.BLTemporaryNotAvailableException("Cannot add null object");
-        }
-        catch (BO.BLTemporaryNotAvailableException ex)
-        {
-            throw new BO.BLGeneralException($"ERROR : occurred while try to add new Courier: {ex.Message}");
-        }
+        Helpers.CourierManager.AccessPermissionToManager(requesterId);
+        if (courier == null)
+            throw new BO.BLNotNullableException("Cannot add null object");
+
+        Helpers.CourierManager.CheckCorrectnessVariables(courier);
+        Helpers.CourierManager.AddCourier(requesterId, courier);
     }
 
 
