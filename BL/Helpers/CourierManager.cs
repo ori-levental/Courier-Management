@@ -146,5 +146,6 @@ internal static class CourierManager
                 throw new BO.BLInvalidDataException($"ERROR: Personal max distance ({maxDistance}) cannot exceed company limit ({companyMaxLimit}).");
         }
     }
+}
 
     #endregion Check New Courier Fildes
