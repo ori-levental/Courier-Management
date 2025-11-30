@@ -7,16 +7,7 @@ internal class OrderImplementation : IOrder
 {
     public void AddOrder(int requesterId, Order order)
     {
-        try
-        {
-            if (order == null)
-                throw new BO.BLTemporaryNotAvailableException("Cannot add null object");
-        }
-        catch (BO.BLTemporaryNotAvailableException ex)
-        {
-            throw new BO.BLGeneralException($"ERROR : occurred while try to add new Order: {ex.Message}");
-        }
-        
+       Helpers.OrderManager.AddOrder(requesterId, order);
     }
 
     public void CancelOrder(int requesterId, int orderId)
@@ -64,9 +55,29 @@ internal class OrderImplementation : IOrder
         throw new NotImplementedException();
     }
 
-    public void UpdateOrder(int requesterId, Order order)
+    public void UpdateOrder(int requesterId, int OrderId)
     {
-        throw new NotImplementedException();
+       Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        try
+        {
+            dalOrder = 
+            if (dalOrder == null)
+                throw new BO.BLItemNotFoundException($"Order with ID {order.Id} not found");
+            // Update fields
+            dalOrder.OrderType = (DalApi.OrderType).get();
+            dalOrder.Description = order.Description;
+            dalOrder.OrderingName = order.OrderingName;
+            dalOrder.PhoneNumber = order.PhoneNumber;
+            dalOrder.IsHeavy = order.IsHeavy;
+            dalOrder.FullAddress = order.FullAddress;
+            dalOrder.Latitude = order.Latitude;
+            dalOrder.Longitude = order.Longitude;
+            DalApi.Factory.Get.Order.Update(dalOrder);
+        }
+        catch (BO.BLTemporaryNotAvailableException ex)
+        {
+            throw new BO.BLGeneralException($"ERROR : occurred while try to update Order: {ex.Message}");
+        }
     }
 
     void IOrder.DeleteOrder(int requesterId, int orderId)
