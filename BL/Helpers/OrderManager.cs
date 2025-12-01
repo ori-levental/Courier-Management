@@ -83,11 +83,6 @@ internal static class OrderManager
     {
      
     }
-    internal static void AccessPermissionToManager(int requesterId)
-    {
-        if (requesterId != DalApi.Factory.Get.Config.ManagerId)
-            throw new BO.BLAccessPermission("ERROR: No access permission");
-    }
 
     internal static void CheckCorrectnessVariables(BO.Order boOrder)
     {
@@ -124,18 +119,8 @@ internal static class OrderManager
             throw new BO.BLInvalidDataException("ERROR: latitude must be between -90 to 90 degrees");
     }
 
-    internal static void CheckPhoneNumber(string phoneNumber)
-    {
-        // Validate format: 10 digits, starts with '05', contains only numbers
-        if (string.IsNullOrWhiteSpace(phoneNumber) ||
-            phoneNumber.Length != 10 ||
-            phoneNumber[0] != '0' ||
-            phoneNumber[1] != '5' ||
-            !phoneNumber.All(char.IsDigit))
-        {
-            throw new BO.BLInvalidDataException("ERROR: Invalid phone number. Must start with '05' and contain 10 digits.");
-        }
-    }
+    
+  
 
 
 }
