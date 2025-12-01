@@ -1,5 +1,6 @@
 ﻿using BO;
 using DalApi;
+using DO;
 
 namespace Helpers;
 
@@ -33,6 +34,54 @@ internal static class OrderManager
         {
             throw new BO.BlAlreadyExistsException($"Order with ID {doOrder.Id} already exists", ex);
         }
+    }
+    internal static void OrderIsOpen(int orderId)
+    {
+        IEnumerable<DO.Delivery> deliveries = Factory.Get.Delivery.ReadAll();
+        DO.Delivery? delivery = deliveries.Where(Order => Order.OrderId == orderId).FirstOrDefault();
+        if (delivery == null)
+            throw new BO.BlDoesNotExistException("ERROR: No delivery found for the given order ID");
+        if (delivery.EndType == Enums.ShipmentCompletionStatus.Provided)
+            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has been provided to the customer");
+        if(delivery.EndType == Enums.ShipmentCompletionStatus.Refused)
+            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has been refused by the customer");
+        if(delivery.EndType == Enums.ShipmentCompletionStatus.Cancelled)
+            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has already been cancelled");
+
+        // Create a new Delivery object with updated EndType, then update in DAL
+        DO.Delivery updatedDelivery = delivery with { EndType = Enums.ShipmentCompletionStatus.Cancelled,
+        EndOrderTime =DateTime.Now};
+        Factory.Get.Delivery.Update(updatedDelivery);
+    }
+    internal static void CancelOrder(int orderId)
+    {
+        OrderIsOpen(orderId);
+    }
+    internal static void CloseOrder(int courierId, int orderId)
+    {
+        IEnumerable<DO.Delivery> deliveries = Factory.Get.Delivery.ReadAll();
+        DO.Delivery? delivery = deliveries.Where(Order => Order.OrderId == orderId).FirstOrDefault();
+        if (delivery == null)
+            throw new BO.BlDoesNotExistException("ERROR: No delivery found for the given order ID");
+        if (delivery.CourierId != courierId)
+            throw new BO.BLAccessPermission("ERROR: No access permission to close this order");
+        if (delivery.EndType == Enums.ShipmentCompletionStatus.Provided)
+            throw new BO.BLCannotClose("ERROR: cannot close an order that has been provided to the customer");
+        if (delivery.EndType == Enums.ShipmentCompletionStatus.Refused)
+            throw new BO.BLCannotClose("ERROR: cannot close an order that has been refused by the customer");
+        if (delivery.EndType == Enums.ShipmentCompletionStatus.Cancelled)
+            throw new BO.BLCannotClose("ERROR: cannot close an order that has been cancelled");
+        // Create a new Delivery object with updated EndType, then update in DAL
+        DO.Delivery updatedDelivery = delivery with
+        {
+            EndType = Enums.ShipmentCompletionStatus.Provided,
+            EndOrderTime = DateTime.Now
+        };
+        Factory.Get.Delivery.Update(updatedDelivery);
+    }
+    static internal IEnumerable<BO.ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType filteredBy, ClosedDeliveryInListEnum sortBy)
+    {
+     
     }
     internal static void AccessPermissionToManager(int requesterId)
     {
