@@ -7,27 +7,23 @@ internal class OrderImplementation : IOrder
 {
     public void AddOrder(int requesterId, Order order)
     {
-       Helpers.OrderManager.AddOrder(requesterId, order);
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        if (order == null)
+            throw new BO.BLNotNullableException("Cannot add null object");
+
+        Helpers.OrderManager.CheckCorrectnessVariables(order);
+        Helpers.OrderManager.AddOrder(requesterId, order);
     }
 
     public void CancelOrder(int requesterId, int orderId)
     {
-        try
-        {
-           if(ListOfOrder.Read(requesterId, orderId) == null)
-            {
-
-            }
-        }
-        catch (BO.BLTemporaryNotAvailableException ex)
-        {
-            throw new BO.BLGeneralException($"ERROR : occurred while try to add delete Courier: {ex.Message}");
-        }
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.CancelOrder(orderId);
     }
-
     public void CloseOrder(int requesterId, int courierId, int orderId)
     {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.CloseOrder(courierId, orderId);
     }
 
     public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType filteredBy, ClosedDeliveryInListEnum sortBy)
@@ -55,32 +51,22 @@ internal class OrderImplementation : IOrder
         throw new NotImplementedException();
     }
 
-    public void UpdateOrder(int requesterId, int OrderId)
+    void IOrder.AddOrder(int requesterId, BO.Order order)
     {
-       Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        try
-        {
-            dalOrder = 
-            if (dalOrder == null)
-                throw new BO.BLItemNotFoundException($"Order with ID {order.Id} not found");
-            // Update fields
-            dalOrder.OrderType = (DalApi.OrderType).get();
-            dalOrder.Description = order.Description;
-            dalOrder.OrderingName = order.OrderingName;
-            dalOrder.PhoneNumber = order.PhoneNumber;
-            dalOrder.IsHeavy = order.IsHeavy;
-            dalOrder.FullAddress = order.FullAddress;
-            dalOrder.Latitude = order.Latitude;
-            dalOrder.Longitude = order.Longitude;
-            DalApi.Factory.Get.Order.Update(dalOrder);
-        }
-        catch (BO.BLTemporaryNotAvailableException ex)
-        {
-            throw new BO.BLGeneralException($"ERROR : occurred while try to update Order: {ex.Message}");
-        }
+        throw new NotImplementedException();
     }
 
     void IOrder.DeleteOrder(int requesterId, int orderId)
+    {
+        throw new NotImplementedException();
+    }
+
+    BO.Order IOrder.OrderDetails(int requesterId, int orderId)
+    {
+        throw new NotImplementedException();
+    }
+
+    void IOrder.UpdateOrder(int requesterId, BO.Order order)
     {
         throw new NotImplementedException();
     }

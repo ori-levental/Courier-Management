@@ -97,7 +97,20 @@ public class BLAccessPermission : Exception
     public BLAccessPermission(string? message) : base(message) { }
     public BLAccessPermission(string? message, Exception? innerException) : base(message, innerException) { }
 }
-
+[Serializable]
+public class BLCannotCancel : Exception
+{
+    public BLCannotCancel() : base() { }
+    public BLCannotCancel(string? message) : base(message) { }
+    public BLCannotCancel(string? message, Exception? innerException) : base(message, innerException) { }
+}
+[Serializable]
+public class BLCannotClose : Exception
+{
+    public BLCannotClose() : base() { }
+    public BLCannotClose(string? message) : base(message) { }
+    public BLCannotClose(string? message, Exception? innerException) : base(message, innerException) { }
+}
 
 
 
