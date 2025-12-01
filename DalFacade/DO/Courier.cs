@@ -7,7 +7,7 @@
 /// <param name="FullName">The firsr and last name of the courier.</param>
 /// <param name="PhoneNumber">The courier's phone number.</param>
 /// <param name="Email">The courier's email address.</param>
-/// <param name="password">The courier's login password.</param>
+/// <param name="Password">The courier's login password.</param>
 /// <param name="Active">Indicates whether the courier is currently active.</param>
 /// <param name="DistanceToDelivery">The maximum distance the courier is willing to travel for a delivery,
 ///                                  defined from the company HQ to the customer. Nullable.</param>
@@ -19,7 +19,7 @@ public record Courier
     string FullName,
     string PhoneNumber,
     string Email,
-    string password,
+    string Password,
     bool Active,
     double? DistanceToDelivery,       // Nullable 
     Enums.ShippingType? DeliveryType, // Nullable 

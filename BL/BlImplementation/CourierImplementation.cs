@@ -3,7 +3,7 @@ using BO;
 
 namespace BlImplementation;
 
-internal class CourierImplementationcs : ICourier
+internal class CourierImplementation : ICourier
 {
     public void AddCourier(int requesterId, Courier courier)
     {
@@ -15,18 +15,22 @@ internal class CourierImplementationcs : ICourier
         Helpers.CourierManager.AddCourier(requesterId, courier);
     }
 
-
-
-    ///////////////////----------------------------------------------------------------------------////////////////////
-    public void DeleteCourier(int requesterId, int CourierId)
+    public void DeleteCourier(int requesterId, int courierId)
     {
-        throw new NotImplementedException();
+        Helpers.CourierManager.AccessPermissionToManager(requesterId);
+        Helpers.CourierManager.CheckIfOrderOpen(courierId);
+        Helpers.CourierManager.DeleteCourier(courierId);
     }
+
 
     public EmployType EnterToSystem(int id, string password)
     {
-        throw new NotImplementedException();
+        Helpers.CourierManager.CheckId(id);
+        Helpers.CourierManager.CheckPasswordEntry(id, password);
+        return Helpers.CourierManager.GetEmployType(id);
     }
+
+    ///////////////////----------------------------------------------------------------------------////////////////////
 
     public IEnumerable<CourierInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? SortBy)
     {

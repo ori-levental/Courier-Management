@@ -1,4 +1,5 @@
-﻿using DalApi;
+﻿using BO;
+using DalApi;
 using System.Buffers.Text;
 using System.Net.Mail;
 using System.Security;
@@ -25,7 +26,6 @@ internal static class CourierManager
         };
         return doCourier;
     }
-
     internal static void CheckCorrectnessVariables(BO.Courier boCourier)
     {
         // Execute all individual property validations
@@ -47,7 +47,6 @@ internal static class CourierManager
             throw new BO.BlAlreadyExistsException($"Courier with ID {doCourier.Id} already exists", ex);
         }
     }
-
     internal static void AccessPermissionToManager(int requesterId)
     {
         if (requesterId != DalApi.Factory.Get.Config.ManagerId)
@@ -81,7 +80,7 @@ internal static class CourierManager
 
         // Validate modulo 10
         if (sum % 10 != 0)
-            throw new BO.BLInvalidDataException("ERROR: Invalid ID number (Checksum failed)");
+            throw new BO.BLInvalidDataException("ERROR: Invalid ID number");
     }
 
     internal static void CheckPhoneNumber(string phoneNumber)
@@ -146,6 +145,47 @@ internal static class CourierManager
                 throw new BO.BLInvalidDataException($"ERROR: Personal max distance ({maxDistance}) cannot exceed company limit ({companyMaxLimit}).");
         }
     }
-}
+
 
     #endregion Check New Courier Fildes
+
+    #region Check to delete Courier Fildes
+
+    internal static void CheckIfOrderOpen(int courierId)
+    {
+        IEnumerable<DO.Delivery?> deliveries = Factory.Get.Delivery.ReadAll();
+
+        bool hasOpenOrder = deliveries.Any(delivery => delivery?.CourierId == courierId && delivery?.EndType == null);
+
+        if (hasOpenOrder)
+        {
+            throw new BO.BlDeletionImpossibleException($"Cannot delete courier - {courierId} because he have an active order.");
+        }
+    }
+
+    internal static void DeleteCourier(int courierId)
+    {
+        Factory.Get.Courier.Delete(courierId);
+    }
+    #endregion Check to delete Courier Fildes
+
+    #region Enter to system
+    internal static void CheckPasswordEntry(int id, string password)
+    {
+        DO.Courier? doCourier = Factory.Get.Courier.Read(id);
+
+        if (doCourier == null || password != doCourier.Password)
+            throw new BO.BLInvalidDataException("ERROR : userId or password are wrong");
+    }
+    internal static EmployType GetEmployType(int id)
+    {
+        if (id == Factory.Get.Config.ManagerId)
+            return EmployType.Manager;
+        else
+            return EmployType.Courier;
+    }
+
+    #endregion Enter to system
+
+
+}
