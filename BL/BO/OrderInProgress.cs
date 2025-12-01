@@ -5,10 +5,10 @@ public class OrderInProgress // Represents a delivery currently being handled by
     // --- Identifiers & Links (From DO.Delivery and DO.Order) ---
     public int DeliveryId { get; init; }
     public int OrderId { get; init; }
-    public ShippingType ShippingType { get; init; }
+    public OrderType OrderType { get; init; }
 
     // --- Customer & Location Details (From DO.Order) ---
-    public string OrderingName { get; init; }
+    public string CustomerName { get; init; }
     public string CustomerPhone { get; init; }
     public string Address { get; init; }
     public string? Description { get; init; }
@@ -19,7 +19,7 @@ public class OrderInProgress // Represents a delivery currently being handled by
 
     // --- Time Metrics ---
     public DateTime StartOrderTime { get; init; }     // Time order was created (DO.Order)
-    public DateTime DeliveryStartTime { get; init; }  // Time courier started trip (DO.Delivery)
+    public DateTime StartDeliveryTime { get; init; }  // Time courier started trip (DO.Delivery)
 
     // --- Calculated Status and Times ---
     public DateTime EstimatedArrivalTime { get; init; }   // Calculated based on current speed/distance
@@ -28,7 +28,6 @@ public class OrderInProgress // Represents a delivery currently being handled by
     public TimeSpan TimeToComplete { get; init; }       // Calculated: Difference between start and expected end (used for BO.ClosedDeliveryInList logic)
 
     // --- Status Enums ---
-    public ShipmentCompletionStatus OrderStatus { get; init; }     // Calculated status
     public ScheduleStatus ScheduleStatus { get; init; } // Calculated schedule status
 
     // --- To string ---

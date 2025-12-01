@@ -253,7 +253,7 @@ public static class Initialization
 
             Order order = orders[s_rand.Next(orders.Count)];
 
-            AddressInfo? addressInfo = s_addresses.FirstOrDefault(a => a.Address == order.Address);
+            AddressInfo? addressInfo = s_addresses.FirstOrDefault(a => a.Address == order.CustomerAddress);
             if (addressInfo == null) continue;
 
             double orderAirDistance = GetAirDistance(s_hqLat, s_hqLon, addressInfo.Latitude, addressInfo.Longitude);
@@ -287,7 +287,7 @@ public static class Initialization
 
                 // Check if the potential new delivery overlaps with any existing ones
                 bool hasOverlap = couriersDeliveries.Any(d =>
-                    d.StartOrderTime < potentialEndTime && potentialStartTime < (d.EndOrderTime ?? DateTime.MaxValue));
+                    d.StartDeliveryTime < potentialEndTime && potentialStartTime < (d.EndOrderTime ?? DateTime.MaxValue));
 
                 if (!hasOverlap)
                 {

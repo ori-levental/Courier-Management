@@ -1,5 +1,7 @@
-﻿using BO;
+﻿using BlApi;
+using BO;
 using DalApi;
+using DO;
 using System.Buffers.Text;
 using System.Net.Mail;
 using System.Security;
@@ -26,6 +28,25 @@ internal static class CourierManager
         };
         return doCourier;
     }
+    private static BO.Courier DOToBOCourier(DO.Courier doCourier)
+    {
+        BO.Courier boCourier = new BO.Courier()
+        {
+            Id = doCourier.Id,
+            FullName = doCourier.FullName,
+            Email = doCourier.Email,
+            PhoneNumber = doCourier.PhoneNumber,
+            Password = doCourier.Password,
+            IsActive = doCourier.Active,
+            DistanceToDelivery = doCourier.DistanceToDelivery,
+            DeliveryType = (BO.ShippingType?)doCourier.DeliveryType,
+            EmploymentStartDate = doCourier.EmploymentStartDate,
+            SumOrderInTime = SumOrderInTime(doCourier),
+            SumOrderInLate = SumOrderInLate(doCourier),
+            OrderInCare = 
+        };
+        return boCourier;
+    }
     internal static void CheckCorrectnessVariables(BO.Courier boCourier)
     {
         // Execute all individual property validations
@@ -35,7 +56,7 @@ internal static class CourierManager
         CheckPassword(boCourier.Password);
         CheckPersonalMaxDistance(boCourier.DistanceToDelivery);
     }
-    internal static void AddCourier(int requesterId, BO.Courier boCourier)
+    internal static void AddCourier(BO.Courier boCourier)
     {
         DO.Courier doCourier = BOToDOCourier(boCourier);
         try
@@ -49,7 +70,7 @@ internal static class CourierManager
     }
     internal static void AccessPermissionToManager(int requesterId)
     {
-        if (requesterId != DalApi.Factory.Get.Config.ManagerId)
+        if (requesterId != s_dal.Config.ManagerId)
             throw new BO.BLAccessPermission("ERROR: No access permission");
     }
 
@@ -134,7 +155,7 @@ internal static class CourierManager
         if (maxDistance != null)
         {
             // Retrieve global limit from DAL
-            double companyMaxLimit = DalApi.Factory.Get.Config.MaxAirDistance ?? 0;
+            double companyMaxLimit = s_dal.Config.MaxAirDistance ?? 0;
 
             // Validate positive value
             if (maxDistance <= 0)
@@ -151,35 +172,32 @@ internal static class CourierManager
 
     #region Check to delete Courier Fildes
 
-    internal static void CheckIfOrderOpen(int courierId)
+    internal static bool CheckIfOrderOpen(int courierId)
     {
-        IEnumerable<DO.Delivery?> deliveries = Factory.Get.Delivery.ReadAll();
+        IEnumerable<DO.Delivery?> deliveries = s_dal.Delivery.ReadAll();
 
         bool hasOpenOrder = deliveries.Any(delivery => delivery?.CourierId == courierId && delivery?.EndType == null);
 
-        if (hasOpenOrder)
-        {
-            throw new BO.BlDeletionImpossibleException($"Cannot delete courier - {courierId} because he have an active order.");
-        }
+        return hasOpenOrder;
     }
 
     internal static void DeleteCourier(int courierId)
     {
-        Factory.Get.Courier.Delete(courierId);
+        s_dal.Courier.Delete(courierId);
     }
     #endregion Check to delete Courier Fildes
 
     #region Enter to system
     internal static void CheckPasswordEntry(int id, string password)
     {
-        DO.Courier? doCourier = Factory.Get.Courier.Read(id);
+        DO.Courier? doCourier = s_dal.Courier.Read(id);
 
         if (doCourier == null || password != doCourier.Password)
             throw new BO.BLInvalidDataException("ERROR : userId or password are wrong");
     }
     internal static EmployType GetEmployType(int id)
     {
-        if (id == Factory.Get.Config.ManagerId)
+        if (id == s_dal.Config.ManagerId)
             return EmployType.Manager;
         else
             return EmployType.Courier;
@@ -187,5 +205,94 @@ internal static class CourierManager
 
     #endregion Enter to system
 
+    #region Sort and filter 
+    private static BO.CourierInList DOToCourierInList(DO.Courier doCourier)
+    {
+        return new BO.CourierInList
+        {
+            Id = doCourier.Id,
+            FullName = doCourier.FullName,
+            IsActive = doCourier.Active,
+            DeliveryType = (BO.ShippingType)doCourier.DeliveryType!,
+            EmploymentStartDate = doCourier.EmploymentStartDate,
+
+            SumOrderInTime = SumOrderInTime(doCourier),
+
+            SumOrderInLate = SumOrderInLate(doCourier),
+
+            IdOrderInCare = s_dal.Delivery
+    .ReadAll(d => d?.CourierId == doCourier.Id && d?.EndOrderTime == null)
+    .FirstOrDefault() ?.Id,
+        };
+    }
+
+    private static int SumOrderInTime(DO.Courier doCourier)
+    {
+        return s_dal.Delivery.ReadAll(d =>
+                d?.CourierId == doCourier.Id &&
+                d?.EndOrderTime != null &&
+                d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided)
+.Count(d => (d!.EndOrderTime!.Value - s_dal.Order.Read(d.OrderId)!.StartOrderTime)
+            <= s_dal.Config.MaxDeliveryTime);
+    }
+
+    private static int SumOrderInLate(DO.Courier doCourier)
+    {
+        return s_dal.Delivery.ReadAll(d =>
+                d?.CourierId == doCourier.Id &&
+                d?.EndOrderTime != null &&
+                d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided)
+.Count(d => (d!.EndOrderTime!.Value - s_dal.Order.Read(d.OrderId)!.StartOrderTime)
+            > s_dal.Config.MaxDeliveryTime);
+    }
+
+    internal static IEnumerable<BO.CourierInList> FilterByActive(bool? isActive = null)
+    {
+        IEnumerable<DO.Courier?> doList;
+
+        if (isActive == null)
+            doList = s_dal.Courier.ReadAll();
+        else
+            doList = s_dal.Courier.ReadAll(c => c?.Active == isActive);
+
+        return doList
+                .Where(c => c != null)
+                .Select(c => DOToCourierInList(c!));
+    }
+
+    internal static IEnumerable<BO.CourierInList> SortBy(IEnumerable<BO.CourierInList> courierInLists, BO.CourierInListEnum? keySelector)
+    {
+        return keySelector switch
+        {
+            BO.CourierInListEnum.Id => courierInLists.OrderBy(c => c.Id),
+
+            BO.CourierInListEnum.FullName => courierInLists.OrderBy(c => c.FullName),
+
+            BO.CourierInListEnum.EmploymentStartDate => courierInLists.OrderBy(c => c.EmploymentStartDate),
+
+            BO.CourierInListEnum.DeliveryType => courierInLists.OrderBy(c => c.DeliveryType),
+
+            BO.CourierInListEnum.IdOrderInCare => courierInLists.OrderBy(c => c.IdOrderInCare),
+
+            BO.CourierInListEnum.IsActive => courierInLists.OrderByDescending(c => c.IsActive),
+
+            BO.CourierInListEnum.SumOrderInTime => courierInLists.OrderByDescending(c => c.SumOrderInTime),
+
+            BO.CourierInListEnum.SumOrderInLate => courierInLists.OrderByDescending(c => c.SumOrderInLate),
+
+
+            _ => courierInLists.OrderBy(c => c.Id)
+        };
+    }
+
+    #endregion Sort and filter
+
+    #region Search methods
+
+    internal static BO.Courier SearchCourier(int CourierId)
+    {
+    }
+
+    #endregion Search methods
 
 }

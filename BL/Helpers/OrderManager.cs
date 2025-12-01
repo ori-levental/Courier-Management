@@ -12,7 +12,7 @@ internal static class OrderManager
         {
             Id = BoOrder.Id,
             Description = BoOrder.Description,
-            Address = BoOrder.FullAddress,
+            CustomerAddress = BoOrder.FullAddress,
             PhoneNumber = BoOrder.PhoneNumber,
             Latitude = BoOrder.Latitude,
             OrderingName = BoOrder.OrderingName,
