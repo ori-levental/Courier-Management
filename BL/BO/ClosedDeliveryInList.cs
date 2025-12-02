@@ -8,7 +8,7 @@ public class ClosedDeliveryInList
 
     // --- STATIC ORDER INFO ---
     public OrderType OrderType { get; init; }
-    public string FullAddress { get; init; } // From DO.Order
+    public required string FullAddress { get; init; } // From DO.Order
 
     // --- DELIVERY METRICS (From DO.Delivery) ---
     public ShippingType ShippingType { get; init; }

@@ -8,12 +8,12 @@ public class Order
     // --- SPECIFICATIONS & CUSTOMER DETAILS ---
     public OrderType OrderType { get; set; }
     public string? Description { get; set; }
-    public string OrderingName { get; set; }
-    public string PhoneNumber { get; set; }
+    public required string OrderingName { get; set; }
+    public required string PhoneNumber { get; set; }
     public bool IsHeavy { get; set; } // Load attribute example
 
     // --- LOCATION & COORDINATES (Mutable for update) ---
-    public string FullAddress { get; set; }
+    public required string FullAddress { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
     public double AirDistance { get; set; } // Air distance from HQ

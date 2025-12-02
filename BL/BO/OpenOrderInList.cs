@@ -6,7 +6,7 @@ public class OpenOrderInList
     public int? CourierId { get; init; }
     public OrderType OrderType { get; init; }
     public bool IsHeavy { get; init; }
-    public string FullAddress { get; init; }
+    public required string FullAddress { get; init; }
     public double AirDistance { get; init; }
     public double? ActualDistance { get; init; }
     public TimeSpan? ActualTimeEstimation { get; init; }

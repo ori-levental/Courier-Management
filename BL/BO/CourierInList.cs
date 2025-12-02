@@ -3,7 +3,7 @@
 public class CourierInList
 {
     public int Id { get; init; }
-    public string FullName { get; init; }
+    public required string FullName { get; init; }
     public bool IsActive { get; init; }
     public ShippingType DeliveryType { get; init; } 
     public DateTime? EmploymentStartDate { get; init; }

@@ -8,9 +8,9 @@ public class OrderInProgress // Represents a delivery currently being handled by
     public OrderType OrderType { get; init; }
 
     // --- Customer & Location Details (From DO.Order) ---
-    public string CustomerName { get; init; }
-    public string CustomerPhone { get; init; }
-    public string Address { get; init; }
+    public required string CustomerName { get; init; }
+    public required string CustomerPhone { get; init; }
+    public required string Address { get; init; }
     public string? Description { get; init; }
 
     // --- Distances and Measured Data ---

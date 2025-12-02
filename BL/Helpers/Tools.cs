@@ -2,12 +2,14 @@
 using BO;
 using DalApi;
 using DO;
+using System.Reflection;
+using System.Text;
 
 namespace Helpers;
 
 internal static class Tools
 {
-    private static IDal s_dal = Factory.Get;
+    private static IDal s_dal = DalApi.Factory.Get; //stage 4
 
     #region Calculations & Algorithms
 
@@ -244,4 +246,69 @@ internal static class Tools
     }
 
     #endregion Business Logic & Object Generation
+
+    /// <summary>
+    /// Generic extension method to generate a string representation of any object's public properties.
+    /// Uses Reflection to iterate over properties and handles collections appropriately.
+    /// </summary>
+    /// <typeparam name="T">The type of the object.</typeparam>
+    /// <param name="obj">The object to inspect.</param>
+    /// <returns>A formatted string containing property names and values.</returns>
+    public static string ToStringProperty<T>(this T obj)
+    {
+        // Handle null object case immediately
+        if (obj == null)
+            return "null";
+
+        Type type = obj.GetType();
+        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        var result = new StringBuilder();
+
+        // Add Header: Class Name and separator line
+        result.AppendLine($"{type.Name}:");
+        result.AppendLine(new string('*', type.Name.Length + 1));
+
+        foreach (var property in properties)
+        {
+            try
+            {
+                var value = property.GetValue(obj, null);
+
+                // Case 1: Value is null
+                if (value == null)
+                {
+                    result.AppendLine($"{property.Name}: null");
+                    continue;
+                }
+
+                // Case 2: Value is a String (Strings are IEnumerable but should be printed as text)
+                if (value is string strValue)
+                {
+                    result.AppendLine($"{property.Name}: {strValue}");
+                }
+                // Case 3: Value is a Collection (Array, List, etc.)
+                // Must use non-generic IEnumerable to support primitive arrays like int[]
+                else if (value is IEnumerable<T> collection)
+                {
+                    result.AppendLine($"{property.Name}: (List)");
+                    foreach (var item in collection)
+                    {
+                        result.AppendLine($"  - {item}");
+                    }
+                }
+                // Case 4: Standard property value
+                else
+                {
+                    result.AppendLine($"{property.Name}: {value}");
+                }
+            }
+            catch
+            {
+                // Fallback if property access fails
+                result.AppendLine($"{property.Name}: <unable to retrieve>");
+            }
+        }
+        return result.ToString();
+    }
 }
