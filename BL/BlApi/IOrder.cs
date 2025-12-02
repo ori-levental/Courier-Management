@@ -22,7 +22,7 @@ public interface IOrder
     /// <param name="filteredBy">The field used to filter the order list.</param>
     /// <param name="sortBy">The field used to sort the order list.</param>
     /// <returns>A list of simplified order objects (BO.OrderInList).</returns>
-    public IEnumerable<BO.OrderInList> ListOfOrder(int requesterId, OrderInListEnum filteredBy, OrderInListEnum sortBy);
+    public IEnumerable<BO.OpenOrderInList> ListOfOrder(int requesterId,int courierId, OrderInListEnum? filteredBy, OrderInListEnum? sortBy);
 
     /// <summary>
     /// Retrieves detailed information for a specific order.
@@ -77,7 +77,7 @@ public interface IOrder
     /// <param name="filteredBy">The OrderType used to filter the list.</param>
     /// <param name="sortBy">The field used to sort the closed deliveries list.</param>
     /// <returns>A list of simplified closed delivery objects (BO.ClosedDeliveryInList).</returns>
-    public IEnumerable<BO.ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType filteredBy, ClosedDeliveryInListEnum sortBy);
+    public IEnumerable<BO.ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filteredBy, ClosedDeliveryInListEnum? sortBy);
 
     // ---------------- for test BL ---------------------
 

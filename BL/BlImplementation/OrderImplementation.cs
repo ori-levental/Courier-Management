@@ -26,48 +26,44 @@ internal class OrderImplementation : IOrder
         Helpers.OrderManager.CloseOrder(courierId, orderId);
     }
 
-    public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType filteredBy, ClosedDeliveryInListEnum sortBy)
+    public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filteredBy, ClosedDeliveryInListEnum? sortBy)
     {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        return Helpers.OrderManager.CloseOrderByCourier(requesterId, courierId, filteredBy, sortBy);
     }
 
-    public IEnumerable<OrderInList> ListOfOrder(int requesterId, OrderInListEnum filteredBy, OrderInListEnum sortBy)
+    public IEnumerable<OpenOrderInList> ListOfOrder(int requesterId,int courierId ,OrderInListEnum? filteredBy, OrderInListEnum? sortBy)
     {
-        throw new NotImplementedException();
+       return Helpers.OrderManager.ListOfOrder(requesterId,courierId, filteredBy, sortBy);
     }
 
     public Order OrderDetails(int requesterId, int orderId)
     {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        return Helpers.OrderManager.OrderDetails(orderId);
     }
 
     public void OrderProcessing(int requesterId, int courierId, int orderId)
     {
-        throw new NotImplementedException();
+      Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.OrderProcessing(requesterId,courierId, orderId);
     }
 
     public int[] SumAmountOfOrders(int requesterId)
     {
-        throw new NotImplementedException();
-    }
-
-    void IOrder.AddOrder(int requesterId, BO.Order order)
-    {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        return  Helpers.OrderManager.SumAmoutOfOrders();
     }
 
     void IOrder.DeleteOrder(int requesterId, int orderId)
     {
-        throw new NotImplementedException();
-    }
-
-    BO.Order IOrder.OrderDetails(int requesterId, int orderId)
-    {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.DeleteOrder(orderId);
     }
 
     void IOrder.UpdateOrder(int requesterId, BO.Order order)
     {
-        throw new NotImplementedException();
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.UpdateOrder(order);
     }
 }
