@@ -338,6 +338,9 @@ internal static class CourierManager
             > s_dal.Config.MaxDeliveryTime);
     }
 
+
+    #endregion List Management & Statistics
+
     #region Periodic Maintenance
 
     /// <summary>
@@ -373,7 +376,6 @@ internal static class CourierManager
     }
 
     #endregion Periodic Maintenance
-    #endregion List Management & Statistics
 
     #region Data Retrieval
 
