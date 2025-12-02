@@ -88,7 +88,9 @@ static internal class Config
         ManagerId = 0;
         ManagerPassword = "";
         // Resetting all numeric and location values to 0
-        Latitude = Longitude = MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 0;
+        Latitude = 32.0749;
+        Longitude = 34.7923;
+        MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 0;
         // Resetting all TimeSpans to zero
         MaxDeliveryTime = RiskRange = CourierInactivityTime = default(TimeSpan);
     }

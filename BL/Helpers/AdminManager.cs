@@ -1,4 +1,5 @@
 ﻿//using BO;
+using BO;
 using System.Runtime.CompilerServices;
 
 namespace Helpers;
@@ -36,9 +37,7 @@ internal static class AdminManager //stage 4
         // - Go through all students to update properties that are affected by the clock update
         // - (students become not active after 5 years etc.)
 
-        //TO_DO: //stage 4
-     //   StudentManager.PeriodicStudentsUpdates(oldClock, newClock); //stage 4. to be removed in stage 7 and replaced as below
-        //...
+        Helpers.CourierManager.DeactivateIdleCouriers();
 
         //TO_DO: //stage 7
         //if (_periodicTask is null || _periodicTask.IsCompleted) //stage 7
@@ -54,13 +53,25 @@ internal static class AdminManager //stage 4
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     internal static BO.Config GetConfig() //stage 4
-=> new BO.Config()
-{
-    MaxRange = s_dal.Config.MaxAirDistance,
-    Clock = s_dal.Config.Clock,
-    CompanyAddress = s_dal.Config.CompanyAddress,
-    ManagerPassword = s_dal.Config.ManagerPassword
-};
+        => new BO.Config()
+        {
+            // --- Basic Settings ---
+            MaxRange = s_dal.Config.MaxAirDistance,
+            Clock = s_dal.Config.Clock,
+            CompanyAddress = s_dal.Config.CompanyAddress,
+            ManagerPassword = s_dal.Config.ManagerPassword,
+
+            // --- Speeds ---
+            AvgCarSpeed = s_dal.Config.AvgCarSpeed,
+            AvgMotorcycleSpeed = s_dal.Config.AvgMotorcycleSpeed,
+            AvgBicycleSpeed = s_dal.Config.AvgBicycleSpeed,
+            AvgWalkSpeed = s_dal.Config.AvgWalkSpeed,
+
+            // --- Times (SLA) ---
+            MaxDeliveryTime = s_dal.Config.MaxDeliveryTime,
+            RiskRange = s_dal.Config.RiskRange,
+            CourierInactivityTime = s_dal.Config.CourierInactivityTime
+        };
 
     /// <summary>
     /// Method for setting current configuration variables values for any BL class that may need it
@@ -70,7 +81,8 @@ internal static class AdminManager //stage 4
     {
         bool configChanged = false; // stage 5
 
-        if (s_dal.Config.MaxAirDistance != configuration.MaxRange) //stage 4
+        // --- Basic Settings ---
+        if (s_dal.Config.MaxAirDistance != configuration.MaxRange)
         {
             s_dal.Config.MaxAirDistance = configuration.MaxRange;
             configChanged = true;
@@ -80,7 +92,7 @@ internal static class AdminManager //stage 4
             s_dal.Config.Clock = configuration.Clock;
             configChanged = true;
         }
-        if(s_dal.Config.ManagerPassword != configuration.ManagerPassword)
+        if (s_dal.Config.ManagerPassword != configuration.ManagerPassword)
         {
             s_dal.Config.ManagerPassword = configuration.ManagerPassword;
             configChanged = true;
@@ -90,9 +102,45 @@ internal static class AdminManager //stage 4
             s_dal.Config.CompanyAddress = configuration.CompanyAddress;
             configChanged = true;
         }
-        //TO_DO: //stage 4
-        //add a condition+assignment for each configuration property
-        //...
+
+        // --- Speeds ---
+        if (s_dal.Config.AvgCarSpeed != configuration.AvgCarSpeed)
+        {
+            s_dal.Config.AvgCarSpeed = configuration.AvgCarSpeed;
+            configChanged = true;
+        }
+        if (s_dal.Config.AvgMotorcycleSpeed != configuration.AvgMotorcycleSpeed)
+        {
+            s_dal.Config.AvgMotorcycleSpeed = configuration.AvgMotorcycleSpeed;
+            configChanged = true;
+        }
+        if (s_dal.Config.AvgBicycleSpeed != configuration.AvgBicycleSpeed)
+        {
+            s_dal.Config.AvgBicycleSpeed = configuration.AvgBicycleSpeed;
+            configChanged = true;
+        }
+        if (s_dal.Config.AvgWalkSpeed != configuration.AvgWalkSpeed)
+        {
+            s_dal.Config.AvgWalkSpeed = configuration.AvgWalkSpeed;
+            configChanged = true;
+        }
+
+        // --- Times (SLA) ---
+        if (s_dal.Config.MaxDeliveryTime != configuration.MaxDeliveryTime)
+        {
+            s_dal.Config.MaxDeliveryTime = configuration.MaxDeliveryTime;
+            configChanged = true;
+        }
+        if (s_dal.Config.RiskRange != configuration.RiskRange)
+        {
+            s_dal.Config.RiskRange = configuration.RiskRange;
+            configChanged = true;
+        }
+        if (s_dal.Config.CourierInactivityTime != configuration.CourierInactivityTime)
+        {
+            s_dal.Config.CourierInactivityTime = configuration.CourierInactivityTime;
+            configChanged = true;
+        }
 
         //Calling all the observers of configuration update
         if (configChanged) // stage 5
@@ -117,6 +165,21 @@ internal static class AdminManager //stage 4
             AdminManager.UpdateClock(AdminManager.Now);  //stage 5 - needed since we want the label on Pl to be updated           
             AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed for update the PL
         }
+    }
+
+    internal static DateTime ForwardClock(DateTime current, BO.TimeUnit timeUnit)
+    {
+
+        DateTime newTime = timeUnit switch
+        {
+            TimeUnit.Minute => current.AddMinutes(1),
+            TimeUnit.Hour => current.AddHours(1),
+            TimeUnit.Day => current.AddDays(1),
+            TimeUnit.Month => current.AddMonths(1),
+            TimeUnit.Year => current.AddYears(1),
+            _ => current.AddHours(0) // (Default)
+        };
+        return newTime;
     }
 
     #endregion Stage 4-7
