@@ -127,7 +127,7 @@ internal static class Tools
     /// Validates that the phone number adheres to the Israeli mobile format (10 digits starting with '05').
     /// </summary>
     /// <param name="phoneNumber">The phone number string to validate.</param>
-    /// <exception cref="BO.BLInvalidDataException">Thrown if format is invalid.</exception>
+    /// <exception cref="BO.BlInvalidDataException">Thrown if format is invalid.</exception>
     internal static void CheckPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber) ||
@@ -136,7 +136,7 @@ internal static class Tools
             phoneNumber[1] != '5' ||
             !phoneNumber.All(char.IsDigit))
         {
-            throw new BO.BLInvalidDataException("ERROR: Invalid phone number. Must start with '05' and contain 10 digits.");
+            throw new BO.BlInvalidDataException("ERROR: Invalid phone number. Must start with '05' and contain 10 digits.");
         }
     }
 
@@ -144,12 +144,12 @@ internal static class Tools
     /// Validates the Israeli ID number using the standard control digit algorithm (Luhn algorithm).
     /// </summary>
     /// <param name="id">The ID number to validate.</param>
-    /// <exception cref="BO.BLInvalidDataException">Thrown if the ID is invalid.</exception>
+    /// <exception cref="BO.BlInvalidDataException">Thrown if the ID is invalid.</exception>
     internal static void CheckId(int id)
     {
         // Basic range check
         if (id < 0)
-            throw new BO.BLInvalidDataException("ERROR: Invalid ID number");
+            throw new BO.BlInvalidDataException("ERROR: Invalid ID number");
 
         // Pad to 9 digits for algorithm consistency
         string idString = id.ToString().PadLeft(9, '0');
@@ -170,18 +170,18 @@ internal static class Tools
 
         // Validate modulo 10
         if (sum % 10 != 0)
-            throw new BO.BLInvalidDataException("ERROR: Invalid ID number");
+            throw new BO.BlInvalidDataException("ERROR: Invalid ID number");
     }
 
     /// <summary>
     /// Verifies that the requester has administrative privileges.
     /// </summary>
     /// <param name="requesterId">The ID of the user performing the action.</param>
-    /// <exception cref="BO.BLAccessPermission">Thrown if the user is not a manager.</exception>
+    /// <exception cref="BO.BlAccessPermission">Thrown if the user is not a manager.</exception>
     internal static void AccessPermissionToManager(int requesterId)
     {
         if (requesterId != DalApi.Factory.Get.Config.ManagerId)
-            throw new BO.BLAccessPermission("ERROR: No access permission");
+            throw new BO.BlAccessPermission("ERROR: No access permission");
     }
 
     #endregion Validations

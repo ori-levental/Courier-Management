@@ -9,7 +9,7 @@ internal class OrderImplementation : IOrder
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
         if (order == null)
-            throw new BO.BLNotNullableException("Cannot add null object");
+            throw new BO.BlNotNullableException("Cannot add null object");
 
         Helpers.OrderManager.CheckCorrectnessVariables(order);
         Helpers.OrderManager.AddOrder(requesterId, order);

@@ -118,7 +118,7 @@ internal static class CourierManager
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            throw new BO.BLInvalidDataException("ERROR: Email address cannot be empty");
+            throw new BO.BlInvalidDataException("ERROR: Email address cannot be empty");
         }
 
         // Try-Catch block required because MailAddress constructor throws exception on invalid format
@@ -126,11 +126,11 @@ internal static class CourierManager
         {
             var addr = new MailAddress(email);
             if (addr.Address != email)
-                throw new BO.BLInvalidDataException("ERROR: Invalid email address format");
+                throw new BO.BlInvalidDataException("ERROR: Invalid email address format");
         }
         catch
         {
-            throw new BO.BLInvalidDataException("ERROR: Invalid email address format");
+            throw new BO.BlInvalidDataException("ERROR: Invalid email address format");
         }
     }
 
@@ -141,11 +141,11 @@ internal static class CourierManager
     {
         // 1. Check minimum length
         if (string.IsNullOrEmpty(password) || password.Length < 8)
-            throw new BO.BLInvalidDataException("ERROR: Invalid password, must contain at least 8 characters.");
+            throw new BO.BlInvalidDataException("ERROR: Invalid password, must contain at least 8 characters.");
 
         // 2. Check complexity (Must contain Upper, Lower, and Digit)
         if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
-            throw new BO.BLInvalidDataException("ERROR: Invalid password, must contain uppercase, lowercase, and a number.");
+            throw new BO.BlInvalidDataException("ERROR: Invalid password, must contain uppercase, lowercase, and a number.");
     }
 
     /// <summary>
@@ -159,11 +159,11 @@ internal static class CourierManager
             double companyMaxLimit = s_dal.Config.MaxAirDistance ?? 0;
 
             if (maxDistance <= 0)
-                throw new BO.BLInvalidDataException("ERROR: Max distance must be positive.");
+                throw new BO.BlInvalidDataException("ERROR: Max distance must be positive.");
 
             // Verify against global limit only if global limit is enforced (> 0)
             if (companyMaxLimit > 0 && maxDistance > companyMaxLimit)
-                throw new BO.BLInvalidDataException($"ERROR: Personal max distance ({maxDistance}) cannot exceed company limit ({companyMaxLimit}).");
+                throw new BO.BlInvalidDataException($"ERROR: Personal max distance ({maxDistance}) cannot exceed company limit ({companyMaxLimit}).");
         }
     }
 
@@ -194,8 +194,16 @@ internal static class CourierManager
     internal static void UpdateCourier(BO.Courier boCourier)
     {
         // Note: Statistics and Active Orders are ignored during update
+
         DO.Courier doCourier = BOToDOCourier(boCourier);
-        s_dal.Courier.Update(doCourier);
+        try
+        {
+            s_dal.Courier.Update(doCourier);
+        }
+        catch (DO.DalDoesNotExistException ex)
+        {
+            throw new BO.BlDoesNotExistException($"Courier with ID {doCourier.Id} does not exist", ex);
+        }
     }
 
     /// <summary>
@@ -203,7 +211,14 @@ internal static class CourierManager
     /// </summary>
     internal static void DeleteCourier(int courierId)
     {
-        s_dal.Courier.Delete(courierId);
+        try
+        {
+            s_dal.Courier.Delete(courierId);
+        }
+        catch (DO.DalDoesNotExistException ex)
+        {
+            throw new BO.BlDoesNotExistException($"Courier with ID {courierId} does not exist", ex);
+        }
     }
 
     /// <summary>
@@ -231,7 +246,7 @@ internal static class CourierManager
 
         // Fail if user not found OR password mismatch
         if (doCourier == null || password != doCourier.Password)
-            throw new BO.BLInvalidDataException("ERROR : userId or password are wrong");
+            throw new BO.BlInvalidDataException("ERROR : userId or password are wrong");
     }
 
     /// <summary>

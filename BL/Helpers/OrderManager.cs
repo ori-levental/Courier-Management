@@ -42,11 +42,11 @@ internal static class OrderManager
         if (delivery == null)
             throw new BO.BlDoesNotExistException("ERROR: No delivery found for the given order ID");
         if (delivery.EndType == Enums.ShipmentCompletionStatus.Provided)
-            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has been provided to the customer");
+            throw new BO.BlCannotCancel("ERROR: cannot cancel an order that has been provided to the customer");
         if(delivery.EndType == Enums.ShipmentCompletionStatus.Refused)
-            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has been refused by the customer");
+            throw new BO.BlCannotCancel("ERROR: cannot cancel an order that has been refused by the customer");
         if(delivery.EndType == Enums.ShipmentCompletionStatus.Cancelled)
-            throw new BO.BLCannotCancel("ERROR: cannot cancel an order that has already been cancelled");
+            throw new BO.BlCannotCancel("ERROR: cannot cancel an order that has already been cancelled");
 
         // Create a new Delivery object with updated EndType, then update in DAL
         DO.Delivery updatedDelivery = delivery with { EndType = Enums.ShipmentCompletionStatus.Cancelled,
@@ -64,13 +64,13 @@ internal static class OrderManager
         if (delivery == null)
             throw new BO.BlDoesNotExistException("ERROR: No delivery found for the given order ID");
         if (delivery.CourierId != courierId)
-            throw new BO.BLAccessPermission("ERROR: No access permission to close this order");
+            throw new BO.BlAccessPermission("ERROR: No access permission to close this order");
         if (delivery.EndType == Enums.ShipmentCompletionStatus.Provided)
-            throw new BO.BLCannotClose("ERROR: cannot close an order that has been provided to the customer");
+            throw new BO.BlCannotClose("ERROR: cannot close an order that has been provided to the customer");
         if (delivery.EndType == Enums.ShipmentCompletionStatus.Refused)
-            throw new BO.BLCannotClose("ERROR: cannot close an order that has been refused by the customer");
+            throw new BO.BlCannotClose("ERROR: cannot close an order that has been refused by the customer");
         if (delivery.EndType == Enums.ShipmentCompletionStatus.Cancelled)
-            throw new BO.BLCannotClose("ERROR: cannot close an order that has been cancelled");
+            throw new BO.BlCannotClose("ERROR: cannot close an order that has been cancelled");
         // Create a new Delivery object with updated EndType, then update in DAL
         DO.Delivery updatedDelivery = delivery with
         {
@@ -98,25 +98,25 @@ internal static class OrderManager
     internal static void CheckOrderingName(string orderingName)
     {
        if(string.IsNullOrWhiteSpace(orderingName))
-            throw new BO.BLInvalidDataException("ERROR: ordering name cannot be empty");
+            throw new BO.BlInvalidDataException("ERROR: ordering name cannot be empty");
     }
 
     internal static void CheckAdress(string fullAddress)
     {
        if(string.IsNullOrWhiteSpace(fullAddress))
-            throw new BO.BLInvalidDataException("ERROR: address cannot be empty");
+            throw new BO.BlInvalidDataException("ERROR: address cannot be empty");
     }
 
     internal static void CheckLongtitude(double longitude)
     {
         if (longitude < -180 || longitude > 180)
-            throw new BO.BLInvalidDataException("ERROR: lontitide must be between -180 to 180 degrees");
+            throw new BO.BlInvalidDataException("ERROR: lontitide must be between -180 to 180 degrees");
     }
 
     internal static void CheckLatitude(double latitude)
     {
         if (latitude < -90 || latitude > 90)
-            throw new BO.BLInvalidDataException("ERROR: latitude must be between -90 to 90 degrees");
+            throw new BO.BlInvalidDataException("ERROR: latitude must be between -90 to 90 degrees");
     }
 
     

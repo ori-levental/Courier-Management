@@ -208,7 +208,7 @@ internal static class AdminManager //stage 4
     public static void ThrowOnSimulatorIsRunning()
     {
         if (s_thread is not null)
-            throw new BO.BLNotNullableException("Cannot perform the operation since Simulator is running");
+            throw new BO.BlNotNullableException("Cannot perform the operation since Simulator is running");
     }
 
     [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                 

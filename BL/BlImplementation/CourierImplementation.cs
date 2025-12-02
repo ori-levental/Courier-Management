@@ -13,13 +13,13 @@ internal class CourierImplementation : BlApi.ICourier
     /// </summary>
     /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
     /// <param name="courier">The courier object to add.</param>
-    /// <exception cref="BO.BLNotNullableException">Thrown if the courier object is null.</exception>
-    /// <exception cref="BO.BLAccessPermission">Thrown if the requester is not a manager.</exception>
+    /// <exception cref="BO.BlNotNullableException">Thrown if the courier object is null.</exception>
+    /// <exception cref="BO.BlAccessPermission">Thrown if the requester is not a manager.</exception>
     public void AddCourier(int requesterId, Courier courier)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
         if (courier == null)
-            throw new BO.BLNotNullableException("Cannot add null object");
+            throw new BO.BlNotNullableException("Cannot add null object");
 
         Helpers.CourierManager.CheckCorrectnessVariables(courier);
         Helpers.CourierManager.AddCourier(courier);
