@@ -8,21 +8,24 @@ namespace BlApi;
 /// </summary>
 public interface IOrder
 {
+    // --- General Management ---
+
     /// <summary>
-    /// Calculates total order amounts categorized by type.
+    /// Calculates total order amounts categorized by their status.
     /// </summary>
     /// <param name="requesterId">The ID of the user requesting the calculation.</param>
-    /// <returns>An array containing the aggregated sums.</returns>
-    public int[] SumAmountOfOrders(int requesterId);
+    /// <returns>An array containing the aggregated sums per status index.</returns>
+    int[] SumAmountOfOrders(int requesterId);
 
     /// <summary>
     /// Retrieves a list of orders based on filtering and sorting criteria.
     /// </summary>
     /// <param name="requesterId">The ID of the user requesting the list.</param>
-    /// <param name="filteredBy">The field used to filter the order list.</param>
-    /// <param name="sortBy">The field used to sort the order list.</param>
-    /// <returns>A list of simplified order objects (BO.OrderInList).</returns>
-    public IEnumerable<BO.OpenOrderInList> ListOfOrder(int requesterId,int courierId, OrderInListEnum? filteredBy, OrderInListEnum? sortBy);
+    /// <param name="filterBy">The field used to filter the list (nullable).</param>
+    /// <param name="filterValue">The value to match for the filter (nullable).</param>
+    /// <param name="sortBy">The field used to sort the list (nullable).</param>
+    /// <returns>A collection of simplified order objects (OrderInList).</returns>
+    IEnumerable<BO.OrderInList> ListOfOrder(int requesterId, OrderInListEnum? filterBy, object? filterValue, OrderInListEnum? sortBy);
 
     /// <summary>
     /// Retrieves detailed information for a specific order.
@@ -30,56 +33,75 @@ public interface IOrder
     /// <param name="requesterId">The ID of the user requesting the details.</param>
     /// <param name="orderId">The ID of the order to retrieve.</param>
     /// <returns>The detailed BO.Order object.</returns>
-    public BO.Order OrderDetails(int requesterId, int orderId);
+    BO.Order OrderDetails(int requesterId, int orderId);
 
     /// <summary>
     /// Updates the details of an existing order.
     /// </summary>
     /// <param name="requesterId">The ID of the user performing the update.</param>
     /// <param name="order">The BO.Order object with updated data.</param>
-    public void UpdateOrder(int requesterId, BO.Order order);
-
-    /// <summary>
-    /// Marks a specific order as canceled.
-    /// </summary>
-    /// <param name="requesterId">The ID of the user performing the cancellation.</param>
-    /// <param name="orderId">The ID of the order to cancel.</param>
-    public void CancelOrder(int requesterId, int orderId);
+    void UpdateOrder(int requesterId, BO.Order order);
 
     /// <summary>
     /// Adds a new order to the system.
     /// </summary>
     /// <param name="requesterId">The ID of the user adding the order.</param>
     /// <param name="order">The BO.Order object containing the new order data.</param>
-    public void AddOrder(int requesterId, BO.Order order);
+    void AddOrder(int requesterId, BO.Order order);
 
     /// <summary>
-    /// Marks a specific order as closed by a courier.
+    /// Marks a specific order as canceled.
     /// </summary>
-    /// <param name="requesterId">The ID of the user initiating the closure.</param>
-    /// <param name="courierId">The ID of the courier who completed the delivery.</param>
-    /// <param name="orderId">The ID of the order being closed.</param>
-    public void CloseOrder(int requesterId, int courierId, int orderId);
+    /// <param name="requesterId">The ID of the user performing the cancellation.</param>
+    /// <param name="orderId">The ID of the order to cancel.</param>
+    void CancelOrder(int requesterId, int orderId);
+
+
+    // --- Courier Operations ---
 
     /// <summary>
-    /// Initiates the processing phase for a specific order.
+    /// Marks a specific delivery as closed/provided by a courier.
     /// </summary>
-    /// <param name="requesterId">The ID of the user initiating the processing.</param>
-    /// <param name="courierId">The ID of the courier assigned to process the order.</param>
-    /// <param name="orderId">The ID of the order to process.</param>
-    public void OrderProcessing(int requesterId, int courierId, int orderId);
+    /// <param name="requesterId">The ID of the user (must be the courier).</param>
+    /// <param name="courierId">The ID of the courier closing the delivery.</param>
+    /// <param name="deliveryId">The ID of the delivery being closed.</param>
+    void CloseOrder(int requesterId, int courierId, int deliveryId);
 
     /// <summary>
-    /// Retrieves a list of closed deliveries by a specific courier, with filtering and sorting options.
+    /// Assigns an order to a courier (Courier selects an order to handle).
+    /// </summary>
+    /// <param name="requesterId">The ID of the user (must be the courier).</param>
+    /// <param name="courierId">The ID of the courier assigning the order.</param>
+    /// <param name="orderId">The ID of the order to be assigned.</param>
+    void OrderSelection(int requesterId, int courierId, int orderId);
+
+    /// <summary>
+    /// Retrieves a history list of closed deliveries for a specific courier.
+    /// </summary>
+    /// <param name="requesterId">The ID of the user requesting the history.</param>
+    /// <param name="courierId">The ID of the courier.</param>
+    /// <param name="filterBy">The OrderType used to filter the list.</param>
+    /// <param name="sortBy">The field used to sort the closed deliveries list.</param>
+    /// <returns>A collection of ClosedDeliveryInList objects.</returns>
+    IEnumerable<BO.ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filterBy, ClosedDeliveryInListEnum? sortBy);
+
+    /// <summary>
+    /// Retrieves a list of open orders suitable for a specific courier, filtered by distance and criteria.
     /// </summary>
     /// <param name="requesterId">The ID of the user requesting the list.</param>
-    /// <param name="courierId">The ID of the courier whose deliveries are retrieved.</param>
-    /// <param name="filteredBy">The OrderType used to filter the list.</param>
-    /// <param name="sortBy">The field used to sort the closed deliveries list.</param>
-    /// <returns>A list of simplified closed delivery objects (BO.ClosedDeliveryInList).</returns>
-    public IEnumerable<BO.ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filteredBy, ClosedDeliveryInListEnum? sortBy);
+    /// <param name="courierId">The ID of the courier.</param>
+    /// <param name="filterBy">The OrderType used to filter the open orders.</param>
+    /// <param name="sortBy">The criteria to sort the results.</param>
+    /// <returns>A collection of OpenOrderInList objects.</returns>
+    IEnumerable<BO.OpenOrderInList> GetOpenOrdersForCourier(int requesterId, int courierId, OrderType? filterBy, OpenOrderInListEnum? sortBy);
 
     // ---------------- for test BL ---------------------
 
+
+        /// <summary>
+    /// Deletes an order from the system (For testing purposes only).
+    /// </summary>
+    /// <param name="requesterId">The ID of the user requesting deletion.</param>
+    /// <param name="orderId">The ID of the order to delete.</param>
     internal void DeleteOrder(int requesterId, int orderId);
 }

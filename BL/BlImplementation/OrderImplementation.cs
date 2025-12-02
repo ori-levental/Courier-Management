@@ -5,9 +5,13 @@ using System.Collections.Generic;
 
 internal class OrderImplementation : IOrder
 {
+    /// <summary>
+    /// Adds a new order to the system after validation.
+    /// </summary>
     public void AddOrder(int requesterId, Order order)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
+
         if (order == null)
             throw new BO.BlNotNullableException("Cannot add null object");
 
@@ -15,55 +19,101 @@ internal class OrderImplementation : IOrder
         Helpers.OrderManager.AddOrder(requesterId, order);
     }
 
+    /// <summary>
+    /// Cancels an existing order if allowed by logic constraints.
+    /// </summary>
     public void CancelOrder(int requesterId, int orderId)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.CancelOrder(orderId);
     }
-    public void CloseOrder(int requesterId, int courierId, int orderId)
+
+    /// <summary>
+    /// Marks a specific delivery as closed/provided by the courier.
+    /// </summary>
+    public void CloseOrder(int requesterId, int courierId, int deliveryId)
+    {
+        if (requesterId != courierId)
+            throw new BO.BlAccessPermission("Requester must be the Courier.");
+
+        Helpers.OrderManager.CloseOrder(courierId, deliveryId);
+    }
+
+    /// <summary>
+    /// Retrieves the history of closed deliveries for a specific courier.
+    /// </summary>
+    public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filterBy, ClosedDeliveryInListEnum? sortBy)
+    {
+        if (requesterId != courierId)
+            throw new BO.BlAccessPermission("Requester must be the Courier.");
+
+        return Helpers.OrderManager.GetClosedOrdersForCourier(courierId, (ClosedDeliveryInListEnum?)filterBy, null, sortBy);
+    }
+
+    /// <summary>
+    /// Retrieves a list of orders with optional filtering and sorting.
+    /// </summary>
+    public IEnumerable<OrderInList> ListOfOrder(int requesterId, OrderInListEnum? filterBy, object? filterValue, OrderInListEnum? sortBy)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        Helpers.OrderManager.CloseOrder(courierId, orderId);
+        return Helpers.OrderManager.ListOfOrder(filterBy, filterValue, sortBy);
     }
 
-    public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filteredBy, ClosedDeliveryInListEnum? sortBy)
-    {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        return Helpers.OrderManager.CloseOrderByCourier(requesterId, courierId, filteredBy, sortBy);
-    }
-
-    public IEnumerable<OpenOrderInList> ListOfOrder(int requesterId,int courierId ,OrderInListEnum? filteredBy, OrderInListEnum? sortBy)
-    {
-       return Helpers.OrderManager.ListOfOrder(requesterId,courierId, filteredBy, sortBy);
-    }
-
+    /// <summary>
+    /// Retrieves detailed information for a specific order.
+    /// </summary>
     public Order OrderDetails(int requesterId, int orderId)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        return Helpers.OrderManager.OrderDetails(orderId);
+        return Helpers.OrderManager.GetOrderDetails(orderId);
     }
 
-    public void OrderProcessing(int requesterId, int courierId, int orderId)
+    /// <summary>
+    /// Assigns a selected order to a courier.
+    /// </summary>
+    public void OrderSelection(int requesterId, int courierId, int orderId)
     {
-      Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        Helpers.OrderManager.OrderProcessing(requesterId,courierId, orderId);
+        if (requesterId != courierId)
+            throw new BO.BlAccessPermission("Requester must be the Courier.");
+
+        Helpers.OrderManager.OrderSelection(courierId, orderId);
     }
 
+    /// <summary>
+    /// Calculates total order statistics categorized by status.
+    /// </summary>
     public int[] SumAmountOfOrders(int requesterId)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        return  Helpers.OrderManager.SumAmoutOfOrders();
+        return Helpers.OrderManager.SumAmountOfOrders();
     }
 
-    void IOrder.DeleteOrder(int requesterId, int orderId)
-    {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
-        Helpers.OrderManager.DeleteOrder(orderId);
-    }
-
-    void IOrder.UpdateOrder(int requesterId, BO.Order order)
+    /// <summary>
+    /// Updates the details of an existing order.
+    /// </summary>
+    public void UpdateOrder(int requesterId, BO.Order order)
     {
         Helpers.OrderManager.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.UpdateOrder(order);
+    }
+
+    /// <summary>
+    /// Retrieves a list of open orders suitable for a specific courier based on distance.
+    /// </summary>
+    public IEnumerable<OpenOrderInList> GetOpenOrdersForCourier(int requesterId, int courierId, OrderType? filterBy, OpenOrderInListEnum? sortBy)
+    {
+        if (requesterId != courierId)
+            throw new BO.BlAccessPermission("Requester must be the Courier.");
+
+        return Helpers.OrderManager.GetOpenOrdersForCourier(courierId, filterBy, sortBy);
+    }
+
+    /// <summary>
+    /// Deletes an order from the system (Testing/Admin use only).
+    /// </summary>
+    public void DeleteOrder(int requesterId, int orderId)
+    {
+        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.OrderManager.DeleteOrder(orderId);
     }
 }

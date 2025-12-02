@@ -58,6 +58,23 @@ public enum OrderInListEnum
     TotalDeliveries
 }
 
+/// <summary>
+/// Enumerates the properties of an OpenOrderInList object available for sorting or filtering.
+/// </summary>
+public enum OpenOrderInListEnum
+{
+    OrderId,
+    CourierId,
+    OrderType,
+    IsHeavy,
+    FullAddress,
+    AirDistance,
+    ActualDistance,
+    ActualTimeEstimation,
+    MaxArrivalTime,
+    TimeRemaining,
+    ScheduleStatus
+}
 public enum ClosedDeliveryInListEnum
 {
     DeliveryId,

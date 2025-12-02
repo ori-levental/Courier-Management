@@ -25,6 +25,11 @@ public class Config
     public required string ManagerPassword { get; set; }
 
     /// <summary>
+    /// The ID required for administrative access to the system.
+    /// </summary>
+    public required int ManagerId { get; set; }
+
+    /// <summary>
     /// The physical address of the company headquarters.
     /// </summary>
     public string? CompanyAddress { get; set; }
