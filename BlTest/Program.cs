@@ -6,344 +6,239 @@ namespace BlTest;
 
 internal class Program
 {
-    // Initialize the Business Logic layer interface via the Factory (Singleton access)
     static readonly IBl s_bl = Factory.Get();
 
-    // Menu Definitions
+    // Enums
     private enum MainMenu { Exit, Courier, Order, Config }
     private enum CrudMenu { Back, Add, Show, ShowAll, Update, Delete }
-    private enum OrderMenuOptions { Back, Add, Cancel, SelectOrder, CloseOrder, Show, ShowAll }
+    private enum OrderMenuOptions { Back, Add, Cancel, SelectOrder, CloseOrder, Show, ShowAll, Statistics, CourierOpenOrders }
     private enum ConfigMenuOptions { Back, GetClock, ForwardClock, ShowConfig, UpdateConfig, ResetDB, InitDB }
 
     static void Main(string[] args)
     {
-        // Set culture to ensure consistent number/date formatting (e.g., dot for decimals)
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+        Console.WriteLine("=== BL Test Program (Ultimate Optimization) ===");
 
-        Console.WriteLine("=== BL Test Program ===");
+        RunMenu<MainMenu>("Main Menu", choice => choice switch
+        {
+            MainMenu.Courier => CourierMenu(),
+            MainMenu.Order => OrderMenu(),
+            MainMenu.Config => ConfigMenu(),
+            MainMenu.Exit => true, // Exit signal
+            _ => false
+        });
+    }
+
+    // --- Entity Menus ---
+
+    private static bool CourierMenu()
+    {
+        RunMenu<CrudMenu>("Courier Management", choice =>
+        {
+            if (choice == CrudMenu.Back) return true;
+            int reqId = Get<int>("Manager ID");
+
+            switch (choice)
+            {
+                case CrudMenu.Add:
+                    s_bl.Courier.AddCourier(reqId, CreateCourierFromInput());
+                    Console.WriteLine("Added.");
+                    break;
+                case CrudMenu.Show:
+                    Console.WriteLine(s_bl.Courier.SearchCourier(reqId, Get<int>("Courier ID")));
+                    break;
+                case CrudMenu.ShowAll:
+                    PrintList(s_bl.Courier.ListOfCourier(reqId, null, null));
+                    break;
+                case CrudMenu.Update:
+                    var c = s_bl.Courier.SearchCourier(reqId, Get<int>("ID to Update"));
+                    Console.WriteLine($"Editing {c.FullName}");
+                    // Partial update example
+                    c.FullName = Get<string>("New Name");
+                    c.PhoneNumber = Get<string>("New Phone");
+                    s_bl.Courier.UpdateCourier(reqId, c);
+                    Console.WriteLine("Updated.");
+                    break;
+                case CrudMenu.Delete:
+                    s_bl.Courier.DeleteCourier(reqId, Get<int>("ID to Delete"));
+                    Console.WriteLine("Deleted.");
+                    break;
+            }
+            return false;
+        });
+        return false; // Return for MainMenu
+    }
+
+    private static bool OrderMenu()
+    {
+        RunMenu<OrderMenuOptions>("Order Management", choice =>
+        {
+            if (choice == OrderMenuOptions.Back) return true;
+            int reqId = Get<int>("Requester ID");
+
+            switch (choice)
+            {
+                case OrderMenuOptions.Add:
+                    s_bl.Order.AddOrder(reqId, CreateOrderFromInput());
+                    Console.WriteLine("Added.");
+                    break;
+                case OrderMenuOptions.Cancel:
+                    s_bl.Order.CancelOrder(reqId, Get<int>("Order ID"));
+                    Console.WriteLine("Cancelled.");
+                    break;
+                case OrderMenuOptions.SelectOrder:
+                    ((BlImplementation.OrderImplementation)s_bl.Order)
+                        .OrderSelection(reqId, reqId, Get<int>("Order ID")); // reqId = courierId
+                    Console.WriteLine("Selected.");
+                    break;
+                case OrderMenuOptions.CloseOrder:
+                    s_bl.Order.CloseOrder(reqId, reqId, Get<int>("Delivery ID"));
+                    Console.WriteLine("Closed.");
+                    break;
+                case OrderMenuOptions.Show:
+                    Console.WriteLine(s_bl.Order.OrderDetails(reqId, Get<int>("Order ID")));
+                    break;
+                case OrderMenuOptions.ShowAll:
+                    // Interactive Filter
+                    var filterBy = Get<string>("Filter by Status? (y/n)") == "y" ? (OrderInListEnum?)OrderInListEnum.Status : null;
+                    PrintList(s_bl.Order.ListOfOrder(reqId, filterBy, null));
+                    break;
+                case OrderMenuOptions.Statistics:
+                    var stats = s_bl.Order.SumAmountOfOrders(reqId);
+                    for (int i = 0; i < stats.Length; i++) Console.WriteLine($"{(OrderStatus)i}: {stats[i]}");
+                    break;
+                case OrderMenuOptions.CourierOpenOrders:
+                    var impl = (BlImplementation.OrderImplementation)s_bl.Order;
+                    PrintList(impl.GetOpenOrdersForCourier(reqId));
+                    break;
+            }
+            return false;
+        });
+        return false;
+    }
+
+    private static bool ConfigMenu()
+    {
+        RunMenu<ConfigMenuOptions>("Configuration", choice =>
+        {
+            if (choice == ConfigMenuOptions.Back) return true;
+
+            switch (choice)
+            {
+                case ConfigMenuOptions.GetClock:
+                    Console.WriteLine(s_bl.Admin.GetClock());
+                    break;
+                case ConfigMenuOptions.ForwardClock:
+                    s_bl.Admin.ForwardClock(Get<TimeUnit>("Unit"));
+                    Console.WriteLine($"New Time: {s_bl.Admin.GetClock()}");
+                    break;
+                case ConfigMenuOptions.ShowConfig:
+                    Console.WriteLine(s_bl.Admin.GetConfig().ToString());
+                    break;
+                case ConfigMenuOptions.UpdateConfig:
+                    var conf = s_bl.Admin.GetConfig();
+                    conf.MaxRange = Get<double>("New Max Range");
+                    s_bl.Admin.SetConfig(conf);
+                    Console.WriteLine("Updated.");
+                    break;
+                case ConfigMenuOptions.ResetDB:
+                    if (Get<string>("Confirm? (y/n)") == "y") s_bl.Admin.ResetDB();
+                    break;
+                case ConfigMenuOptions.InitDB:
+                    s_bl.Admin.InitializeDB();
+                    break;
+            }
+            return false;
+        });
+        return false;
+    }
+
+    // -----------------------------------------------------------------------
+    // Factories (Clean up the switch statements)
+    // -----------------------------------------------------------------------
+
+    private static BO.Courier CreateCourierFromInput() => new BO.Courier
+    {
+        Id = Get<int>("ID"),
+        FullName = Get<string>("Name"),
+        Email = Get<string>("Email"),
+        PhoneNumber = Get<string>("Phone"),
+        Password = Get<string>("Password"),
+        IsActive = true,
+        DistanceToDelivery = Get<double>("Max Distance"),
+        DeliveryType = Get<ShippingType>("Vehicle Type"),
+        EmploymentStartDate = DateTime.Now
+    };
+
+    private static BO.Order CreateOrderFromInput() => new BO.Order
+    {
+        OrderingName = Get<string>("Customer Name"),
+        PhoneNumber = Get<string>("Phone"),
+        FullAddress = Get<string>("Address"),
+        Latitude = Get<double>("Latitude"),
+        Longitude = Get<double>("Longitude"),
+        Description = Get<string>("Description"),
+        OrderType = Get<OrderType>("Type (Standard/Express)")
+    };
+
+    // -----------------------------------------------------------------------
+    // Infrastructure (Menu Engine & Universal Input)
+    // -----------------------------------------------------------------------
+
+    private static void RunMenu<T>(string title, Func<T, bool> handler) where T : struct, Enum
+    {
+        while (true)
+        {
+            Console.WriteLine($"\n--- {title} ---");
+            foreach (var o in Enum.GetValues<T>()) Console.WriteLine($"{(int)(object)o}. {o}");
+
+            try
+            {
+                if (handler(Get<T>("Choice"))) break;
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"ERROR: {ex.Message}" + (ex.InnerException != null ? $" | {ex.InnerException.Message}" : ""));
+                Console.ResetColor();
+            }
+        }
+    }
+
+    private static void PrintList<T>(IEnumerable<T> list)
+    {
+        foreach (var item in list) Console.WriteLine(item);
+    }
+
+    // The Universal Getter - Handles all types via pattern matching
+    private static T Get<T>(string prompt)
+    {
+        Console.Write($"{prompt}: ");
+        string input = Console.ReadLine() ?? "";
 
         try
         {
-            MainMenu choice;
-            do
-            {
-                Console.WriteLine("\n--- Main Menu ---");
-                Console.WriteLine(
-                    "1. Courier Management\n" +
-                    "2. Order Management\n" +
-                    "3. Admin / Configuration\n" +
-                    "0. Exit"
-                );
+            // Handle String (no parsing needed)
+            if (typeof(T) == typeof(string)) return (T)(object)input;
 
-                // Safe input parsing using helper method
-                choice = (MainMenu)GetInt("\nYour choice (0-3)");
+            // Handle Int
+            if (typeof(T) == typeof(int)) return (T)(object)int.Parse(input);
 
-                switch (choice)
-                {
-                    case MainMenu.Courier: CourierMenu(); break;
-                    case MainMenu.Order: OrderMenu(); break;
-                    case MainMenu.Config: ConfigMenu(); break;
-                    case MainMenu.Exit: Console.WriteLine("Exiting..."); break;
-                    default: Console.WriteLine("Invalid choice."); break;
-                }
+            // Handle Double
+            if (typeof(T) == typeof(double)) return (T)(object)double.Parse(input);
 
-            } while (choice != MainMenu.Exit);
+            // Handle Enum
+            if (typeof(T).IsEnum) return (T)Enum.Parse(typeof(T), input, true);
+
+            // Handle DateTime
+            if (typeof(T) == typeof(DateTime)) return (T)(object)DateTime.Parse(input);
+
+            throw new InvalidOperationException("Unsupported type");
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"\n*** CRITICAL ERROR: {ex.Message} ***\n");
+            Console.WriteLine("Invalid input, try again.");
+            return Get<T>(prompt); // Recursion for retry
         }
     }
-
-    #region Courier Menu
-    private static void CourierMenu()
-    {
-        CrudMenu choice;
-        do
-        {
-            Console.WriteLine("\n--- Courier Menu ---");
-            Console.WriteLine(
-                "1. Add Courier\n" +
-                "2. Show Courier Details\n" +
-                "3. List All Couriers\n" +
-                "4. Update Courier\n" +
-                "5. Delete Courier\n" +
-                "0. Back"
-            );
-
-            choice = (CrudMenu)GetInt("Your choice");
-            if (choice == CrudMenu.Back) break;
-
-            try
-            {
-                // Simulate a logged-in Manager ID
-                int reqId = GetInt("Enter Manager ID (Requester)");
-
-                switch (choice)
-                {
-                    case CrudMenu.Add:
-                        BO.Courier newCourier = new BO.Courier
-                        {
-                            Id = GetInt("ID"),
-                            FullName = GetString("Name"),
-                            Email = GetString("Email"),
-                            PhoneNumber = GetString("Phone"),
-                            Password = GetString("Password"),
-                            IsActive = true,
-                            DistanceToDelivery = GetDouble("Max Distance"),
-                            DeliveryType = GetEnum<BO.ShippingType>("Vehicle Type (0=Walk, 1=Bicycle, 2=Motorcycle, 3=Car)"),
-                            EmploymentStartDate = DateTime.Now
-                        };
-                        s_bl.Courier.AddCourier(reqId, newCourier);
-                        Console.WriteLine("Courier added successfully.");
-                        break;
-
-                    case CrudMenu.Show:
-                        int idShow = GetInt("Courier ID");
-                        // Implicitly calls ToString() via Console.WriteLine
-                        Console.WriteLine(s_bl.Courier.SearchCourier(reqId, idShow));
-                        break;
-
-                    case CrudMenu.ShowAll:
-                        // List all couriers (optional filters set to null)
-                        var list = s_bl.Courier.ListOfCourier(reqId, null, null);
-                        foreach (var item in list) Console.WriteLine(item);
-                        break;
-
-                    case CrudMenu.Update:
-                        int idUpdate = GetInt("Courier ID to Update");
-                        // Retrieve existing entity first to allow partial updates
-                        BO.Courier existing = s_bl.Courier.SearchCourier(reqId, idUpdate);
-                        Console.WriteLine($"Updating: {existing.FullName}");
-
-                        // Update specific fields (Expandable logic)
-                        existing.FullName = GetString("New Name (or re-enter old):");
-                        existing.PhoneNumber = GetString("New Phone:");
-
-                        s_bl.Courier.UpdateCourier(reqId, existing);
-                        Console.WriteLine("Courier updated.");
-                        break;
-
-                    case CrudMenu.Delete:
-                        int idDel = GetInt("Courier ID to Delete");
-                        s_bl.Courier.DeleteCourier(reqId, idDel);
-                        Console.WriteLine("Courier deleted.");
-                        break;
-                }
-            }
-            // Exception handling specific to BO layer
-            catch (BO.BlDoesNotExistException ex) { PrintException(ex); }
-            catch (BO.BlInvalidDataException ex) { PrintException(ex); }
-            catch (BO.BlAlreadyExistsException ex) { PrintException(ex); }
-            catch (BO.BlDeletionImpossibleException ex) { PrintException(ex); }
-            catch (Exception ex) { PrintException(ex); }
-
-        } while (true);
-    }
-    #endregion
-
-    #region Order Menu
-    private static void OrderMenu()
-    {
-        OrderMenuOptions choice;
-        do
-        {
-            Console.WriteLine("\n--- Order Menu ---");
-            Console.WriteLine(
-                "1. Add Order\n" +
-                "2. Cancel Order\n" +
-                "3. Select Order (Courier)\n" +
-                "4. Close Order (Delivered)\n" +
-                "5. Show Order Details\n" +
-                "6. List All Orders\n" +
-                "0. Back"
-            );
-
-            choice = (OrderMenuOptions)GetInt("Your choice");
-            if (choice == OrderMenuOptions.Back) break;
-
-            try
-            {
-                // Requester ID can be a Manager or a Courier depending on the action
-                int reqId = GetInt("Enter Requester ID");
-
-                switch (choice)
-                {
-                    case OrderMenuOptions.Add:
-                        BO.Order newOrder = new BO.Order
-                        {
-                            // ID is generated by the DAL, passed as 0
-                            OrderingName = GetString("Customer Name"),
-                            PhoneNumber = GetString("Phone"),
-                            FullAddress = GetString("Address"),
-                            Latitude = GetDouble("Latitude"),
-                            Longitude = GetDouble("Longitude"),
-                            Description = GetString("Description"),
-                            OrderType = GetEnum<BO.OrderType>("Order Type (0=Standard, 1=Express)")
-                        };
-                        s_bl.Order.AddOrder(reqId, newOrder);
-                        Console.WriteLine("Order added.");
-                        break;
-
-                    case OrderMenuOptions.Cancel:
-                        int cancelId = GetInt("Order ID to Cancel");
-                        s_bl.Order.CancelOrder(reqId, cancelId);
-                        Console.WriteLine("Order cancelled.");
-                        break;
-
-                    case OrderMenuOptions.SelectOrder:
-                        int courierId = reqId; // Assuming the requester is the courier
-                        int orderToPick = GetInt("Order ID to Select");
-
-                        // Casting to specific implementation to access method if not yet in interface
-                        // If it is in IOrder, use s_bl.Order directly
-                        ((BlImplementation.OrderImplementation)s_bl.Order).OrderSelection(reqId, courierId, orderToPick);
-                        Console.WriteLine("Order selected.");
-                        break;
-
-                    case OrderMenuOptions.CloseOrder:
-                        int delCourierId = reqId; // Assuming the requester is the courier
-                        int deliveryId = GetInt("Delivery ID (from Order details)");
-                        s_bl.Order.CloseOrder(reqId, delCourierId, deliveryId);
-                        Console.WriteLine("Order closed (Provided).");
-                        break;
-
-                    case OrderMenuOptions.Show:
-                        int ordId = GetInt("Order ID");
-                        Console.WriteLine(s_bl.Order.OrderDetails(reqId, ordId));
-                        break;
-
-                    case OrderMenuOptions.ShowAll:
-                        var orders = s_bl.Order.ListOfOrder(reqId, null, null);
-                        foreach (var item in orders) Console.WriteLine(item);
-                        break;
-                }
-            }
-            catch (Exception ex) { PrintException(ex); }
-
-        } while (true);
-    }
-    #endregion
-
-    #region Admin / Config Menu
-    private static void ConfigMenu()
-    {
-        ConfigMenuOptions choice;
-        do
-        {
-            Console.WriteLine("\n--- Admin Menu ---");
-            Console.WriteLine(
-                "1. Get System Clock\n" +
-                "2. Forward Clock\n" +
-                "3. Show Configuration\n" +
-                "4. Update Configuration\n" +
-                "5. Reset DB\n" +
-                "6. Initialize DB\n" +
-                "0. Back"
-            );
-
-            choice = (ConfigMenuOptions)GetInt("Your choice");
-            if (choice == ConfigMenuOptions.Back) break;
-
-            try
-            {
-                switch (choice)
-                {
-                    case ConfigMenuOptions.GetClock:
-                        Console.WriteLine($"Current Clock: {s_bl.Admin.GetClock()}");
-                        break;
-
-                    case ConfigMenuOptions.ForwardClock:
-                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Second, 1=Minute, 2=Hour, 3=Day...)");
-                        s_bl.Admin.ForwardClock(unit);
-                        Console.WriteLine($"New Time: {s_bl.Admin.GetClock()}");
-                        break;
-
-                    case ConfigMenuOptions.ShowConfig:
-                        BO.Config conf = s_bl.Admin.GetConfig();
-                        Console.WriteLine($"Max Range: {conf.MaxRange}");
-                        Console.WriteLine($"Address: {conf.CompanyAddress}");
-                        Console.WriteLine($"Car Speed: {conf.AvgCarSpeed}");
-                        break;
-
-                    case ConfigMenuOptions.UpdateConfig:
-                        BO.Config current = s_bl.Admin.GetConfig();
-                        Console.WriteLine($"Current Max Range: {current.MaxRange}");
-                        current.MaxRange = GetDouble("Enter new Max Range");
-                        s_bl.Admin.SetConfig(current);
-                        Console.WriteLine("Configuration updated.");
-                        break;
-
-                    case ConfigMenuOptions.ResetDB:
-                        Console.Write("Are you sure? (y/n): ");
-                        if (Console.ReadLine() == "y")
-                        {
-                            s_bl.Admin.ResetDB();
-                            Console.WriteLine("DB Reset.");
-                        }
-                        break;
-
-                    case ConfigMenuOptions.InitDB:
-                        s_bl.Admin.InitializeDB();
-                        Console.WriteLine("DB Initialized.");
-                        break;
-                }
-            }
-            catch (Exception ex) { PrintException(ex); }
-
-        } while (true);
-    }
-    #endregion
-
-    #region Helpers (Input & Output)
-
-    // Standardized Exception Printing
-    private static void PrintException(Exception ex)
-    {
-        Console.WriteLine($"\nERROR ({ex.GetType().Name}): {ex.Message}");
-        if (ex.InnerException != null)
-            Console.WriteLine($"  Inner ({ex.InnerException.GetType().Name}): {ex.InnerException.Message}");
-    }
-
-    // --- Safe Input Methods (Using TryParse) ---
-
-    private static int GetInt(string prompt)
-    {
-        int result;
-        do
-        {
-            Console.Write($"{prompt}: ");
-        } while (!int.TryParse(Console.ReadLine(), out result));
-        return result;
-    }
-
-    private static double GetDouble(string prompt)
-    {
-        double result;
-        do
-        {
-            Console.Write($"{prompt}: ");
-        } while (!double.TryParse(Console.ReadLine(), out result));
-        return result;
-    }
-
-    private static string GetString(string prompt)
-    {
-        Console.Write($"{prompt}: ");
-        return Console.ReadLine() ?? "";
-    }
-
-    // Generic method to parse any Enum safely
-    private static T GetEnum<T>(string prompt) where T : struct
-    {
-        T result;
-        do
-        {
-            Console.Write($"{prompt}: ");
-        } while (!Enum.TryParse(Console.ReadLine(), out result));
-        return result;
-    }
-
-    #endregion
 }

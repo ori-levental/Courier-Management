@@ -1,4 +1,6 @@
-﻿namespace BO;
+﻿using Helpers;
+
+namespace BO;
 
 /// <summary>
 /// Configuration object containing system-wide settings, operational parameters, and logical constraints.
@@ -71,4 +73,6 @@ public class Config
     public TimeSpan CourierInactivityTime { get; set; }
 
     #endregion Service Level Agreement (Time)
+    public override string ToString() => this.ToStringProperty();
+
 }
