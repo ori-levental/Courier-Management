@@ -83,14 +83,14 @@ static internal class Config
         s_nextOrderId = startOrderId;
         s_nextDeliveryId = startDeliveryId;
         // Reset clock
-        Clock = default(DateTime);
+        Clock = default(DateTime).AddYears(100);
         // Reset credentials
         ManagerId = 0;
         ManagerPassword = "";
         // Resetting all numeric and location values to 0
         Latitude = 32.0749;
         Longitude = 34.7923;
-        MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 0;
+        MaxAirDistance = AvgCarSpeed = AvgMotorcycleSpeed = AvgBicycleSpeed = AvgWalkSpeed = 1;
         // Resetting all TimeSpans to zero
         MaxDeliveryTime = RiskRange = CourierInactivityTime = default(TimeSpan);
     }

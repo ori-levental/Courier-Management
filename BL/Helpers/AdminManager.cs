@@ -71,6 +71,7 @@ internal static class AdminManager //stage 4
             Clock = s_dal.Config.Clock,
             CompanyAddress = s_dal.Config.CompanyAddress,
             ManagerPassword = s_dal.Config.ManagerPassword,
+            ManagerId = s_dal.Config.ManagerId,
 
             // --- Speeds ---
             AvgCarSpeed = s_dal.Config.AvgCarSpeed,

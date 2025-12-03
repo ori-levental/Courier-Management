@@ -239,7 +239,7 @@ internal class Program
                         Console.WriteLine($"Clock: {s_bl.Admin.GetClock()}");
                         break;
                     case 2:
-                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Sec, 1=Min, 2=Hour...)");
+                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Min, 1=Hour, 5=Day, 3=Month, 4=Year)");
                         s_bl.Admin.ForwardClock(unit);
                         Console.WriteLine($"New Time: {s_bl.Admin.GetClock()}");
                         break;
@@ -259,10 +259,6 @@ internal class Program
                         {
                             s_bl.Admin.ResetDB();
                             Console.WriteLine("Database Reset.");
-
-                            // FIX: Auto-Init to prevent Date crash due to empty clock
-                            Console.WriteLine("Restoring valid state (InitDB)...");
-                            s_bl.Admin.InitializeDB();
                         }
                         break;
                     case 6:

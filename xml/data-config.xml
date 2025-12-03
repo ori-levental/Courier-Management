@@ -2,17 +2,17 @@
 <config>
   <NextOrderId>1</NextOrderId>
   <NextDeliveryId>1</NextDeliveryId>
-  <Clock>1/1/0001 12:00:00 AM</Clock>
+  <Clock>1/1/0101 12:00:00 AM</Clock>
   <ManagerId>0</ManagerId>
   <ManagerPassword></ManagerPassword>
   <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
-  <Latitude>0</Latitude>
-  <Longitude>0</Longitude>
-  <MaxAirDistance>0</MaxAirDistance>
-  <AvgCarSpeed>0</AvgCarSpeed>
-  <AvgMotorcycleSpeed>0</AvgMotorcycleSpeed>
-  <AvgBicycleSpeed>0</AvgBicycleSpeed>
-  <AvgWalkSpeed>0</AvgWalkSpeed>
+  <Latitude>1</Latitude>
+  <Longitude>1</Longitude>
+  <MaxAirDistance>1</MaxAirDistance>
+  <AvgCarSpeed>1</AvgCarSpeed>
+  <AvgMotorcycleSpeed>1</AvgMotorcycleSpeed>
+  <AvgBicycleSpeed>1</AvgBicycleSpeed>
+  <AvgWalkSpeed>1</AvgWalkSpeed>
   <MaxDeliveryTime>00:00:00</MaxDeliveryTime>
   <RiskRange>00:00:00</RiskRange>
   <CourierInactivityTime>00:00:00</CourierInactivityTime>
