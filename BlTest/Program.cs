@@ -11,11 +11,11 @@ internal class Program
 
     static void Main(string[] args)
     {
-        // Set culture to ensure consistent number/date formatting (e.g., dot for decimals)
+        // Set culture to ensure consistent number/date formatting
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
-        Console.WriteLine("=== BL Test Program (Final Version) ===");
+        Console.WriteLine("=== BL Test Program (Enhanced UX) ===");
 
         bool exit = false;
         while (!exit)
@@ -47,7 +47,7 @@ internal class Program
             Console.WriteLine("\n--- Courier Menu ---");
             Console.WriteLine("1. Add Courier");
             Console.WriteLine("2. Show Courier");
-            Console.WriteLine("3. Show All Couriers");
+            Console.WriteLine("3. Show All Couriers (Filter/Sort)");
             Console.WriteLine("4. Update Courier");
             Console.WriteLine("5. Delete Courier");
             Console.WriteLine("0. Back");
@@ -57,7 +57,6 @@ internal class Program
 
             try
             {
-                // Requesting Manager ID for permissions
                 int reqId = GetInt("Manager ID");
 
                 switch (choice)
@@ -72,7 +71,7 @@ internal class Program
                             Password = GetString("Password"),
                             IsActive = true,
                             DistanceToDelivery = GetDouble("Max Distance"),
-                            DeliveryType = GetEnum<BO.ShippingType>("Vehicle Type (0-Car, 1-Moto...)"),
+                            DeliveryType = GetEnum<BO.ShippingType>("Vehicle Type"),
                             EmploymentStartDate = DateTime.Now
                         };
                         s_bl.Courier.AddCourier(reqId, newCourier);
@@ -80,26 +79,41 @@ internal class Program
                         break;
 
                     case 2: // Show
-                        Console.WriteLine(s_bl.Courier.SearchCourier(reqId, GetInt("Courier ID")));
+                        PrintEntity(s_bl.Courier.SearchCourier(reqId, GetInt("Courier ID")));
                         break;
 
                     case 3: // List
-                        // Passing null for optional filter and sort arguments to show all
-                        var list = s_bl.Courier.ListOfCourier(reqId, null, null);
-                        foreach (var item in list)
-                            Console.WriteLine(item);
+                        BO.CourierInListEnum? sortBy = null;
+                        bool? activeFilter = null;
+
+                        int sortChoice = GetInt("Do you want to chose filter to sort the list? (0 = No, 1 = Yes)");
+
+                        if (sortChoice == 1)
+                        {
+                            Console.WriteLine("Available Sort Options:");
+                            foreach (var val in Enum.GetValues(typeof(BO.CourierInListEnum)))
+                                Console.WriteLine($"  {(int)val} - {val}");
+
+                            int selectedSort = GetInt("Select Sort Criterion");
+                            sortBy = (BO.CourierInListEnum)selectedSort;
+                        }
+
+                        Console.WriteLine("Filter Active: 0-All, 1-Active, 2-Inactive");
+                        int filterChoice = GetInt("Choice");
+                        if (filterChoice == 1) activeFilter = true;
+                        else if (filterChoice == 2) activeFilter = false;
+
+                        var list = s_bl.Courier.ListOfCourier(reqId, activeFilter, sortBy);
+                        foreach (var item in list) PrintEntity(item);
                         break;
 
                     case 4: // Update
                         int updateId = GetInt("ID to Update");
-
-                        // 1. Retrieve existing courier to display current values
                         var oldC = s_bl.Courier.SearchCourier(reqId, updateId);
 
-                        Console.WriteLine($"--- Updating {oldC.FullName} ---");
-                        Console.WriteLine("(Press Enter to keep the current value)");
+                        PrintEntity(oldC);
+                        Console.WriteLine("(Press Enter to keep current value)");
 
-                        // 2. Input fields logic
                         string newName = GetString($"Name [{oldC.FullName}]:");
                         string newPhone = GetString($"Phone [{oldC.PhoneNumber}]:");
                         string newEmail = GetString($"Email [{oldC.Email}]:");
@@ -111,17 +125,16 @@ internal class Program
                         string activeInput = GetString($"Is Active? [{oldC.IsActive}] (y/n):");
                         bool newActive = activeInput == "y" ? true : (activeInput == "n" ? false : oldC.IsActive);
 
-                        // 3. Create NEW object for update
-                        BO.Courier updatedC = new BO.Courier
+                        var updatedC = new BO.Courier
                         {
-                            Id = oldC.Id, // ID cannot change
+                            Id = oldC.Id,
                             FullName = string.IsNullOrWhiteSpace(newName) ? oldC.FullName : newName,
                             PhoneNumber = string.IsNullOrWhiteSpace(newPhone) ? oldC.PhoneNumber : newPhone,
                             Email = string.IsNullOrWhiteSpace(newEmail) ? oldC.Email : newEmail,
                             Password = string.IsNullOrWhiteSpace(newPass) ? oldC.Password : newPass,
                             IsActive = newActive,
                             DistanceToDelivery = newDist,
-                            DeliveryType = oldC.DeliveryType, // Logic to change Enum can be added if needed
+                            DeliveryType = oldC.DeliveryType,
                             EmploymentStartDate = oldC.EmploymentStartDate
                         };
 
@@ -175,7 +188,7 @@ internal class Program
                             Latitude = GetDouble("Latitude"),
                             Longitude = GetDouble("Longitude"),
                             Description = GetString("Description"),
-                            OrderType = GetEnum<BO.OrderType>("Type (0-Standard, 1-Express)")
+                            OrderType = GetEnum<BO.OrderType>("Order Type")
                         };
                         s_bl.Order.AddOrder(reqId, newOrder);
                         Console.WriteLine("Added.");
@@ -187,7 +200,6 @@ internal class Program
                         break;
 
                     case 3: // Select
-                        // Direct call via Interface (assuming Interface was updated as discussed)
                         s_bl.Order.OrderSelection(reqId, reqId, GetInt("Order ID"));
                         Console.WriteLine("Selected.");
                         break;
@@ -198,29 +210,47 @@ internal class Program
                         break;
 
                     case 5: // Show
-                        Console.WriteLine(s_bl.Order.OrderDetails(reqId, GetInt("Order ID")));
+                        PrintEntity(s_bl.Order.OrderDetails(reqId, GetInt("Order ID")));
                         break;
 
-                    case 6: // List with Filter
+                    case 6: // List with Filter and Sort
                         BO.OrderInListEnum? filterBy = null;
                         object? filterVal = null;
+                        BO.OrderInListEnum? sortBy = null;
 
-                        if (GetString("Filter by Status? (y/n)") == "y")
+                        Console.WriteLine("Filter by: 0-None, 1-Status, 2-Type");
+                        int fChoice = GetInt("Choice");
+                        if (fChoice == 1)
                         {
                             filterBy = BO.OrderInListEnum.OrderStatus;
-                            // Using ShipmentCompletionStatus for filtering logic
-                            filterVal = GetEnum<BO.ShipmentCompletionStatus>("Enter Status");
+                            filterVal = GetEnum<BO.ShipmentCompletionStatus>("Select Status");
+                        }
+                        else if (fChoice == 2)
+                        {
+                            filterBy = BO.OrderInListEnum.OrderType;
+                            filterVal = GetEnum<BO.OrderType>("Select Type");
                         }
 
-                        // Calling with 4 arguments as required by the updated Interface
-                        var list = s_bl.Order.ListOfOrder(reqId, filterBy, filterVal, null);
-                        foreach (var item in list) Console.WriteLine(item);
+                        int sortChoice = GetInt("Do you want to chose filter to sort the list? (0 = No, 1 = Yes)");
+
+                        if (sortChoice == 1)
+                        {
+                            Console.WriteLine("Available Sort Options:");
+                            foreach (var val in Enum.GetValues(typeof(BO.OrderInListEnum)))
+                                Console.WriteLine($"  {(int)val} - {val}");
+
+                            int sChoice = GetInt("Select Sort Criterion");
+                            if (Enum.IsDefined(typeof(BO.OrderInListEnum), sChoice))
+                                sortBy = (BO.OrderInListEnum)sChoice;
+                        }
+
+                        var list = s_bl.Order.ListOfOrder(reqId, filterBy, filterVal, sortBy);
+                        foreach (var item in list) PrintEntity(item);
                         break;
 
                     case 7: // Statistics
                         var stats = s_bl.Order.SumAmountOfOrders(reqId);
-
-                        // Printing keys based on ShipmentCompletionStatus enum
+                        Console.WriteLine("\n--- Order Statistics ---");
                         foreach (BO.ShipmentCompletionStatus status in Enum.GetValues(typeof(BO.ShipmentCompletionStatus)))
                         {
                             int index = (int)status;
@@ -231,12 +261,12 @@ internal class Program
 
                     case 8: // Open Orders for Courier
                         var openOrders = s_bl.Order.GetOpenOrdersForCourier(reqId, reqId, null, null);
-                        foreach (var item in openOrders) Console.WriteLine(item);
+                        foreach (var item in openOrders) PrintEntity(item);
                         break;
 
                     case 9: // Courier History
                         var history = s_bl.Order.CloseOrderByCourier(reqId, reqId, null, null);
-                        foreach (var item in history) Console.WriteLine(item);
+                        foreach (var item in history) PrintEntity(item);
                         break;
                 }
             }
@@ -270,12 +300,12 @@ internal class Program
                         Console.WriteLine($"Clock: {s_bl.Admin.GetClock()}");
                         break;
                     case 2:
-                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Min, 1=Hour, 2=Day, 3=Month, 4=Year)");
+                        // Shows all TimeUnit options
+                        var unit = GetEnum<BO.TimeUnit>("Select Time Unit");
                         s_bl.Admin.ForwardClock(unit);
                         Console.WriteLine($"New Time: {s_bl.Admin.GetClock()}");
                         break;
                     case 3:
-                        // Manually printing config properties (Assuming no Helpers.ToStringProperty)
                         var c = s_bl.Admin.GetConfig();
                         Console.WriteLine("--- System Config ---");
                         Console.WriteLine($"Clock: {c.Clock}");
@@ -310,6 +340,20 @@ internal class Program
     #endregion
 
     #region Helpers
+
+    /// <summary>
+    /// Prints the entity header in Blue, then the entity details in standard color.
+    /// </summary>
+    private static void PrintEntity(object? obj)
+    {
+        if (obj == null) return;
+        Console.ForegroundColor = ConsoleColor.Blue;
+        Console.WriteLine($"*** {obj.GetType().Name} ***");
+        Console.ResetColor();
+        Console.WriteLine(obj);
+        Console.WriteLine(); // Empty line for spacing
+    }
+
     private static void PrintException(Exception ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
@@ -338,8 +382,17 @@ internal class Program
         return Console.ReadLine() ?? "";
     }
 
-    private static T GetEnum<T>(string prompt) where T : struct
+    /// <summary>
+    /// Displays all values of the Enum and prompts the user for selection.
+    /// </summary>
+    private static T GetEnum<T>(string prompt) where T : struct, Enum
     {
+        Console.WriteLine($"\nAvailable options for {typeof(T).Name}:");
+        foreach (var val in Enum.GetValues(typeof(T)))
+        {
+            Console.WriteLine($"  {Convert.ToInt32(val)} - {val}");
+        }
+
         T res;
         do { Console.Write($"{prompt}: "); } while (!Enum.TryParse(Console.ReadLine(), out res));
         return res;

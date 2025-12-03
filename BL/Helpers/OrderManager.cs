@@ -50,7 +50,7 @@ internal static class OrderManager
         DateTime maxTime = Helpers.Tools.MaxArrivalTimeCalculate(doOrder);
         TimeSpan timeLeft = (maxTime - Helpers.AdminManager.Now);
 
-        // Fix: Clamp negative time if deadline passed or order is completed
+        // Clamp negative time if deadline passed or order is completed
         if (timeLeft < TimeSpan.Zero || status == ShipmentCompletionStatus.Provided || status == ShipmentCompletionStatus.Cancelled)
             timeLeft = TimeSpan.Zero;
 
@@ -107,6 +107,7 @@ internal static class OrderManager
             else
             {
                 status = (ShipmentCompletionStatus)delivery.EndType!;
+                // Calculate Processing Time only if provided
                 if (status == ShipmentCompletionStatus.Provided)
                     totalProcessing = delivery.EndOrderTime.Value - delivery.StartDeliveryTime;
             }
@@ -115,7 +116,7 @@ internal static class OrderManager
         // Calculate Time Remaining
         TimeSpan timeRemaining = Tools.MaxArrivalTimeCalculate(doOrder) - Helpers.AdminManager.Now;
 
-        // Fix: Clamp negative time for closed orders
+        // Clamp negative time for closed orders
         if (timeRemaining < TimeSpan.Zero || status == ShipmentCompletionStatus.Provided || status == ShipmentCompletionStatus.Cancelled)
             timeRemaining = TimeSpan.Zero;
 
@@ -238,7 +239,7 @@ internal static class OrderManager
         DO.Order? order = s_dal.Order.Read(orderId);
         if (order == null) throw new BO.BlDoesNotExistException("Order not found");
 
-        // 3. Calculate Distance (Fix: Calculate and save distance at selection)
+        // 3. Calculate Distance
         double dist = Tools.CalculateAirDistance(order.Latitude, order.Longitude);
 
         // 4. Create Delivery
@@ -460,7 +461,6 @@ internal static class OrderManager
 
     internal static void CheckCorrectnessVariables(BO.Order boOrder)
     {
-        // Fix: Added missing validation checks for Name and Address
         if (string.IsNullOrWhiteSpace(boOrder.OrderingName))
             throw new BO.BlInvalidDataException("ERROR: Customer Name cannot be empty.");
         if (string.IsNullOrWhiteSpace(boOrder.FullAddress))
