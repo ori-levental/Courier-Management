@@ -383,4 +383,71 @@ internal static class OrderManager
     {
         Tools.CheckPhoneNumber(boOrder.PhoneNumber);
     }
+
+    internal static void PeriodicOrdersUpdate(DateTime oldClock, DateTime newClock)
+    {
+        TimeSpan sixMonths = TimeSpan.FromDays(180); // approx. 6 months
+        DateTime threshold = newClock - sixMonths;
+
+        var orders = s_dal.Order.ReadAll();
+        if (orders == null) return;
+
+        foreach (var doOrder in orders)
+        {
+            if (doOrder == null) continue;
+
+            // Get latest delivery (if any)
+            var deliveriesForOrder = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
+            var latestDelivery = deliveriesForOrder
+                .OrderByDescending(d => d?.StartDeliveryTime)
+                .FirstOrDefault();
+
+            try
+            {
+                // Case A: No delivery exists and order is older than threshold -> mark NotFound
+                if (latestDelivery == null)
+                {
+                    if (doOrder.StartOrderTime <= threshold)
+                    {
+                        DO.Delivery mockDelivery = new DO.Delivery
+                        {
+                            OrderId = doOrder.Id,
+                            CourierId = 0,
+                            StartDeliveryTime = doOrder.StartOrderTime,
+                            EndOrderTime = newClock,
+                            EndType = DO.Enums.ShipmentCompletionStatus.NotFound,
+                            Distance = 0
+                        };
+                        s_dal.Delivery.Create(mockDelivery);
+                    }
+                    continue;
+                }
+
+                // Case B: There is a latest delivery that is still open (no EndOrderTime)
+                if (latestDelivery.EndOrderTime == null)
+                {
+                    // If the delivery was started more than six months ago -> cancel it
+                    if (latestDelivery.StartDeliveryTime <= threshold)
+                    {
+                        DO.Delivery updated = latestDelivery with
+                        {
+                            EndType = DO.Enums.ShipmentCompletionStatus.Cancelled,
+                            EndOrderTime = newClock
+                        };
+                        s_dal.Delivery.Update(updated);
+                    }
+                }
+
+                // Other cases (already closed) -> do nothing
+            }
+            catch (DO.DalAlreadyExistsException)
+            {
+                // ignore and continue with other orders
+            }
+            catch (DO.DalDoesNotExistException)
+            {
+                // ignore and continue
+            }
+        }
+    }
 }

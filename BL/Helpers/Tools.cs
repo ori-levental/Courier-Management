@@ -311,4 +311,9 @@ internal static class Tools
         }
         return result.ToString();
     }
+
+    internal static void UpdateOrders()
+    {
+        IEnumerable<Order> orders = Api.Factory.;
+    }
 }

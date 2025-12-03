@@ -1,5 +1,6 @@
 ﻿//using BO;
 using BO;
+using DalApi;
 using System.Runtime.CompilerServices;
 
 namespace Helpers;
@@ -22,14 +23,22 @@ internal static class AdminManager //stage 4
 
     private static Task? _periodicTask = null; //stage 7
 
-    /// <summary>
-    /// Method to update application's clock from any BL class as may be required
-    /// </summary>
-    /// <param name="newClock">updated clock value</param>
     internal static void UpdateClock(DateTime newClock) //stage 4-7
     {
         var oldClock = s_dal.Config.Clock; //stage 4
         s_dal.Config.Clock = newClock; //stage 4
+        OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
+
+
+        /* static void PeriodicOrderUpdate(DateTime oldClock, DateTime newClock)
+         * {
+         *    
+         *     
+         * }
+         * 
+         */
+
+        
 
         //Add calls here to any logic method that should be called periodically,
         //after each clock update
@@ -37,7 +46,9 @@ internal static class AdminManager //stage 4
         // - Go through all students to update properties that are affected by the clock update
         // - (students become not active after 5 years etc.)
 
-        Helpers.CourierManager.DeactivateIdleCouriers();
+        Helpers.CourierManager.DeactivateIdleCouriers(); 
+
+        catch { /* swallow errors to keep clock update robust */ }
 
         //TO_DO: //stage 7
         //if (_periodicTask is null || _periodicTask.IsCompleted) //stage 7
@@ -181,6 +192,12 @@ internal static class AdminManager //stage 4
         };
         return newTime;
     }
+
+    /// <summary>
+    /// Finds orders that appear to be "waiting for payment" for longer than the given threshold
+    /// and cancels them via the DAL's CancelOrder method.
+    /// Uses reflection to discover common property names: Id, Status, and a date/time property that indicates when the order was placed.
+    /// </summary>
 
     #endregion Stage 4-7
 
