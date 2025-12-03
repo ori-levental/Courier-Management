@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <config>
-  <NextOrderId>51</NextOrderId>
-  <NextDeliveryId>31</NextDeliveryId>
-  <Clock>11/1/2024 12:00:00 PM</Clock>
-  <ManagerId>111111118</ManagerId>
-  <ManagerPassword>nxnsj544bh@!</ManagerPassword>
+  <NextOrderId>1</NextOrderId>
+  <NextDeliveryId>1</NextDeliveryId>
+  <Clock>1/1/0101 12:00:00 AM</Clock>
+  <ManagerId>0</ManagerId>
+  <ManagerPassword></ManagerPassword>
   <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
-  <Latitude>32.0749</Latitude>
-  <Longitude>34.7923</Longitude>
-  <MaxAirDistance>20</MaxAirDistance>
-  <AvgCarSpeed>60</AvgCarSpeed>
-  <AvgMotorcycleSpeed>80</AvgMotorcycleSpeed>
-  <AvgBicycleSpeed>20</AvgBicycleSpeed>
-  <AvgWalkSpeed>5</AvgWalkSpeed>
-  <MaxDeliveryTime>04:00:00</MaxDeliveryTime>
-  <RiskRange>00:30:00</RiskRange>
-  <CourierInactivityTime>08:00:00</CourierInactivityTime>
+  <Latitude>1</Latitude>
+  <Longitude>1</Longitude>
+  <MaxAirDistance>1</MaxAirDistance>
+  <AvgCarSpeed>1</AvgCarSpeed>
+  <AvgMotorcycleSpeed>1</AvgMotorcycleSpeed>
+  <AvgBicycleSpeed>1</AvgBicycleSpeed>
+  <AvgWalkSpeed>1</AvgWalkSpeed>
+  <MaxDeliveryTime>00:00:00</MaxDeliveryTime>
+  <RiskRange>00:00:00</RiskRange>
+  <CourierInactivityTime>00:00:00</CourierInactivityTime>
 </config>
