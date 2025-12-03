@@ -1,15 +1,15 @@
-﻿using BlApi;
-using BO;
+﻿using BO;
 using DalApi;
 using DO;
-using System.Reflection;
+using System.Collections; // Required for non-generic IEnumerable
+using System.Reflection;  // Required for Reflection
 using System.Text;
 
 namespace Helpers;
 
 internal static class Tools
 {
-    private static IDal s_dal = DalApi.Factory.Get; //stage 4
+    private static IDal s_dal = Factory.Get;
 
     #region Calculations & Algorithms
 
@@ -17,14 +17,8 @@ internal static class Tools
     /// Calculates the aerial distance between two geographical coordinates using the Haversine formula.
     /// If target coordinates are not provided, defaults to the company's hub location.
     /// </summary>
-    /// <param name="lat1">Source latitude.</param>
-    /// <param name="lon1">Source longitude.</param>
-    /// <param name="lat2">Target latitude (optional).</param>
-    /// <param name="lon2">Target longitude (optional).</param>
-    /// <returns>Distance in kilometers.</returns>
     internal static double CalculateAirDistance(double lat1, double lon1, double? lat2 = null, double? lon2 = null)
     {
-        // Set target location: use provided coordinates or fallback to Hub configuration
         double targetLat = lat2 ?? s_dal.Config.Latitude ?? 0;
         double targetLon = lon2 ?? s_dal.Config.Longitude ?? 0;
 
@@ -44,11 +38,8 @@ internal static class Tools
     /// <summary>
     /// Estimates the arrival time based on the distance and the average speed of the courier's vehicle type.
     /// </summary>
-    /// <param name="delivery">The delivery data object containing distance and vehicle type.</param>
-    /// <returns>Calculated estimated arrival time.</returns>
-    private static DateTime EstimatedArrivalTimeCalculate(DO.Delivery delivery)
+    internal static DateTime EstimatedArrivalTimeCalculate(DO.Delivery delivery)
     {
-        // Determine speed based on shipping type
         double speed = delivery.DeliveryShippingType switch
         {
             DO.Enums.ShippingType.Walk => s_dal.Config.AvgWalkSpeed,
@@ -57,20 +48,16 @@ internal static class Tools
             _ => s_dal.Config.AvgMotorcycleSpeed
         };
 
-        if (speed <= 0) speed = 1; // Validation to prevent division by zero
+        if (speed <= 0) speed = 1;
 
         double travelTimeInHours = delivery.Distance!.Value / speed;
-
-        // Calculate arrival time relative to the delivery start time
         return delivery.StartDeliveryTime.AddHours(travelTimeInHours);
     }
 
     /// <summary>
     /// Calculates the maximum allowable delivery time (SLA) based on the order's urgency.
     /// </summary>
-    /// <param name="order">The order data object.</param>
-    /// <returns>The deadline DateTime.</returns>
-    private static DateTime MaxArrivalTimeCalculate(DO.Order order)
+    internal static DateTime MaxArrivalTimeCalculate(DO.Order order)
     {
         double MaxTime = order.Type switch
         {
@@ -83,12 +70,9 @@ internal static class Tools
     }
 
     /// <summary>
-    /// Determines the current schedule status (OnTime, Late, or InRisk) relative to the simulated clock.
+    /// Determines the current schedule status (OnTime, Late, or InRisk).
     /// </summary>
-    /// <param name="order">The order details.</param>
-    /// <param name="delivery">The delivery details.</param>
-    /// <returns>The calculated ScheduleStatus enum.</returns>
-    private static ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery delivery)
+    internal static ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery delivery)
     {
         TimeSpan maxDuration = s_dal.Config.MaxDeliveryTime;
 
@@ -104,19 +88,14 @@ internal static class Tools
         else
         {
             DateTime deadline = order.StartOrderTime + maxDuration;
-            // Use AdminManager.Now for simulated time, NOT DAL Clock directly
             DateTime now = Helpers.AdminManager.Now;
 
-            // 1. If we passed the deadline -> Late
             if (now > deadline)
                 return ScheduleStatus.Late;
 
-            // 2. If we are close to the deadline (within risk range) -> InRisk
-            // Example: Deadline is in 1 hour, RiskRange is 2 hours -> InRisk
             if (deadline - now <= (s_dal.Config.RiskRange))
                 return ScheduleStatus.InRisk;
 
-            // 3. Otherwise -> OnTime
             return ScheduleStatus.OnTime;
         }
     }
@@ -125,11 +104,6 @@ internal static class Tools
 
     #region Validations
 
-    /// <summary>
-    /// Validates that the phone number adheres to the Israeli mobile format (10 digits starting with '05').
-    /// </summary>
-    /// <param name="phoneNumber">The phone number string to validate.</param>
-    /// <exception cref="BO.BlInvalidDataException">Thrown if format is invalid.</exception>
     internal static void CheckPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber) ||
@@ -142,44 +116,28 @@ internal static class Tools
         }
     }
 
-    /// <summary>
-    /// Validates the Israeli ID number using the standard control digit algorithm (Luhn algorithm).
-    /// </summary>
-    /// <param name="id">The ID number to validate.</param>
-    /// <exception cref="BO.BlInvalidDataException">Thrown if the ID is invalid.</exception>
     internal static void CheckId(int id)
     {
-        // Basic range check
         if (id < 0)
             throw new BO.BlInvalidDataException("ERROR: Invalid ID number");
 
-        // Pad to 9 digits for algorithm consistency
         string idString = id.ToString().PadLeft(9, '0');
         int sum = 0;
 
-        // Calculate control digit sum
         for (int i = 0; i < 9; i++)
         {
             int digit = idString[i] - '0';
             int weight = (i % 2 == 0) ? 1 : 2;
             int step = digit * weight;
 
-            if (step > 9)
-                step -= 9;
-
+            if (step > 9) step -= 9;
             sum += step;
         }
 
-        // Validate modulo 10
         if (sum % 10 != 0)
             throw new BO.BlInvalidDataException("ERROR: Invalid ID number");
     }
 
-    /// <summary>
-    /// Verifies that the requester has administrative privileges.
-    /// </summary>
-    /// <param name="requesterId">The ID of the user performing the action.</param>
-    /// <exception cref="BO.BlAccessPermission">Thrown if the user is not a manager.</exception>
     internal static void AccessPermissionToManager(int requesterId)
     {
         if (requesterId != DalApi.Factory.Get.Config.ManagerId)
@@ -190,57 +148,38 @@ internal static class Tools
 
     #region Business Logic & Object Generation
 
-    /// <summary>
-    /// Retrieves the active order for a specific courier and generates a comprehensive Business Object.
-    /// Returns null if the courier is not currently handling any active delivery.
-    /// </summary>
-    /// <param name="courierId">The ID of the courier.</param>
-    /// <returns>OrderInProgress object or null.</returns>
     internal static BO.OrderInProgress? GenerateOrderInProgress(int courierId)
     {
-        // 1. Retrieve the single active delivery for the courier (where EndOrderTime is null)
         DO.Delivery? delivery = s_dal.Delivery
             .ReadAll(d => d?.CourierId == courierId && d?.EndOrderTime == null)
             .FirstOrDefault();
 
-        // Return null if no active delivery exists
         if (delivery == null) return null;
 
-        // 2. Retrieve the associated order details from the Data Layer
         DO.Order? order = s_dal.Order.Read(delivery.OrderId);
-
-        // Return null if the order record is missing
         if (order == null) return null;
 
-        // Calculate necessary time metrics for the BO
         DateTime estimated = EstimatedArrivalTimeCalculate(delivery);
         DateTime maxTime = MaxArrivalTimeCalculate(order);
         DateTime clock = Helpers.AdminManager.Now;
 
-        // Construct and return the OrderInProgress object
         return new BO.OrderInProgress
         {
             DeliveryId = delivery.Id,
             OrderId = delivery.OrderId,
             OrderType = (BO.OrderType)order.Type,
-
             CustomerName = order.OrderingName,
             CustomerPhone = order.PhoneNumber,
             Address = order.CustomerAddress,
             Description = order.Description,
-
             AirDistance = Tools.CalculateAirDistance(order.Latitude, order.Longitude),
             Distance = delivery.Distance,
-
             StartOrderTime = order.StartOrderTime,
             StartDeliveryTime = delivery.StartDeliveryTime,
-
             EstimatedArrivalTime = estimated,
             MaxArrivalTime = maxTime,
             TimeLeft = maxTime - clock,
             TimeToComplete = estimated - clock,
-
-            // Fixed logic call for status
             ScheduleStatus = ScheduleStatusCalculate(order, delivery),
         };
     }
@@ -251,21 +190,14 @@ internal static class Tools
     /// Generic extension method to generate a string representation of any object's public properties.
     /// Uses Reflection to iterate over properties and handles collections appropriately.
     /// </summary>
-    /// <typeparam name="T">The type of the object.</typeparam>
-    /// <param name="obj">The object to inspect.</param>
-    /// <returns>A formatted string containing property names and values.</returns>
     public static string ToStringProperty<T>(this T obj)
     {
-        // Handle null object case immediately
-        if (obj == null)
-            return "null";
+        if (obj == null) return "null";
 
         Type type = obj.GetType();
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         var result = new StringBuilder();
-
-        // Add Header: Class Name and separator line
         result.AppendLine($"{type.Name}:");
         result.AppendLine(new string('*', type.Name.Length + 1));
 
@@ -282,22 +214,29 @@ internal static class Tools
                     continue;
                 }
 
-                // Case 2: Value is a String (Strings are IEnumerable but should be printed as text)
+                // Case 2: Value is a String (Treat as single value, not collection)
                 if (value is string strValue)
                 {
                     result.AppendLine($"{property.Name}: {strValue}");
                 }
-                // Case 3: Value is a Collection (Array, List, etc.)
-                // Must use non-generic IEnumerable to support primitive arrays like int[]
-                else if (value is IEnumerable<T> collection)
+                // Case 3: Value is a Collection
+                else if (value is IEnumerable collection)
                 {
-                    result.AppendLine($"{property.Name}: (List)");
+                    result.AppendLine($"{property.Name}:");
+
+                    bool isEmpty = true;
                     foreach (var item in collection)
                     {
                         result.AppendLine($"  - {item}");
+                        isEmpty = false;
+                    }
+
+                    if (isEmpty)
+                    {
+                        result.AppendLine("  <Empty>");
                     }
                 }
-                // Case 4: Standard property value
+                // Case 4: Standard property value (int, double, Enum, etc.)
                 else
                 {
                     result.AppendLine($"{property.Name}: {value}");
@@ -305,15 +244,9 @@ internal static class Tools
             }
             catch
             {
-                // Fallback if property access fails
                 result.AppendLine($"{property.Name}: <unable to retrieve>");
             }
         }
         return result.ToString();
-    }
-
-    internal static void UpdateOrders()
-    {
-        IEnumerable<Order> orders = Api.Factory.;
     }
 }

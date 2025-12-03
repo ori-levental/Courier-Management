@@ -10,10 +10,6 @@ internal class CourierImplementation : ICourier
     /// Adds a new courier to the system.
     /// Validates manager permissions and checks data correctness before saving.
     /// </summary>
-    /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
-    /// <param name="courier">The courier object to add.</param>
-    /// <exception cref="BO.BlNotNullableException">Thrown if the courier object is null.</exception>
-    /// <exception cref="BO.BlAccessPermission">Thrown if the requester is not a manager.</exception>
     public void AddCourier(int requesterId, Courier courier)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
@@ -22,16 +18,13 @@ internal class CourierImplementation : ICourier
             throw new BO.BlNotNullableException("Cannot add null object");
 
         Helpers.CourierManager.CheckCorrectnessVariables(courier);
-        Helpers.CourierManager.AddCourier(courier);
+        Helpers.CourierManager.AddCourier(requesterId, courier);
     }
 
     /// <summary>
     /// Deletes a courier from the system.
     /// Ensures the courier is not currently handling an active order before deletion.
     /// </summary>
-    /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
-    /// <param name="courierId">The ID of the courier to delete.</param>
-    /// <exception cref="BO.BlDeletionImpossibleException">Thrown if the courier has an active order.</exception>
     public void DeleteCourier(int requesterId, int courierId)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
@@ -44,11 +37,7 @@ internal class CourierImplementation : ICourier
 
     /// <summary>
     /// Authenticates a user entering the system.
-    /// Validates ID and password, then returns the user's role.
     /// </summary>
-    /// <param name="id">The user's ID.</param>
-    /// <param name="password">The user's password.</param>
-    /// <returns>The employment type (Manager or Courier) upon successful login.</returns>
     public EmployType EnterToSystem(int id, string password)
     {
         Helpers.CourierManager.CheckId(id);
@@ -57,12 +46,8 @@ internal class CourierImplementation : ICourier
     }
 
     /// <summary>
-    /// Retrieves a list of couriers, optionally filtered by status and sorted by a specific criterion.
+    /// Retrieves a list of couriers, optionally filtered by status and sorted.
     /// </summary>
-    /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
-    /// <param name="isActive">Filter: null for all, true for active, false for inactive.</param>
-    /// <param name="sortBy">The criteria to sort the list by (e.g., ID, Name, Performance).</param>
-    /// <returns>A collection of CourierInList objects.</returns>
     public IEnumerable<CourierInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? sortBy)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
@@ -72,25 +57,42 @@ internal class CourierImplementation : ICourier
 
     /// <summary>
     /// Searches for a specific courier and returns their full details.
+    /// Allows access to the courier themselves or a manager.
     /// </summary>
-    /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
-    /// <param name="CourierId">The ID of the courier to retrieve.</param>
-    /// <returns>The full Courier business object.</returns>
-    public Courier SearchCourier(int requesterId, int CourierId)
+    public Courier SearchCourier(int requesterId, int courierId)
     {
-        Helpers.Tools.AccessPermissionToManager(requesterId);
-        return Helpers.CourierManager.SearchCourier(CourierId);
+        // Permission Check: Allow if Manager OR if the requester is the courier looking at their own profile
+        if (!Helpers.CourierManager.AccessCourier(requesterId, courierId))
+           Helpers.Tools.AccessPermissionToManager(requesterId);
+
+
+        return Helpers.CourierManager.SearchCourier(courierId);
     }
 
     /// <summary>
     /// Updates the details of an existing courier.
+    /// A courier can update their own details except for 'IsActive'.
+    /// A manager can update all details.
     /// </summary>
-    /// <param name="requesterId">The ID of the user requesting the action (must be a Manager).</param>
-    /// <param name="courier">The updated courier object.</param>
     public void UpdateCourier(int requesterId, Courier courier)
     {
-        Helpers.Tools.AccessPermissionToManager(requesterId);
-        Helpers.CourierManager.CheckCorrectnessVariables(courier); // מומלץ לבדוק תקינות גם בעדכון
+        // Scenario 1: The Courier is updating themselves
+        if (Helpers.CourierManager.AccessCourier(requesterId, courier.Id))
+        {
+            // Fetch current state to compare restricted fields
+            BO.Courier original = Helpers.CourierManager.SearchCourier(courier.Id);
+
+            // Constraint: Courier cannot change their own activity status
+            if (courier.IsActive != original.IsActive)
+                throw new BO.BlAccessPermission("ERROR: A courier cannot change their own activity status.");
+
+        }
+        // Scenario 2: Someone else is updating (Must be Manager)
+        else
+            Helpers.Tools.AccessPermissionToManager(requesterId);
+
+
+        Helpers.CourierManager.CheckCorrectnessVariables(courier);
         Helpers.CourierManager.UpdateCourier(courier);
     }
 }

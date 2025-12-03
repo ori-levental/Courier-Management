@@ -1,5 +1,4 @@
-﻿//using BO;
-using BO;
+﻿using BO;
 using DalApi;
 using System.Runtime.CompilerServices;
 
@@ -23,22 +22,22 @@ internal static class AdminManager //stage 4
 
     private static Task? _periodicTask = null; //stage 7
 
+    /// <summary>
+    /// Method to update application's clock from any BL class as may be required
+    /// </summary>
+    /// <param name="newClock">updated clock value</param>
     internal static void UpdateClock(DateTime newClock) //stage 4-7
     {
         var oldClock = s_dal.Config.Clock; //stage 4
         s_dal.Config.Clock = newClock; //stage 4
-        OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
 
+        // --- Logic for Stage 4 Implementation ---
+        // 1. Update Order Statuses (Simulate delivery progress)
+        Helpers.OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
 
-        /* static void PeriodicOrderUpdate(DateTime oldClock, DateTime newClock)
-         * {
-         *    
-         *     
-         * }
-         * 
-         */
-
-        
+        // 2. Deactivate Idle Couriers (Cleanup logic)
+        Helpers.CourierManager.DeactivateIdleCouriers();
+        // ----------------------------------------
 
         //Add calls here to any logic method that should be called periodically,
         //after each clock update
@@ -46,9 +45,9 @@ internal static class AdminManager //stage 4
         // - Go through all students to update properties that are affected by the clock update
         // - (students become not active after 5 years etc.)
 
-        Helpers.CourierManager.DeactivateIdleCouriers(); 
-
-        catch { /* swallow errors to keep clock update robust */ }
+        //TO_DO: //stage 4
+        //   StudentManager.PeriodicStudentsUpdates(oldClock, newClock); //stage 4. to be removed in stage 7 and replaced as below
+        //...
 
         //TO_DO: //stage 7
         //if (_periodicTask is null || _periodicTask.IsCompleted) //stage 7
@@ -60,30 +59,48 @@ internal static class AdminManager //stage 4
     }
 
     /// <summary>
+    /// Helper method to calculate new time based on TimeUnit enum
+    /// </summary>
+    internal static DateTime ForwardClock(DateTime current, BO.TimeUnit timeUnit)
+    {
+        return timeUnit switch
+        {
+            TimeUnit.Minute => current.AddMinutes(1),
+            TimeUnit.Hour => current.AddHours(1),
+            TimeUnit.Day => current.AddDays(1),
+            TimeUnit.Month => current.AddMonths(1),
+            TimeUnit.Year => current.AddYears(1),
+            _ => current.AddHours(0)
+        };
+    }
+
+    /// <summary>
     /// Method for providing current configuration variables values for any BL class that may need it
     /// </summary>
     [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     internal static BO.Config GetConfig() //stage 4
-        => new BO.Config()
+    {
+        return new BO.Config()
         {
-            // --- Basic Settings ---
+            // Basic Settings
             MaxRange = s_dal.Config.MaxAirDistance,
             Clock = s_dal.Config.Clock,
             CompanyAddress = s_dal.Config.CompanyAddress,
             ManagerPassword = s_dal.Config.ManagerPassword,
             ManagerId = s_dal.Config.ManagerId,
 
-            // --- Speeds ---
+            // Speeds
             AvgCarSpeed = s_dal.Config.AvgCarSpeed,
             AvgMotorcycleSpeed = s_dal.Config.AvgMotorcycleSpeed,
             AvgBicycleSpeed = s_dal.Config.AvgBicycleSpeed,
             AvgWalkSpeed = s_dal.Config.AvgWalkSpeed,
 
-            // --- Times (SLA) ---
+            // Times (SLA)
             MaxDeliveryTime = s_dal.Config.MaxDeliveryTime,
             RiskRange = s_dal.Config.RiskRange,
             CourierInactivityTime = s_dal.Config.CourierInactivityTime
         };
+    }
 
     /// <summary>
     /// Method for setting current configuration variables values for any BL class that may need it
@@ -154,6 +171,10 @@ internal static class AdminManager //stage 4
             configChanged = true;
         }
 
+        //TO_DO: //stage 4
+        //add a condition+assignment for each configuration property
+        //...
+
         //Calling all the observers of configuration update
         if (configChanged) // stage 5
             ConfigUpdatedObservers?.Invoke(); // stage 5
@@ -174,31 +195,10 @@ internal static class AdminManager //stage 4
         lock (BlMutex) //stage 7
         {
             DalTest.Initialization.Do(); //stage 4
-            AdminManager.UpdateClock(AdminManager.Now);  //stage 5 - needed since we want the label on Pl to be updated           
+            AdminManager.UpdateClock(AdminManager.Now);  //stage 5 - needed since we want the label on Pl to be updated            
             AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed for update the PL
         }
     }
-
-    internal static DateTime ForwardClock(DateTime current, BO.TimeUnit timeUnit)
-    {
-
-        DateTime newTime = timeUnit switch
-        {
-            TimeUnit.Minute => current.AddMinutes(1),
-            TimeUnit.Hour => current.AddHours(1),
-            TimeUnit.Day => current.AddDays(1),
-            TimeUnit.Month => current.AddMonths(1),
-            TimeUnit.Year => current.AddYears(1),
-            _ => current.AddHours(0) // (Default)
-        };
-        return newTime;
-    }
-
-    /// <summary>
-    /// Finds orders that appear to be "waiting for payment" for longer than the given threshold
-    /// and cancels them via the DAL's CancelOrder method.
-    /// Uses reflection to discover common property names: Id, Status, and a date/time property that indicates when the order was placed.
-    /// </summary>
 
     #endregion Stage 4-7
 
@@ -222,14 +222,14 @@ internal static class AdminManager //stage 4
     /// 
     private static volatile bool s_stop = false;
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                 
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
     public static void ThrowOnSimulatorIsRunning()
     {
         if (s_thread is not null)
             throw new BO.BlNotNullableException("Cannot perform the operation since Simulator is running");
     }
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                 
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
     internal static void Start(int interval)
     {
         if (s_thread is null)
@@ -241,7 +241,7 @@ internal static class AdminManager //stage 4
         }
     }
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                 
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
     internal static void Stop()
     {
         if (s_thread is not null)

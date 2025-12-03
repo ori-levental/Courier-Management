@@ -174,7 +174,7 @@ internal static class CourierManager
     /// <summary>
     /// Adds a new courier to the database after converting to DO.
     /// </summary>
-    internal static void AddCourier(BO.Courier boCourier)
+    internal static void AddCourier(int requesterId, BO.Courier boCourier)
     {
         DO.Courier doCourier = BOToDOCourier(boCourier);
         try
@@ -392,5 +392,10 @@ internal static class CourierManager
         return DOToBOCourier(doCourier);
     }
 
+
+    internal static bool AccessCourier(int requesterId, int courierId)
+    {
+        return (requesterId == courierId);
+    }
     #endregion Data Retrieval
 }

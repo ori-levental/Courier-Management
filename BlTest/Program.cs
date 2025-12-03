@@ -6,14 +6,16 @@ namespace BlTest;
 
 internal class Program
 {
+    // Initialize the Business Logic layer interface via the Factory (Singleton access)
     static readonly IBl s_bl = Factory.Get();
 
     static void Main(string[] args)
     {
+        // Set culture to ensure consistent number/date formatting (e.g., dot for decimals)
         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
         Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
-        Console.WriteLine("=== BL Test Program ===");
+        Console.WriteLine("=== BL Test Program (Final Version) ===");
 
         bool exit = false;
         while (!exit)
@@ -55,6 +57,7 @@ internal class Program
 
             try
             {
+                // Requesting Manager ID for permissions
                 int reqId = GetInt("Manager ID");
 
                 switch (choice)
@@ -81,19 +84,48 @@ internal class Program
                         break;
 
                     case 3: // List
-                        foreach (var item in s_bl.Courier.ListOfCourier(reqId, null, null))
+                        // Passing null for optional filter and sort arguments to show all
+                        var list = s_bl.Courier.ListOfCourier(reqId, null, null);
+                        foreach (var item in list)
                             Console.WriteLine(item);
                         break;
 
                     case 4: // Update
                         int updateId = GetInt("ID to Update");
-                        var c = s_bl.Courier.SearchCourier(reqId, updateId);
-                        Console.WriteLine($"Editing: {c.FullName}");
-                        c.FullName = GetString("New Name (Enter to keep):");
-                        string newPhone = GetString("New Phone (Enter to keep):");
-                        if (newPhone != "") c.PhoneNumber = newPhone;
 
-                        s_bl.Courier.UpdateCourier(reqId, c);
+                        // 1. Retrieve existing courier to display current values
+                        var oldC = s_bl.Courier.SearchCourier(reqId, updateId);
+
+                        Console.WriteLine($"--- Updating {oldC.FullName} ---");
+                        Console.WriteLine("(Press Enter to keep the current value)");
+
+                        // 2. Input fields logic
+                        string newName = GetString($"Name [{oldC.FullName}]:");
+                        string newPhone = GetString($"Phone [{oldC.PhoneNumber}]:");
+                        string newEmail = GetString($"Email [{oldC.Email}]:");
+                        string newPass = GetString($"Password [{oldC.Password}]:");
+
+                        string distInput = GetString($"Max Distance [{oldC.DistanceToDelivery}]:");
+                        double? newDist = double.TryParse(distInput, out double d) ? d : oldC.DistanceToDelivery;
+
+                        string activeInput = GetString($"Is Active? [{oldC.IsActive}] (y/n):");
+                        bool newActive = activeInput == "y" ? true : (activeInput == "n" ? false : oldC.IsActive);
+
+                        // 3. Create NEW object for update
+                        BO.Courier updatedC = new BO.Courier
+                        {
+                            Id = oldC.Id, // ID cannot change
+                            FullName = string.IsNullOrWhiteSpace(newName) ? oldC.FullName : newName,
+                            PhoneNumber = string.IsNullOrWhiteSpace(newPhone) ? oldC.PhoneNumber : newPhone,
+                            Email = string.IsNullOrWhiteSpace(newEmail) ? oldC.Email : newEmail,
+                            Password = string.IsNullOrWhiteSpace(newPass) ? oldC.Password : newPass,
+                            IsActive = newActive,
+                            DistanceToDelivery = newDist,
+                            DeliveryType = oldC.DeliveryType, // Logic to change Enum can be added if needed
+                            EmploymentStartDate = oldC.EmploymentStartDate
+                        };
+
+                        s_bl.Courier.UpdateCourier(reqId, updatedC);
                         Console.WriteLine("Updated.");
                         break;
 
@@ -155,7 +187,7 @@ internal class Program
                         break;
 
                     case 3: // Select
-                        // Assuming OrderSelection is now in IOrder interface as agreed
+                        // Direct call via Interface (assuming Interface was updated as discussed)
                         s_bl.Order.OrderSelection(reqId, reqId, GetInt("Order ID"));
                         Console.WriteLine("Selected.");
                         break;
@@ -176,34 +208,33 @@ internal class Program
                         if (GetString("Filter by Status? (y/n)") == "y")
                         {
                             filterBy = BO.OrderInListEnum.OrderStatus;
-                            // Using ShipmentCompletionStatus logic
+                            // Using ShipmentCompletionStatus for filtering logic
                             filterVal = GetEnum<BO.ShipmentCompletionStatus>("Enter Status");
                         }
 
+                        // Calling with 4 arguments as required by the updated Interface
                         var list = s_bl.Order.ListOfOrder(reqId, filterBy, filterVal, null);
                         foreach (var item in list) Console.WriteLine(item);
                         break;
 
                     case 7: // Statistics
                         var stats = s_bl.Order.SumAmountOfOrders(reqId);
-                        // Using ShipmentCompletionStatus to display keys
+
+                        // Printing keys based on ShipmentCompletionStatus enum
                         foreach (BO.ShipmentCompletionStatus status in Enum.GetValues(typeof(BO.ShipmentCompletionStatus)))
                         {
-                            // Safe printing, assuming stats array logic matches enum or similar
-                            Console.WriteLine($"Status {status}");
+                            int index = (int)status;
+                            int val = (index < stats.Length) ? stats[index] : 0;
+                            Console.WriteLine($"Status {status}: {val}");
                         }
-                        // Printing raw values from array
-                        Console.WriteLine("Counts: " + string.Join(", ", stats));
                         break;
 
                     case 8: // Open Orders for Courier
-                        // Assuming GetOpenOrdersForCourier is in IOrder interface
                         var openOrders = s_bl.Order.GetOpenOrdersForCourier(reqId, reqId, null, null);
                         foreach (var item in openOrders) Console.WriteLine(item);
                         break;
 
                     case 9: // Courier History
-                        // Assuming CloseOrderByCourier is in IOrder interface
                         var history = s_bl.Order.CloseOrderByCourier(reqId, reqId, null, null);
                         foreach (var item in history) Console.WriteLine(item);
                         break;
@@ -239,13 +270,19 @@ internal class Program
                         Console.WriteLine($"Clock: {s_bl.Admin.GetClock()}");
                         break;
                     case 2:
-                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Min, 1=Hour, 5=Day, 3=Month, 4=Year)");
+                        var unit = GetEnum<BO.TimeUnit>("Unit (0=Min, 1=Hour, 2=Day, 3=Month, 4=Year)");
                         s_bl.Admin.ForwardClock(unit);
                         Console.WriteLine($"New Time: {s_bl.Admin.GetClock()}");
                         break;
                     case 3:
-                        // This prints all properties using the helper
-                        Console.WriteLine(s_bl.Admin.GetConfig().ToString());
+                        // Manually printing config properties (Assuming no Helpers.ToStringProperty)
+                        var c = s_bl.Admin.GetConfig();
+                        Console.WriteLine("--- System Config ---");
+                        Console.WriteLine($"Clock: {c.Clock}");
+                        Console.WriteLine($"Max Range: {c.MaxRange}");
+                        Console.WriteLine($"Company Address: {c.CompanyAddress}");
+                        Console.WriteLine($"Car Speed: {c.AvgCarSpeed}");
+                        Console.WriteLine($"SLA Time: {c.MaxDeliveryTime}");
                         break;
                     case 4:
                         var conf = s_bl.Admin.GetConfig();

@@ -146,7 +146,7 @@ public static class Initialization
     private static void InitializeConfig()
     {
         s_dal!.Config!.Clock = new DateTime(2024, 11, 1, 12, 0, 0);
-        s_dal!.Config!.ManagerId = 123456789;
+        s_dal!.Config!.ManagerId = 111111118;
         s_dal!.Config!.ManagerPassword = "nxnsj544bh@!";
         s_dal!.Config!.CompanyAddress = "Menachem Begin 132, Tel Aviv";
         s_dal!.Config!.Latitude = s_hqLat;
@@ -166,14 +166,43 @@ public static class Initialization
         foreach (var name in s_courierNames)
         {
             int id;
-            do id = s_rand.Next(200000000, 400000000);
-            while (s_dal!.Courier!.Read(id) != null);
+            do
+            {
+                // 1. Generate the first 8 digits 
+                // (Using range 20M-40M to ensure the final ID starts with 2, 3, or 4 and has 9 digits total)
+                int first8Digits = s_rand.Next(20000000, 40000000);
 
-            string phone = $"05{s_rand.Next(0, 10)}-{s_rand.Next(1000000, 10000000)}";
+                // 2. Calculate the control digit (Israeli ID / Luhn algorithm)
+                int sum = 0;
+                string idString = first8Digits.ToString();
+
+                for (int i = 0; i < 8; i++)
+                {
+                    int digit = idString[i] - '0';
+                    int weight = (i % 2 == 0) ? 1 : 2; // Weight alternates: 1, 2, 1, 2...
+                    int step = digit * weight;
+
+                    // If result is double-digit, sum its digits (e.g., 12 -> 1+2=3, equivalent to 12-9)
+                    if (step > 9)
+                        step -= 9;
+
+                    sum += step;
+                }
+
+                // Calculate the complement to the nearest multiple of 10
+                int checkDigit = (10 - (sum % 10)) % 10;
+
+                // 3. Construct the full 9-digit ID
+                id = (first8Digits * 10) + checkDigit;
+
+            } while (s_dal!.Courier!.Read(id) != null); // Ensure uniqueness in the database
+
+            string phone = $"05{s_rand.Next(0, 10)}{s_rand.Next(1000000, 10000000)}";
 
             const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$";
             string password = new string(Enumerable.Range(1, 10)
                 .Select(_ => validChars[s_rand.Next(validChars.Length)]).ToArray());
+            password = password += "1.B";
 
             string email = name.Replace(" ", ".").ToLower() + "@example.com";
 
