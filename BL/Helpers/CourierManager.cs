@@ -7,6 +7,7 @@ namespace Helpers;
 internal static class CourierManager
 {
     private static IDal s_dal = Factory.Get;
+    internal static ObserverManager Observers = new(); //stage 5 
 
     #region Data Translation
 
@@ -180,6 +181,7 @@ internal static class CourierManager
         try
         {
             s_dal.Courier.Create(doCourier);
+            Observers.NotifyListUpdated();
         }
         catch (DO.DalAlreadyExistsException ex)
         {
@@ -199,6 +201,9 @@ internal static class CourierManager
         try
         {
             s_dal.Courier.Update(doCourier);
+
+            Observers.NotifyListUpdated();
+            Observers.NotifyItemUpdated(boCourier.Id);
         }
         catch (DO.DalDoesNotExistException ex)
         {
@@ -214,6 +219,9 @@ internal static class CourierManager
         try
         {
             s_dal.Courier.Delete(courierId);
+
+            Observers.NotifyListUpdated();
+            Observers.NotifyItemUpdated(courierId);
         }
         catch (DO.DalDoesNotExistException ex)
         {
@@ -355,8 +363,8 @@ internal static class CourierManager
         // 1. Set the threshold date (6 months ago relative to simulated clock)
         DateTime limitDate = Helpers.AdminManager.Now.AddMonths(-6);
 
-        // 2. LINQ Pipeline: Retrieve -> Filter -> Update
-        s_dal.Courier.ReadAll(c => c?.Active == true) // Initial fetch: only active couriers
+        // 2. LINQ Pipeline: Retrieve -> Filter
+        var idleCouriers = s_dal.Courier.ReadAll(c => c?.Active == true) // Initial fetch: only active couriers
             .Where(c => c != null && !CheckIfOrderOpen(c.Id)) // Filter 1: Not currently working on an order
             .Where(c =>
             {
@@ -371,10 +379,24 @@ internal static class CourierManager
                 // Return true if activity is older than the limit (candidate for deactivation)
                 return lastActivity < limitDate;
             })
-            .ToList() // Materialize list to enable ForEach
-            .ForEach(c => s_dal.Courier.Update(c! with { Active = false })); // Perform the update
-    }
+            .ToList(); // Materialize list to enable ForEach
 
+        // 3. Update and Notify
+        idleCouriers.ForEach(c =>
+        {
+            // Update in DAL
+            s_dal.Courier.Update(c! with { Active = false });
+
+            // Notify specific observer (Must be outside the 'with' expression)
+            Observers.NotifyItemUpdated(c!.Id);
+        });
+
+        // 4. Notify list observer if any changes occurred
+        if (idleCouriers.Any())
+        {
+            Observers.NotifyListUpdated();
+        }
+    }
     #endregion Periodic Maintenance
 
     #region Data Retrieval

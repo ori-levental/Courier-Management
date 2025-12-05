@@ -10,7 +10,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void AddOrder(int requesterId, Order order)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
 
         if (order == null)
             throw new BO.BlNotNullableException("Cannot add null object");
@@ -24,7 +24,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void CancelOrder(int requesterId, int orderId)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.CancelOrder(orderId);
     }
 
@@ -55,7 +55,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public IEnumerable<OrderInList> ListOfOrder(int requesterId, OrderInListEnum? filterBy, object? filterValue, OrderInListEnum? sortBy)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         return Helpers.OrderManager.ListOfOrder(filterBy, filterValue, sortBy);
     }
 
@@ -64,7 +64,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public Order OrderDetails(int requesterId, int orderId)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         return Helpers.OrderManager.GetOrderDetails(orderId);
     }
 
@@ -84,7 +84,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public int[] SumAmountOfOrders(int requesterId)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         return Helpers.OrderManager.SumAmountOfOrders();
     }
 
@@ -93,7 +93,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void UpdateOrder(int requesterId, BO.Order order)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.UpdateOrder(order);
     }
 
@@ -113,7 +113,18 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void DeleteOrder(int requesterId, int orderId)
     {
-        Helpers.OrderManager.AccessPermissionToManager(requesterId);
+        Helpers.Tools.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.DeleteOrder(orderId);
     }
+
+    #region Stage 5
+    public void AddObserver(Action listObserver) =>
+    Helpers.OrderManager.Observers.AddListObserver(listObserver); //stage 5
+    public void AddObserver(int id, Action observer) =>
+    Helpers.OrderManager.Observers.AddObserver(id, observer); //stage 5
+    public void RemoveObserver(Action listObserver) =>
+    Helpers.OrderManager.Observers.RemoveListObserver(listObserver); //stage 5
+    public void RemoveObserver(int id, Action observer) =>
+    Helpers.OrderManager.Observers.RemoveObserver(id, observer); //stage 5
+    #endregion Stage 5
 }

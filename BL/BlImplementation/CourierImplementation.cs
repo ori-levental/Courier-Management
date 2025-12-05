@@ -1,5 +1,6 @@
 ﻿using BlApi;
 using BO;
+using Helpers;
 using System.Collections.Generic;
 
 namespace BlImplementation;
@@ -95,4 +96,16 @@ internal class CourierImplementation : ICourier
         Helpers.CourierManager.CheckCorrectnessVariables(courier);
         Helpers.CourierManager.UpdateCourier(courier);
     }
+
+    #region Stage 5
+    public void AddObserver(Action listObserver) =>
+    Helpers.CourierManager.Observers.AddListObserver(listObserver); //stage 5
+    public void AddObserver(int id, Action observer) =>
+    Helpers.CourierManager.Observers.AddObserver(id, observer); //stage 5
+    public void RemoveObserver(Action listObserver) =>
+    Helpers.CourierManager.Observers.RemoveListObserver(listObserver); //stage 5
+    public void RemoveObserver(int id, Action observer) =>
+    Helpers.CourierManager.Observers.RemoveObserver(id, observer); //stage 5
+    #endregion Stage 5
+
 }

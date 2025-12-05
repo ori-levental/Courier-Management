@@ -6,7 +6,7 @@ namespace BlApi;
 /// <summary>
 /// Defines the core API for managing customer orders and subsequent delivery operations.
 /// </summary>
-public interface IOrder
+public interface IOrder : IObservable
 {
     // --- General Management ---
 

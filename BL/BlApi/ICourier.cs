@@ -4,7 +4,7 @@ namespace BlApi;
 /// <summary>
 /// Defines the API for managing courier entities within the Business Logic (BL) layer.
 /// </summary>
-public interface ICourier
+public interface ICourier : IObservable
 {
     /// <summary>
     /// Attempts to log a user (e.g., Courier or Admin) into the system.
