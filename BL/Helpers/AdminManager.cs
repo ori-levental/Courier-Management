@@ -1,6 +1,8 @@
-﻿using BO;
+﻿using BlImplementation;
+using BO;
 using DalApi;
 using System.Runtime.CompilerServices;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Helpers;
 
@@ -187,6 +189,12 @@ internal static class AdminManager //stage 4
             s_dal.ResetDB(); //stage 4
             AdminManager.UpdateClock(AdminManager.Now); //stage 5 - needed since we want the label on Pl to be updated
             AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed to update PL 
+
+            // for observer
+            AdminManager.SetConfig(AdminManager.GetConfig());
+            Helpers.CourierManager.Observers.NotifyListUpdated();
+            Helpers.OrderManager.Observers.NotifyListUpdated();
+
         }
     }
 
@@ -197,6 +205,11 @@ internal static class AdminManager //stage 4
             DalTest.Initialization.Do(); //stage 4
             AdminManager.UpdateClock(AdminManager.Now);  //stage 5 - needed since we want the label on Pl to be updated            
             AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed for update the PL
+
+            // for observer
+            AdminManager.SetConfig(AdminManager.GetConfig());
+            Helpers.CourierManager.Observers.NotifyListUpdated();
+            Helpers.OrderManager.Observers.NotifyListUpdated();
         }
     }
 
@@ -236,7 +249,7 @@ internal static class AdminManager //stage 4
         {
             s_interval = interval;
             s_stop = false;
-            s_thread = new(clockRunner) { Name = "ClockRunner" };
+            s_thread = new(ClockRunner) { Name = "ClockRunner" };
             s_thread.Start();
         }
     }
@@ -255,7 +268,7 @@ internal static class AdminManager //stage 4
 
     private static Task? _simulateTask = null;
 
-    private static void clockRunner()
+    private static void ClockRunner()
     {
         while (!s_stop)
         {

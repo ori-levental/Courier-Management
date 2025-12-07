@@ -5,8 +5,126 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow - Delivery System Management" Height="700" Width="1000"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
+
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#F0F8FF" BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Label Content="System Clock:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
+
+                    <Label Content="{Binding CurrentTime}" FontSize="18" Foreground="DarkBlue" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                </StackPanel>
+
+                <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="+ Min" Click="BtnAddMinute_Click" Margin="3" Padding="10,5"/>
+                    <Button Content="+ Hour" Click="BtnAddHour_Click" Margin="3" Padding="10,5"/>
+                    <Button Content="+ Day" Click="BtnAddDay_Click" Margin="3" Padding="10,5"/>
+                    <Button Content="+ Month" Click="BtnAddMonth_Click" Margin="3" Padding="10,5"/>
+                    <Button Content="+ Year" Click="BtnAddYear_Click" Margin="3" Padding="10,5"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="165.72"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Row="0" Content="System Configuration" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+
+                <GroupBox Grid.Row="1" Header="Average Speeds (km/h)" Margin="5" Padding="10">
+                    <UniformGrid Columns="4" Rows="1">
+                        <StackPanel Margin="5">
+                            <Label Content="Car Speed:"/>
+                            <TextBox Text="{Binding Configuration.AvgCarSpeed, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                        <StackPanel Margin="5">
+                            <Label Content="Motorcycle Speed:"/>
+                            <TextBox Text="{Binding Configuration.AvgMotorcycleSpeed, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                        <StackPanel Margin="5">
+                            <Label Content="Bicycle Speed:"/>
+                            <TextBox Text="{Binding Configuration.AvgBicycleSpeed, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                        <StackPanel Margin="5">
+                            <Label Content="Walking Speed:"/>
+                            <TextBox Text="{Binding Configuration.AvgWalkSpeed, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </GroupBox>
+
+                <GroupBox Grid.Row="2" Header="Location &amp; Distance Limits" Margin="5" Padding="10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="5">
+                            <Label Content="Company Address:"/>
+                            <TextBox Text="{Binding Configuration.CompanyAddress, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3" Margin="5">
+                            <Label Content="Max Air Distance (km):"/>
+                            <TextBox Text="{Binding Configuration.MaxRange, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Grid.Row="3" Header="Time Constraints (Format: HH:MM:SS)" Margin="5" Padding="10">
+                    <UniformGrid Columns="3" Rows="1">
+                        <StackPanel Margin="5">
+                            <Label Content="Max Delivery Time:"/>
+                            <TextBox Text="{Binding Configuration.MaxDeliveryTime, UpdateSourceTrigger=PropertyChanged}" Padding="3" ToolTip="Example: 00:45:00"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="5">
+                            <Label Content="Risk Range:"/>
+                            <TextBox Text="{Binding Configuration.RiskRange, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+
+                        <StackPanel Margin="5">
+                            <Label Content="Inactivity Timeout:"/>
+                            <TextBox Text="{Binding Configuration.CourierInactivityTime, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </GroupBox>
+
+                <Button Grid.Row="4" Content="Update Configuration" Click="BtnSaveConfig_Click" 
+                        HorizontalAlignment="Center" Width="200" Height="35" Margin="0,20,0,0" FontWeight="Bold"/>
+            </Grid>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="#EEEEEE" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Initialize DB" Click="BtnInitDB_Click" Width="130" Height="40" Margin="15" Background="#90EE90" FontWeight="SemiBold"/>
+
+                <Button Content="Reset DB" Click="BtnResetDB_Click" Width="130" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
+
+                <Button Content="Manage Couriers" Click="BtnShowList_Click" Width="180" Height="40" Margin="50,15,15,15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFBEC6FF"/>
+            </StackPanel>
+        </Border>
 
     </Grid>
 </Window>

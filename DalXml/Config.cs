@@ -178,7 +178,7 @@ internal static class Config
         NextOrderId = 1;
         NextDeliveryId = 1;
         // Reset clock
-        Clock = default(DateTime).AddYears(100);
+        Clock = default(DateTime).AddYears(1999);
         // Reset credentials
         ManagerId = 0;
         ManagerPassword = "";
