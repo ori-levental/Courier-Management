@@ -118,7 +118,7 @@ namespace PL
 
         private async void BtnInitDB_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Confirm user intent
+            // Confirm user intent
             if (MessageBox.Show("Are you sure you want to Initialize DB? Existing data will be overwritten.",
                                 "Confirm Initialization",
                                 MessageBoxButton.YesNo,
@@ -126,8 +126,11 @@ namespace PL
             {
                 try
                 {
-                    // 2. Change cursor to hourglass to indicate work in progress
+                    // 1. Change cursor to hourglass to indicate work in progress
                     Mouse.OverrideCursor = Cursors.Wait;
+
+                    // 2. close all windows except the main window
+                    CloseAllWindows();
 
                     // 3. Run the heavy BL operation on a background thread
                     // This prevents the UI from freezing while the DB is being built
@@ -159,7 +162,7 @@ namespace PL
 
         private async void BtnResetDB_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Critical warning for data loss
+            // Critical warning for data loss
             if (MessageBox.Show("RESET DB? All data will be lost forever!",
                                 "Critical Warning",
                                 MessageBoxButton.YesNo,
@@ -167,15 +170,19 @@ namespace PL
             {
                 try
                 {
+                    // 1. Change cursor to hourglass to indicate work in progress
                     Mouse.OverrideCursor = Cursors.Wait;
 
-                    // 2. Run ResetDB on a background thread
+                    // 2. close all windows except the main window
+                    CloseAllWindows();
+
+                    // 3. Run ResetDB on a background thread
                     await Task.Run(() => s_bl.Admin.ResetDB());
 
-                    // 3. Critical Delay: Wait for XML files to be deleted/recreated
+                    // 4. Critical Delay: Wait for XML files to be deleted/recreated
                     await Task.Delay(1000);
 
-                    // 4. Force UI Refresh
+                    // 5. Force UI Refresh
                     // Fetching the fresh (empty/default) configuration from BL.
                     Configuration = s_bl.Admin.GetConfig();
                     CurrentTime = s_bl.Admin.GetClock();

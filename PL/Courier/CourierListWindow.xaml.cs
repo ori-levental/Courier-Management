@@ -1,16 +1,10 @@
-﻿using System;
+﻿using BO;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Linq; // Required for .Cast<T>()
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using BlApi;
 
 namespace PL.Courier
 {
@@ -19,9 +13,171 @@ namespace PL.Courier
     /// </summary>
     public partial class CourierListWindow : Window
     {
+        #region BL Access
+        // Access point to the Business Logic layer
+        static readonly IBl s_bl = Factory.Get();
+        #endregion
+
+        #region Properties
+
+        // Data source for the ComboBox options. 
+        // Must be a collection (IEnumerable), not a single value.
+        public IEnumerable<BO.CourierInListEnum> SortOptions { get; set; }
+
+        // --- Dependency Property: CourierList ---
+        // Bound to the ListView in XAML to display the data.
+        public IEnumerable<CourierInList> CourierList
+        {
+            get { return (IEnumerable<CourierInList>)GetValue(CourierListProperty); }
+            set { SetValue(CourierListProperty, value); }
+        }
+
+        public static readonly DependencyProperty CourierListProperty =
+            DependencyProperty.Register("CourierList", typeof(IEnumerable<CourierInList>), typeof(CourierListWindow));
+
+        // --- Dependency Property: CurrentSort ---
+        // Bound to the ComboBox SelectedItem to track the user's choice.
+        public BO.CourierInListEnum CurrentSort
+        {
+            get { return (BO.CourierInListEnum)GetValue(CurrentSortProperty); }
+            set { SetValue(CurrentSortProperty, value); }
+        }
+
+        public static readonly DependencyProperty CurrentSortProperty =
+            DependencyProperty.Register("CurrentSort", typeof(BO.CourierInListEnum), typeof(CourierListWindow),
+                new PropertyMetadata(BO.CourierInListEnum.Id)); // Set default sort to ID
+
+        // --- Dependency Property: IsActiveFilter (The Real Data) ---
+        // Logic: null = All, true = Active, false = Inactive
+        public bool? IsActiveFilter
+        {
+            get { return (bool?)GetValue(IsActiveFilterProperty); }
+            set { SetValue(IsActiveFilterProperty, value); }
+        }
+
+        public static readonly DependencyProperty IsActiveFilterProperty =
+            DependencyProperty.Register("IsActiveFilter", typeof(bool?), typeof(CourierListWindow),
+                new PropertyMetadata(null)); // Default is null (Show All)
+
+
+        // --- Wrapper Property: FilterUI (The Trick) ---
+        // Handles the conversion logic between the UI CheckBox state and the Data Logic.
+        // Binds to the CheckBox in XAML.
+        public bool? FilterUI
+        {
+            get
+            {
+                // Convert Data -> UI
+                // Data: True (Active)   -> UI: True (V)
+                // Data: False (Inactive)-> UI: Null (X)
+                // Data: Null (All)      -> UI: False (Empty)
+
+                if (IsActiveFilter == true) return true;
+                if (IsActiveFilter == false) return null;
+                return false;
+            }
+            set
+            {
+                // Convert UI -> Data
+                // UI: True (V)    -> Data: True (Active)
+                // UI: Null (X)    -> Data: False (Inactive)
+                // UI: False (Empty)-> Data: Null (All)
+
+                if (value == true) IsActiveFilter = true;
+                else if (value == null) IsActiveFilter = false;
+                else IsActiveFilter = null;
+
+                // Trigger data refresh immediately
+                queryCourierList();
+            }
+        }
+
+        #endregion
+
+        #region Constructor
         public CourierListWindow()
         {
+            // Populate the SortOptions list from the Enum values before InitializeComponent
+            SortOptions = Enum.GetValues(typeof(BO.CourierInListEnum)).Cast<BO.CourierInListEnum>();
+
             InitializeComponent();
+
+            // Register Lifecycle events manually to ensure they fire
+            this.Loaded += Window_Loaded;
+            this.Closed += Window_Closed;
         }
+        #endregion
+
+        #region UI Event Handlers
+
+        /// <summary>
+        /// Triggered when the user changes the sort selection in the ComboBox.
+        /// </summary>
+        private void CbSort_SelectionChanged(object sender, SelectionChangedEventArgs e) => queryCourierList();
+
+        /// <summary>
+        /// Placeholder for opening the Add Courier window.
+        /// </summary>
+        private void BtnAddCourier_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Add Courier Window - Coming Soon");
+
+        #endregion
+
+        #region Internal Logic & Observers
+
+        /// <summary>
+        /// Centralized method to fetch the list from BL based on current filters and sort.
+        /// </summary>
+        private void queryCourierList()
+        {
+            try
+            {
+                // Get the Manager ID from configuration (assuming Manager context)
+                int managerId = s_bl.Admin.GetConfig().ManagerId;
+
+                // Fetch the list from BL, passing BOTH the Filter (IsActiveFilter) and the Sort (CurrentSort)
+                CourierList = s_bl.Courier.ListOfCourier(managerId, IsActiveFilter, CurrentSort);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading list: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Observer method triggered by BL when data changes.
+        /// </summary>
+        private void courierListObserver() =>
+            // CRITICAL: BL events run on a background thread.
+            // We must use the Dispatcher to update the UI thread safely.
+            this.Dispatcher.Invoke(() =>
+            {
+                queryCourierList();
+            });
+
+        #endregion
+
+        #region Lifecycle Events
+
+        /// <summary>
+        /// Called when the window is fully loaded.
+        /// </summary>
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // 1. Load data immediately upon opening
+            queryCourierList();
+
+            // 2. Register for updates (Observer Pattern)
+            s_bl.Courier.AddObserver(courierListObserver);
+        }
+
+        /// <summary>
+        /// Called when the window is closed.
+        /// </summary>
+        private void Window_Closed(object? sender, EventArgs e) => s_bl.Courier.RemoveObserver(courierListObserver);
+        // Unregister the observer to prevent memory leaks and errors
+
+
+
+        #endregion
     }
 }
