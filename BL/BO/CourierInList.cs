@@ -5,7 +5,7 @@ namespace BO;
 /// <summary>
 /// Represents a lightweight Courier entity optimized for list views and summaries.
 /// </summary>
-public class DeliveryInList
+public class CourierInList
 {
     /// <summary>
     /// The unique identifier of the courier.

@@ -11,8 +11,8 @@ public enum ShipmentCompletionStatus
     Provided,
     Refused,
     Cancelled,
-    NotFound,
-    Failed
+    Open,
+    OnCare
 }
 public enum ScheduleStatus
 {

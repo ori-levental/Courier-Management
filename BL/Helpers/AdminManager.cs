@@ -266,8 +266,6 @@ internal static class AdminManager //stage 4
         }
     }
 
-    private static Task? _simulateTask = null;
-
     private static void ClockRunner()
     {
         while (!s_stop)

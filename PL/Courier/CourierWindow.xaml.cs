@@ -59,10 +59,10 @@ namespace PL.Courier
             CurrentCourier = new BO.Courier
             {
                 Id = 0,
-                FullName = "",  
-                PhoneNumber = "", 
-                Email = "",      
-                Password = "", 
+                FullName = "",
+                PhoneNumber = "",
+                Email = "",
+                Password = "",
                 IsActive = true,
                 EmploymentStartDate = DateTime.Now
             };
@@ -82,7 +82,7 @@ namespace PL.Courier
             try
             {
                 // Fetch full details from BL
-                CurrentCourier = s_bl.Courier.SearchCourier(s_bl.Admin.GetConfig().ManagerId,courierId);
+                CurrentCourier = s_bl.Courier.SearchCourier(s_bl.Admin.GetConfig().ManagerId, courierId);
             }
             catch (Exception ex)
             {
@@ -116,6 +116,32 @@ namespace PL.Courier
             catch (Exception ex)
             {
                 MessageBox.Show($"Operation Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // Event for Deleting the courier from this screen
+        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            // Ask for confirmation
+            if (MessageBox.Show($"Are you sure you want to delete courier {CurrentCourier.FullName}?",
+                                "Confirm Delete",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    int managerId = s_bl.Admin.GetConfig().ManagerId;
+
+                    // Call BL to delete
+                    s_bl.Courier.DeleteCourier(managerId, CurrentCourier.Id);
+
+                    MessageBox.Show("Courier deleted successfully.");
+                    Close(); // Close window after deletion
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error: {ex.Message}", "Deletion Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }

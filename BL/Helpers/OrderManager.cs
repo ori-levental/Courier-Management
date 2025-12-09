@@ -43,8 +43,8 @@ internal static class OrderManager
 
         // 2. Calculate Status
         ShipmentCompletionStatus status;
-        if (latestDelivery == null) status = ShipmentCompletionStatus.NotFound; // Open
-        else if (latestDelivery.EndOrderTime == null) status = ShipmentCompletionStatus.Failed; // In Progress
+        if (latestDelivery == null) status = ShipmentCompletionStatus.Open;
+        else if (latestDelivery.EndOrderTime == null) status = ShipmentCompletionStatus.OnCare; // In Progress
         else status = (ShipmentCompletionStatus)latestDelivery.EndType!;
 
         // 3. Calculate Times
@@ -99,12 +99,12 @@ internal static class OrderManager
         var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
         var delivery = deliveries.MaxBy(d => d?.StartDeliveryTime);
 
-        ShipmentCompletionStatus status = ShipmentCompletionStatus.NotFound;
+        ShipmentCompletionStatus status = ShipmentCompletionStatus.Open;
         TimeSpan totalProcessing = TimeSpan.Zero;
 
         if (delivery != null)
         {
-            if (delivery.EndOrderTime == null) status = ShipmentCompletionStatus.Failed; // In Progress
+            if (delivery.EndOrderTime == null) status = ShipmentCompletionStatus.OnCare; // In Progress
             else
             {
                 status = (ShipmentCompletionStatus)delivery.EndType!;
@@ -445,8 +445,8 @@ internal static class OrderManager
                           .OrderByDescending(d => d.StartDeliveryTime)
                           .FirstOrDefault()
                       let orderStatus = latestDelivery == null
-                          ? ShipmentCompletionStatus.NotFound
-                          : (latestDelivery.EndType.HasValue ? (ShipmentCompletionStatus)latestDelivery.EndType.Value : ShipmentCompletionStatus.NotFound)
+                          ? ShipmentCompletionStatus.Open
+                          : (latestDelivery.EndType.HasValue ? (ShipmentCompletionStatus)latestDelivery.EndType.Value : ShipmentCompletionStatus.Open)
                       let scheduleStatus = ComputeScheduleStatus(latestDelivery, onTimeThreshold)
                       let index = ((int)orderStatus * scheduleStatusCount) + (int)scheduleStatus
                       select index;

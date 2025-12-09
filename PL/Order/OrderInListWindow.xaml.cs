@@ -1,181 +1,169 @@
-﻿using BlApi;
-using BO;
+﻿using BO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data; // Required for ListCollectionView
+using BlApi;
 
 namespace PL.Order
 {
-    /// <summary>
-    /// Interaction logic for OrderInListWindow.xaml
-    /// </summary>
-    public partial class OrderInListWindow : Window
+    public partial class OrderListWindow : Window
     {
-        #region BL Access
-        // Access point to the Business Logic layer
         static readonly IBl s_bl = Factory.Get();
-        #endregion
 
-        #region Properties
+        // --- Properties ---
 
-        // Data source for the ComboBox options. 
-        // Must be a collection (IEnumerable), not a single value.
         public IEnumerable<BO.OrderInListEnum> SortOptions { get; set; }
+        public IEnumerable<BO.ShipmentCompletionStatus> StatusOptions { get; set; }
 
-        // --- Dependency Property: OrderList ---
-        // Bound to the ListView in XAML to display the data.
-        public IEnumerable<BO.OrderInList> OrderList
+        // NOTE: OrderList is now bound to an IEnumerable, but we will assign a ListCollectionView to it
+        public System.Collections.IEnumerable OrderList
         {
-            get { return (IEnumerable<BO.OrderInList>)GetValue(OrderListProperty); }
+            get { return (System.Collections.IEnumerable)GetValue(OrderListProperty); }
             set { SetValue(OrderListProperty, value); }
         }
-
         public static readonly DependencyProperty OrderListProperty =
-            DependencyProperty.Register("OrderList", typeof(IEnumerable<BO.OrderInList>), typeof(OrderInListWindow));
+            DependencyProperty.Register("OrderList", typeof(System.Collections.IEnumerable), typeof(OrderListWindow));
 
-        // --- Dependency Property: CurrentSort ---
-        // Bound to the ComboBox SelectedItem to track the user's choice.
         public BO.OrderInListEnum CurrentSort
         {
             get { return (BO.OrderInListEnum)GetValue(CurrentSortProperty); }
             set { SetValue(CurrentSortProperty, value); }
         }
-
         public static readonly DependencyProperty CurrentSortProperty =
-            DependencyProperty.Register("CurrentSort", typeof(BO.OrderInListEnum), typeof(OrderInListWindow),
-                new PropertyMetadata(BO.OrderInListEnum.OrderId)); // Set default sort to OrderId
+            DependencyProperty.Register("CurrentSort", typeof(BO.OrderInListEnum), typeof(OrderListWindow),
+                new PropertyMetadata(BO.OrderInListEnum.OrderId));
 
-        // --- Dependency Property: OrderStatusFilter (The Real Data) ---
-        // Logic: null = All, Provided = Completed, Cancelled = Cancelled, etc.
-        public BO.ShipmentCompletionStatus? OrderStatusFilter
+        public BO.ShipmentCompletionStatus? SelectedStatusFilter
         {
-            get { return (BO.ShipmentCompletionStatus?)GetValue(OrderStatusFilterProperty); }
-            set { SetValue(OrderStatusFilterProperty, value); }
+            get { return (BO.ShipmentCompletionStatus?)GetValue(SelectedStatusFilterProperty); }
+            set { SetValue(SelectedStatusFilterProperty, value); }
         }
+        public static readonly DependencyProperty SelectedStatusFilterProperty =
+            DependencyProperty.Register("SelectedStatusFilter", typeof(BO.ShipmentCompletionStatus?), typeof(OrderListWindow), new PropertyMetadata(null));
 
-        public static readonly DependencyProperty OrderStatusFilterProperty =
-            DependencyProperty.Register("OrderStatusFilter", typeof(BO.ShipmentCompletionStatus?), typeof(OrderInListWindow),
-                new PropertyMetadata(null)); // Default is null (Show All)
-
-
-        // --- Wrapper Property: FilterUI (The Trick) ---
-        // Handles the conversion logic between the UI CheckBox state and the Data Logic.
-        // Binds to the CheckBox in XAML.
-        public bool? FilterUI
+        // NEW: Grouping Property
+        public bool IsGrouped
         {
-            get
-            {
-                // Convert Data -> UI
-                // Data: Provided (Completed) -> UI: True (V)
-                // Data: Cancelled           -> UI: Null (X)
-                // Data: Null (All)          -> UI: False (Empty)
-
-                if (OrderStatusFilter == ShipmentCompletionStatus.Provided) return true;
-                if (OrderStatusFilter == ShipmentCompletionStatus.Cancelled) return null;
-                return false;
-            }
-            set
-            {
-                // Convert UI -> Data
-                // UI: True (V)    -> Data: Provided (Completed)
-                // UI: Null (X)    -> Data: Cancelled
-                // UI: False (Empty)-> Data: Null (All)
-
-                if (value == true) OrderStatusFilter = ShipmentCompletionStatus.Provided;
-                else if (value == null) OrderStatusFilter = ShipmentCompletionStatus.Cancelled;
-                else OrderStatusFilter = null;
-
-                // Trigger data refresh immediately
-                queryOrderList();
-            }
+            get { return (bool)GetValue(IsGroupedProperty); }
+            set { SetValue(IsGroupedProperty, value); }
         }
+        public static readonly DependencyProperty IsGroupedProperty =
+            DependencyProperty.Register("IsGrouped", typeof(bool), typeof(OrderListWindow),
+                new PropertyMetadata(false, (d, e) => ((OrderListWindow)d).queryOrderList()));
+        // Callback to refresh list when checkbox changes
 
-        #endregion
-
-        #region Constructor
-        public OrderInListWindow()
+        // --- Constructor ---
+        public OrderListWindow()
         {
-            // Populate the SortOptions list from the Enum values before InitializeComponent
             SortOptions = Enum.GetValues(typeof(BO.OrderInListEnum)).Cast<BO.OrderInListEnum>();
+            StatusOptions = Enum.GetValues(typeof(BO.ShipmentCompletionStatus)).Cast<BO.ShipmentCompletionStatus>();
 
             InitializeComponent();
-
-            // Register Lifecycle events manually to ensure they fire
             this.Loaded += Window_Loaded;
             this.Closed += Window_Closed;
         }
-        #endregion
 
-        #region UI Event Handlers
+        // --- Event Handlers ---
 
-        /// <summary>
-        /// Triggered when the user changes the sort selection in the ComboBox.
-        /// </summary>
         private void CbSort_SelectionChanged(object sender, SelectionChangedEventArgs e) => queryOrderList();
+        private void CbFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => queryOrderList();
 
-        /// <summary>
-        /// Placeholder for opening the Add Order window.
-        /// </summary>
-        private void BtnAddOrder_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Add Order Window - Coming Soon");
+        private void BtnClearFilter_Click(object sender, RoutedEventArgs e)
+        {
+            SelectedStatusFilter = null;
+            queryOrderList();
+        }
 
-        #endregion
+        private void BtnAddOrder_Click(object sender, RoutedEventArgs e) => MainWindow.SafeExec(() => new OrderWindow().Show());
 
-        #region Internal Logic & Observers
+        private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var row = sender as ListViewItem;
+            if (row?.Content is BO.OrderInList order)
+            {
+                try
+                {
+                    var win = new OrderWindow(order.OrderId);
+                    win.Owner = this;
+                    win.Show();
+                }
+                catch (Exception ex) { MessageBox.Show(ex.Message); }
+            }
+        }
 
-        /// <summary>
-        /// Centralized method to fetch the list from BL based on current filters and sort.
-        /// </summary>
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.DataContext is BO.OrderInList order)
+            {
+                if (MessageBox.Show($"Are you sure you want to CANCEL Order {order.OrderId}?", "Cancel Order",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        int managerId = s_bl.Admin.GetConfig().ManagerId;
+                        s_bl.Order.CancelOrder(managerId, order.OrderId);
+                        queryOrderList();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+            e.Handled = true;
+        }
+
+        // --- Logic ---
+
         private void queryOrderList()
         {
             try
             {
-                // Get the Manager ID from configuration (assuming Manager context)
                 int managerId = s_bl.Admin.GetConfig().ManagerId;
 
-                // Fetch the list from BL, passing BOTH the Filter (OrderStatusFilter) and the Sort (CurrentSort)
-                OrderList = s_bl.Order.ListOfOrder(managerId, OrderInListEnum.OrderStatus, OrderStatusFilter, CurrentSort);
+                // 1. Prepare Filter Params
+                BO.OrderInListEnum? filterBy = null;
+                object? filterValue = null;
+
+                if (SelectedStatusFilter != null)
+                {
+                    filterBy = BO.OrderInListEnum.OrderStatus;
+                    filterValue = SelectedStatusFilter;
+                }
+
+                // 2. Fetch Data from BL
+                var rawList = s_bl.Order.ListOfOrder(managerId, filterBy, filterValue, CurrentSort);
+
+                // 3. Wrap in CollectionView to support Grouping
+                // We use ListCollectionView to enable GroupDescriptions
+                ListCollectionView view = new ListCollectionView(rawList.ToList());
+
+                // 4. Apply Grouping if CheckBox is Checked
+                if (IsGrouped)
+                {
+                    // Group by 'OrderStatus' property
+                    view.GroupDescriptions.Add(new PropertyGroupDescription(nameof(BO.OrderInList.OrderStatus)));
+                }
+
+                // 5. Update UI
+                OrderList = view;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading list: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error loading list: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// Observer method triggered by BL when data changes.
-        /// </summary>
-        private void orderListObserver() =>
-            // CRITICAL: BL events run on a background thread.
-            // We must use the Dispatcher to update the UI thread safely.
-            this.Dispatcher.Invoke(() =>
-            {
-                queryOrderList();
-            });
+        private void orderListObserver() => this.Dispatcher.Invoke(() => { queryOrderList(); });
 
-        #endregion
-
-        #region Lifecycle Events
-
-        /// <summary>
-        /// Called when the window is fully loaded.
-        /// </summary>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // 1. Load data immediately upon opening
             queryOrderList();
-
-            // 2. Register for updates (Observer Pattern)
             s_bl.Order.AddObserver(orderListObserver);
         }
-
-        /// <summary>
-        /// Called when the window is closed.
-        /// </summary>
         private void Window_Closed(object? sender, EventArgs e) => s_bl.Order.RemoveObserver(orderListObserver);
-        // Unregister the observer to prevent memory leaks and errors
-
-        #endregion
     }
 }

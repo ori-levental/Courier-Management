@@ -212,9 +212,9 @@ namespace PL
                 MessageBox.Show("Configuration updated successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
             });
         }
-        private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(() => new CourierListWindow().Show());
+        private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenCourierList);
 
-        private void BtnShowOrderList_Click(object sender, RoutedEventArgs e) => SafeExec(() => new PL.Order.OrderInListWindow().Show());
+        private void BtnShowOrderList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenOrderList);
 
 
         #endregion
@@ -226,7 +226,7 @@ namespace PL
         /// <summary>
         /// Executes an action within a try-catch block to handle BL exceptions globally.
         /// </summary>
-        internal static void SafeExec(Action action)
+        public static void SafeExec(Action action)
         {
             try
             {
@@ -234,7 +234,39 @@ namespace PL
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void OpenCourierList()
+        {
+            var openWindow = Application.Current.Windows.OfType<CourierListWindow>().FirstOrDefault();
+
+            if (openWindow != null)
+            {
+                openWindow.Activate();
+                if (openWindow.WindowState == WindowState.Minimized)
+                    openWindow.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                new CourierListWindow().Show();
+            }
+        }
+
+        private void OpenOrderList()
+        {
+            var openWindow = Application.Current.Windows.OfType<OrderListWindow>().FirstOrDefault();
+
+            if (openWindow != null)
+            {
+                openWindow.Activate();
+                if (openWindow.WindowState == WindowState.Minimized)
+                    openWindow.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                new OrderListWindow().Show();
             }
         }
 

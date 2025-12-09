@@ -4,125 +4,187 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL.Order"
+        xmlns:bo="clr-namespace:BO;assembly=BL"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="Order Details" Height="700" Width="700"
+        Title="Order Details" Height="650" Width="900"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Window.Resources>
-        <!-- Converters removed - using static properties from code-behind instead -->
+        <ObjectDataProvider x:Key="OrderTypeEnum" MethodName="GetValues" ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="bo:OrderType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
 
-        <!-- Label style: right aligned, consistent margin -->
-        <Style x:Key="RightLabelStyle" TargetType="Label">
-            <Setter Property="HorizontalAlignment" Value="Right"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="0,6"/>
+        <Style TargetType="Label">
             <Setter Property="FontWeight" Value="SemiBold"/>
-        </Style>
-
-        <!-- Common style for input controls: consistent margin and min width -->
-        <Style x:Key="ValueControlStyle" TargetType="Control">
-            <Setter Property="Margin" Value="6,4,12,4"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="MinWidth" Value="200"/>
+            <Setter Property="Margin" Value="0,5,5,5"/>
         </Style>
-
-        <Style TargetType="TextBox" BasedOn="{StaticResource ValueControlStyle}"/>
-        <Style TargetType="ComboBox" BasedOn="{StaticResource ValueControlStyle}"/>
-        <Style TargetType="DatePicker" BasedOn="{StaticResource ValueControlStyle}"/>
-        <Style TargetType="CheckBox" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,5"/>
+        </Style>
     </Window.Resources>
 
-    <Grid Margin="16">
+    <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="1.2*"/>
         </Grid.ColumnDefinitions>
-
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 0: Order ID - visible and readonly -->
-        <TextBox Grid.Row="0" Grid.Column="0"
-                 Text="{Binding CurrentOrder.OrderId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 IsReadOnly="True"
-                 ToolTip="Unique Order Identifier"/>
-        <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Order ID"/>
+        <GroupBox Grid.Column="0" Header="Order Details" Padding="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- 1: Customer Name -->
-        <TextBox Grid.Row="1" Grid.Column="0"
-                 Text="{Binding CurrentOrder.OrderingName, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Name of Customer"/>
-        <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Customer Name"/>
+                    <Label Content="ID:" Grid.Row="0"/>
+                    <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CurrentOrder.Id, Mode=OneWay}" IsEnabled="False" Background="#F0F0F0"/>
 
-        <!-- 2: Phone Number -->
-        <TextBox Grid.Row="2" Grid.Column="0"
-                 Text="{Binding CurrentOrder.PhoneNumber, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Customer Phone Number"/>
-        <Label Grid.Row="2" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Phone Number"/>
+                    <Label Content="Customer Name:" Grid.Row="1"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentOrder.OrderingName, Mode=TwoWay}"/>
 
-        <!-- 3: Full Address -->
-        <TextBox Grid.Row="3" Grid.Column="0"
-                 Text="{Binding CurrentOrder.FullAddress, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Delivery Address"/>
-        <Label Grid.Row="3" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Address"/>
+                    <Label Content="Phone:" Grid.Row="2"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CurrentOrder.PhoneNumber, Mode=TwoWay}"/>
 
-        <!-- 4: Latitude -->
-        <TextBox Grid.Row="4" Grid.Column="0"
-                 Text="{Binding CurrentOrder.Latitude, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Geographic Latitude"/>
-        <Label Grid.Row="4" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Latitude"/>
+                    <Label Content="Address:" Grid.Row="3"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding CurrentOrder.FullAddress, Mode=TwoWay}" TextWrapping="Wrap" Height="50" AcceptsReturn="True"/>
 
-        <!-- 5: Longitude -->
-        <TextBox Grid.Row="5" Grid.Column="0"
-                 Text="{Binding CurrentOrder.Longitude, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Geographic Longitude"/>
-        <Label Grid.Row="5" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Longitude"/>
+                    <Label Content="Priority Type:" Grid.Row="4"/>
+                    <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding Source={StaticResource OrderTypeEnum}}" SelectedItem="{Binding CurrentOrder.OrderType, Mode=TwoWay}" Height="25" Margin="0,5"/>
 
-        <!-- 6: Order Type -->
-        <ComboBox Grid.Row="6" Grid.Column="0"
-                  ItemsSource="{Binding OrderTypes}"
-                  SelectedItem="{Binding CurrentOrder.OrderType, Mode=TwoWay}"
-                  IsSynchronizedWithCurrentItem="False"
-                  ToolTip="Priority/Type of Order"/>
-        <Label Grid.Row="6" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Order Type"/>
+                    <Label Content="Notes:" Grid.Row="5"/>
+                    <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CurrentOrder.Description, Mode=TwoWay}" TextWrapping="Wrap" Height="60"/>
+                </Grid>
+            </ScrollViewer>
+        </GroupBox>
 
-        <!-- 7: Is Heavy -->
-        <CheckBox Grid.Row="7" Grid.Column="0"
-                  IsChecked="{Binding CurrentOrder.IsHeavy, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                  ToolTip="Is This Order Heavy?"/>
-        <Label Grid.Row="7" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Is Heavy"/>
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- 8: Description -->
-        <TextBox Grid.Row="8" Grid.Column="0"
-                 Text="{Binding CurrentOrder.Description, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Order Description or Special Instructions"/>
-        <Label Grid.Row="8" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Description"/>
+            <GroupBox Grid.Row="0" Header="Status Information" Padding="10" Margin="0,0,0,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-        <!-- 9: Air Distance (Read-Only) -->
-        <TextBox Grid.Row="9" Grid.Column="0"
-                 Text="{Binding CurrentOrder.AirDistance, Mode=OneWay}"
-                 IsReadOnly="True"
-                 ToolTip="Calculated Aerial Distance from Hub"/>
-        <Label Grid.Row="9" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Air Distance"/>
+                    <Label Content="Status:" Grid.Row="0"/>
+                    <TextBlock Text="{Binding CurrentOrder.OrderStatus}" Grid.Row="0" Grid.Column="1" FontWeight="Bold" Foreground="Blue" VerticalAlignment="Center"/>
 
-        <!-- 10: Action Button centered in the bottom row -->
-        <Button Grid.Row="10" Grid.Column="0"
-                Content="{Binding ButtonText}"
-                Click="btnAddUpdate_Click"
-                HorizontalAlignment="Center"
-                Margin="0,40,0,40"
-                Width="140"
-                Height="40"/>
+                    <Label Content="Schedule:" Grid.Row="1"/>
+                    <TextBlock Text="{Binding CurrentOrder.ScheduleStatus}" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"/>
+
+                    <Label Content="Created At:" Grid.Row="2"/>
+                    <TextBlock Text="{Binding CurrentOrder.StartOrderTime}" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"/>
+
+                    <Label Content="Deadline:" Grid.Row="3"/>
+                    <TextBlock Text="{Binding CurrentOrder.MaxArrivalTime}" Grid.Row="3" Grid.Column="1" Foreground="Red" VerticalAlignment="Center"/>
+
+                    <Label Content="Time Left:" Grid.Row="4"/>
+                    <TextBlock Text="{Binding CurrentOrder.TimeRemaining, StringFormat='hh\\:mm\\:ss'}" Grid.Row="4" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center"/>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Row="1" Header="Delivery History">
+                <ListView ItemsSource="{Binding CurrentOrder.DeliveryHistory}">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="ID" DisplayMemberBinding="{Binding DeliveryId}" Width="40"/>
+                            <GridViewColumn Header="Courier" DisplayMemberBinding="{Binding CourierName}" Width="100"/>
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DeliveryEndType}" Width="80"/>
+                            <GridViewColumn Header="Start" DisplayMemberBinding="{Binding DeliveryStartTime, StringFormat='dd/MM HH:mm'}" Width="90"/>
+                            <GridViewColumn Header="End" DisplayMemberBinding="{Binding DeliveryEndTime, TargetNullValue='-', StringFormat='dd/MM HH:mm'}" Width="90"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </GroupBox>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,15,0,0">
+
+            <Button Content="{Binding ButtonContent}" 
+                    Click="BtnAction_Click"
+                    FontWeight="Bold" FontSize="16" Height="40" Width="200" Margin="10">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="IsEnabled" Value="True"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Provided">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Cancelled">
+                                <Setter Property="IsEnabled" Value="False"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <Button Content="Cancel Order" 
+                    Click="BtnCancel_Click"
+                    Background="#FFD700"
+                    FontWeight="Bold" FontSize="16" Height="40" Width="150" Margin="10">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsAddMode}" Value="False"/>
+                                    <Condition Binding="{Binding CurrentOrder.OrderStatus}" Value="Open"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </MultiDataTrigger>
+
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsAddMode}" Value="False"/>
+                                    <Condition Binding="{Binding CurrentOrder.OrderStatus}" Value="OnCare"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </MultiDataTrigger>
+
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsAddMode}" Value="False"/>
+                                    <Condition Binding="{Binding CurrentOrder.OrderStatus}" Value="NotFound"/>
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
     </Grid>
 </Window>
