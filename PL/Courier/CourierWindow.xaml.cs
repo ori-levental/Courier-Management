@@ -1,16 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using BlApi;
+using BO;
 
 namespace PL.Courier
 {
@@ -19,9 +10,113 @@ namespace PL.Courier
     /// </summary>
     public partial class CourierWindow : Window
     {
+        // Access to BL
+        static readonly IBl s_bl = Factory.Get();
+
+        // --- Dependency Properties ---
+
+        // The Courier object being edited/viewed
+        public BO.Courier CurrentCourier
+        {
+            get { return (BO.Courier)GetValue(CurrentCourierProperty); }
+            set { SetValue(CurrentCourierProperty, value); }
+        }
+        public static readonly DependencyProperty CurrentCourierProperty =
+            DependencyProperty.Register("CurrentCourier", typeof(BO.Courier), typeof(CourierWindow));
+
+        // Flag to determine if we are adding a new courier (True) or updating (False)
+        public bool IsAddMode
+        {
+            get { return (bool)GetValue(IsAddModeProperty); }
+            set { SetValue(IsAddModeProperty, value); }
+        }
+        public static readonly DependencyProperty IsAddModeProperty =
+            DependencyProperty.Register("IsAddMode", typeof(bool), typeof(CourierWindow));
+
+        // Text for the main button
+        public string ButtonContent
+        {
+            get { return (string)GetValue(ButtonContentProperty); }
+            set { SetValue(ButtonContentProperty, value); }
+        }
+        public static readonly DependencyProperty ButtonContentProperty =
+            DependencyProperty.Register("ButtonContent", typeof(string), typeof(CourierWindow));
+
+
+        // --- Constructors ---
+
+        /// <summary>
+        /// Constructor for ADDING a new courier
+        /// </summary>
         public CourierWindow()
         {
             InitializeComponent();
+
+            IsAddMode = true;
+            ButtonContent = "Add Courier";
+
+            // Initialize a new empty courier object
+            CurrentCourier = new BO.Courier
+            {
+                Id = 0,
+                FullName = "",  
+                PhoneNumber = "", 
+                Email = "",      
+                Password = "", 
+                IsActive = true,
+                EmploymentStartDate = DateTime.Now
+            };
+        }
+
+        /// <summary>
+        /// Constructor for UPDATING/VIEWING an existing courier
+        /// </summary>
+        /// <param name="courierId">The ID of the courier to fetch</param>
+        public CourierWindow(int courierId)
+        {
+            InitializeComponent();
+
+            IsAddMode = false;
+            ButtonContent = "Update Courier";
+
+            try
+            {
+                // Fetch full details from BL
+                CurrentCourier = s_bl.Courier.SearchCourier(s_bl.Admin.GetConfig().ManagerId,courierId);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading courier: {ex.Message}");
+                Close();
+            }
+        }
+
+        // --- Event Handlers ---
+
+        private void BtnAction_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (IsAddMode)
+                {
+                    // Call BL to ADD
+                    s_bl.Courier.AddCourier(s_bl.Admin.GetConfig().ManagerId, CurrentCourier);
+                    MessageBox.Show($"Courier {CurrentCourier.Id} added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // Call BL to UPDATE
+                    s_bl.Courier.UpdateCourier(s_bl.Admin.GetConfig().ManagerId, CurrentCourier);
+                    MessageBox.Show($"Courier {CurrentCourier.Id} updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
+                // Close the window after success
+                Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Operation Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

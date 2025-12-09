@@ -23,6 +23,7 @@ internal static class CourierManager
             FullName = boCourier.FullName,
             Email = boCourier.Email,
             PhoneNumber = boCourier.PhoneNumber,
+            Password = boCourier.Password,
             Active = boCourier.IsActive,
             DistanceToDelivery = boCourier.DistanceToDelivery,
             DeliveryType = (DO.Enums.ShippingType)boCourier.DeliveryType!,
