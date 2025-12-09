@@ -24,7 +24,6 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Label Content="System Clock:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-
                     <Label Content="{Binding CurrentTime}" FontSize="18" Foreground="DarkBlue" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
 
@@ -43,7 +42,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="165.72"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
@@ -98,12 +97,10 @@
                             <Label Content="Max Delivery Time:"/>
                             <TextBox Text="{Binding Configuration.MaxDeliveryTime, UpdateSourceTrigger=PropertyChanged}" Padding="3" ToolTip="Example: 00:45:00"/>
                         </StackPanel>
-
                         <StackPanel Margin="5">
                             <Label Content="Risk Range:"/>
                             <TextBox Text="{Binding Configuration.RiskRange, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
                         </StackPanel>
-
                         <StackPanel Margin="5">
                             <Label Content="Inactivity Timeout:"/>
                             <TextBox Text="{Binding Configuration.CourierInactivityTime, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>

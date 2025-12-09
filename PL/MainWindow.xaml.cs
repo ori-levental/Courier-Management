@@ -226,7 +226,7 @@ namespace PL
         /// <summary>
         /// Executes an action within a try-catch block to handle BL exceptions globally.
         /// </summary>
-        private void SafeExec(Action action)
+        internal static void SafeExec(Action action)
         {
             try
             {
@@ -243,7 +243,7 @@ namespace PL
             // Create a temporary list to hold windows to close.
             // We cannot close them directly inside the loop because it modifies the collection 
             // we are iterating over, which causes an Exception.
-            List<Window> windowsToClose = new List<Window>();
+            List<Window> windowsToClose = [];
 
             foreach (Window window in Application.Current.Windows)
             {

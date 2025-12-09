@@ -118,8 +118,67 @@ namespace PL.Courier
         /// <summary>
         /// Placeholder for opening the Add Courier window.
         /// </summary>
-        private void BtnAddCourier_Click(object sender, RoutedEventArgs e) => MessageBox.Show("Add Courier Window - Coming Soon");
+        private void BtnAddCourier_Click(object sender, RoutedEventArgs e) => MainWindow.SafeExec(() => new CourierWindow().Show());
 
+        /// <summary>
+        /// Double Click on a row opens the Courier Window in Update Mode
+        /// </summary>
+        private void ListViewItem_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            // 1. Get the row that was clicked
+            var row = sender as ListViewItem;
+
+            // 2. Extract the data object (CourierInList)
+            if (row?.Content is BO.CourierInList courier)
+            {
+                // 3. Open the window with the ID (Update Constructor)
+                // Using MainWindow.SafeExec to handle errors safely
+                try
+                {
+                    var win = new CourierWindow(courier.Id);
+                    win.Owner = this;
+                    win.Show();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes a courier after confirmation.
+        /// </summary>
+        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Retrieve the courier object from the button row
+            if (sender is Button btn && btn.DataContext is BO.CourierInList courier)
+            {
+                // 2. Ask for confirmation
+                if (MessageBox.Show($"Are you sure you want to delete {courier.FullName}?",
+                                    "Delete Courier",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        // 3. Get Manager ID and Execute Delete
+                        int managerId = s_bl.Admin.GetConfig().ManagerId;
+                        s_bl.Courier.DeleteCourier(managerId, courier.Id);
+
+                        // 4. Refresh List
+                        queryCourierList();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error: {ex.Message}");
+                    }
+                }
+            }
+
+            // Important: Stop the click from triggering the Row Double-Click event
+            e.Handled = true;
+        }
         #endregion
 
         #region Internal Logic & Observers
