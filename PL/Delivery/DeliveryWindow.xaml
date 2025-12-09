@@ -5,8 +5,107 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL.Delivery"
         mc:Ignorable="d"
-        Title="DeliveryWindow" Height="450" Width="800">
-    <Grid>
+        Title="DeliveryWindow" Height="450" Width="800"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
+
+    <Window.Resources>
+        <!-- Converters to control IsReadOnly / Visibility based on DeliveryId -->
+        <local:IdToReadOnlyConverter x:Key="IdToReadOnlyKey"/>
+        <local:IdToVisibilityConverter x:Key="IdToVisibilityKey"/>
+
+        <!-- Label style: right aligned, consistent margin -->
+        <Style x:Key="RightLabelStyle" TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Common style for input controls: consistent margin and min width -->
+        <Style x:Key="ValueControlStyle" TargetType="Control">
+            <Setter Property="Margin" Value="6,4,12,4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="220"/>
+        </Style>
+
+        <Style TargetType="TextBox" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="DatePicker" BasedOn="{StaticResource ValueControlStyle}"/>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="180"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"   />
+        </Grid.RowDefinitions>
+
+        <!-- 0: Delivery ID (string) - visible but readonly in both modes (binding via converter) -->
+        <TextBox Grid.Row="0" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.DeliveryId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 IsReadOnly="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToReadOnlyKey}}"
+                 ToolTip="Delivery ID"/>
+        <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery ID"/>
+
+        <!-- 1: Courier ID -->
+        <TextBox Grid.Row="1" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.CourierId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Courier ID"/>
+        <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Courier ID"/>
+
+        <!-- 2: Delivery Start Date -->
+        <DatePicker Grid.Row="2" Grid.Column="0"
+                    SelectedDate="{Binding CurrentDelivery.DeliveryStartTime, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                    ToolTip="Delivery Date"/>
+        <Label Grid.Row="2" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery start Date"/>
+
+        <!-- 3: Delivery End Date (show only in Update mode) -->
+        <Label Grid.Row="3" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery end Date"
+               Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
+        <DatePicker Grid.Row="3" Grid.Column="0"
+                    SelectedDate="{Binding CurrentDelivery.DeliveryEndTime, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                    ToolTip="Delivery End Date"
+                    Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
         
+        <!-- 4: Courier Name -->
+        <TextBox Grid.Row="4" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.CourierName, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Courier Name"/>
+        <Label Grid.Row="4" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Courier"/>
+
+        <!-- 5: Delivery Type -->
+        <ComboBox Grid.Row="5" Grid.Column="0"
+                  ItemsSource="{Binding DeliveryTypes}"
+                  SelectedItem="{Binding CurrentDelivery.ShippingType, Mode=TwoWay}"
+                  IsSynchronizedWithCurrentItem="False"
+                  ToolTip="Delivery Type"/>
+        <Label Grid.Row="5" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Type"/>
+
+        <!-- 6: Delivery End Type (show only in Update mode) -->
+        <ComboBox Grid.Row="6" Grid.Column="0"
+                  ItemsSource="{Binding DeliveryEndTypes}"
+                  SelectedItem="{Binding CurrentDelivery.DeliveryEndType, Mode=TwoWay}"
+                  IsSynchronizedWithCurrentItem="False"
+                  ToolTip="Delivery End Type"
+                  Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
+        <Label Grid.Row="6" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="End Type"
+               Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
+
+        <!-- Action Button centered in the bottom row -->
+        <Button Grid.Row="7" Grid.Column="0"
+                Content="{Binding ButtonText}"
+                Click="btnAddUpdate_Click"
+                HorizontalAlignment="Center"
+                Margin="0,40,0,40"
+                Width="156"/>
     </Grid>
 </Window>
