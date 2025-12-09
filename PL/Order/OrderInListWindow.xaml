@@ -5,28 +5,65 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL.Order"
         mc:Ignorable="d"
-        Title="OrderInListWindow" Height="450" Width="800">
-    <Grid>
+        Title="Order List" Height="600" Width="1200">
+
+    <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="40*"/>
-            <RowDefinition Height="500*"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid HorizontalAlignment="Stretch" Height="auto" Grid.Row="0" VerticalAlignment="Stretch" Width="auto">
+
+        <!-- Top Controls Row: Filter and Sort -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="150"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="200"/>
             </Grid.ColumnDefinitions>
-            <Label Content="Label" HorizontalAlignment="Left" Margin="88,0,0,0" VerticalAlignment="Center" Grid.Column="0"/>
-            <ComboBox HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Column="1"/>
+
+            <!-- Order Status Filter Checkbox -->
+            <Label Grid.Column="0" Content="Filter Status:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <CheckBox x:Name="ChkStatus" Grid.Column="1" IsThreeState="True" VerticalAlignment="Center"
+                      IsChecked="{Binding FilterUI, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <!-- Sort ComboBox -->
+            <Label Grid.Column="3" Content="Sort By:" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+            <ComboBox x:Name="CbSort" Grid.Column="4" 
+                      ItemsSource="{Binding SortOptions}"
+                      SelectedItem="{Binding CurrentSort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      SelectionChanged="CbSort_SelectionChanged"/>
         </Grid>
-        <ListView Grid.Row="1">
+
+        <!-- ListView with Columns -->
+        <ListView Grid.Row="1" ItemsSource="{Binding OrderList}" Margin="0,0,0,16">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn/>
+                    <GridViewColumn Header="Order ID" Width="80" DisplayMemberBinding="{Binding OrderId}"/>
+                    <GridViewColumn Header="Delivery ID" Width="90" DisplayMemberBinding="{Binding DeliveryId}"/>
+                    <GridViewColumn Header="Order Type" Width="100" DisplayMemberBinding="{Binding OrderType}"/>
+                    <GridViewColumn Header="Air Distance" Width="120" DisplayMemberBinding="{Binding AirDistance}"/>
+                    <GridViewColumn Header="Status" Width="100" DisplayMemberBinding="{Binding OrderStatus}"/>
+                    <GridViewColumn Header="Schedule Status" Width="110" DisplayMemberBinding="{Binding ScheduleStatus}"/>
+                    <GridViewColumn Header="Time Remaining" Width="110" DisplayMemberBinding="{Binding TimeRemaining}"/>
+                    <GridViewColumn Header="Total Processing" Width="130" DisplayMemberBinding="{Binding TotalProcessingTime}"/>
+                    <GridViewColumn Header="Deliveries" Width="80" DisplayMemberBinding="{Binding TotalDeliveries}"/>
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button Content="Add" Grid.Row="2" HorizontalAlignment="Center" Height="50" Width="100"/>
+
+        <!-- Action Buttons -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+            <StackPanel.Resources>
+                <Style TargetType="Button">
+                    <Setter Property="Margin" Value="0,0,16,0"/>
+                    <Setter Property="Padding" Value="16,10"/>
+                    <Setter Property="MinWidth" Value="100"/>
+                </Style>
+            </StackPanel.Resources>
+            <Button x:Name="BtnAddOrder" Content="Add Order" Height="40" Click="BtnAddOrder_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

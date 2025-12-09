@@ -21,7 +21,7 @@ public interface ICourier : IObservable
     /// <param name="isActive">Optional filter to include only active or inactive couriers.</param>
     /// <param name="SortBy">Optional field to sort the list by.</param>
     /// <returns>An enumerable collection of simplified courier objects.</returns>
-    public IEnumerable<BO.CourierInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? SortBy);
+    public IEnumerable<BO.DeliveryInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? SortBy);
 
     /// <summary>
     /// Retrieves detailed information for a specific courier.

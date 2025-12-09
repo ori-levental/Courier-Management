@@ -123,6 +123,8 @@
                 <Button Content="Reset DB" Click="BtnResetDB_Click" Width="130" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
 
                 <Button Content="Manage Couriers" Click="BtnShowList_Click" Width="180" Height="40" Margin="50,15,15,15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFBEC6FF"/>
+
+                <Button Content="Manage Orders" Click="BtnShowOrderList_Click" Width="180" Height="40" Margin="15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFE4B5"/>
             </StackPanel>
         </Border>
 

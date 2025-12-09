@@ -26,14 +26,14 @@ namespace PL.Courier
 
         // --- Dependency Property: CourierList ---
         // Bound to the ListView in XAML to display the data.
-        public IEnumerable<CourierInList> CourierList
+        public IEnumerable<DeliveryInList> CourierList
         {
-            get { return (IEnumerable<CourierInList>)GetValue(CourierListProperty); }
+            get { return (IEnumerable<DeliveryInList>)GetValue(CourierListProperty); }
             set { SetValue(CourierListProperty, value); }
         }
 
         public static readonly DependencyProperty CourierListProperty =
-            DependencyProperty.Register("CourierList", typeof(IEnumerable<CourierInList>), typeof(CourierListWindow));
+            DependencyProperty.Register("CourierList", typeof(IEnumerable<DeliveryInList>), typeof(CourierListWindow));
 
         // --- Dependency Property: CurrentSort ---
         // Bound to the ComboBox SelectedItem to track the user's choice.

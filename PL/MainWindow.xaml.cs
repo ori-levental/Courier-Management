@@ -1,6 +1,7 @@
 ﻿using BlApi;
 using BO;
 using PL.Courier;
+using PL.Order;
 using System;
 using System.Windows;
 using System.Windows.Input; // Required for Mouse.OverrideCursor
@@ -212,6 +213,8 @@ namespace PL
             });
         }
         private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(() => new CourierListWindow().Show());
+
+        private void BtnShowOrderList_Click(object sender, RoutedEventArgs e) => SafeExec(() => new PL.Order.OrderInListWindow().Show());
 
 
         #endregion

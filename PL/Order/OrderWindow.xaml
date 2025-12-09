@@ -5,8 +5,124 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL.Order"
         mc:Ignorable="d"
-        Title="OrderWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="Order Details" Height="700" Width="700"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
+
+    <Window.Resources>
+        <!-- Converters removed - using static properties from code-behind instead -->
+
+        <!-- Label style: right aligned, consistent margin -->
+        <Style x:Key="RightLabelStyle" TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,6"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Common style for input controls: consistent margin and min width -->
+        <Style x:Key="ValueControlStyle" TargetType="Control">
+            <Setter Property="Margin" Value="6,4,12,4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="MinWidth" Value="200"/>
+        </Style>
+
+        <Style TargetType="TextBox" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="DatePicker" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="CheckBox" BasedOn="{StaticResource ValueControlStyle}"/>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="160"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 0: Order ID - visible and readonly -->
+        <TextBox Grid.Row="0" Grid.Column="0"
+                 Text="{Binding CurrentOrder.OrderId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 IsReadOnly="True"
+                 ToolTip="Unique Order Identifier"/>
+        <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Order ID"/>
+
+        <!-- 1: Customer Name -->
+        <TextBox Grid.Row="1" Grid.Column="0"
+                 Text="{Binding CurrentOrder.OrderingName, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Name of Customer"/>
+        <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Customer Name"/>
+
+        <!-- 2: Phone Number -->
+        <TextBox Grid.Row="2" Grid.Column="0"
+                 Text="{Binding CurrentOrder.PhoneNumber, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Customer Phone Number"/>
+        <Label Grid.Row="2" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Phone Number"/>
+
+        <!-- 3: Full Address -->
+        <TextBox Grid.Row="3" Grid.Column="0"
+                 Text="{Binding CurrentOrder.FullAddress, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Delivery Address"/>
+        <Label Grid.Row="3" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Address"/>
+
+        <!-- 4: Latitude -->
+        <TextBox Grid.Row="4" Grid.Column="0"
+                 Text="{Binding CurrentOrder.Latitude, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Geographic Latitude"/>
+        <Label Grid.Row="4" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Latitude"/>
+
+        <!-- 5: Longitude -->
+        <TextBox Grid.Row="5" Grid.Column="0"
+                 Text="{Binding CurrentOrder.Longitude, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Geographic Longitude"/>
+        <Label Grid.Row="5" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Longitude"/>
+
+        <!-- 6: Order Type -->
+        <ComboBox Grid.Row="6" Grid.Column="0"
+                  ItemsSource="{Binding OrderTypes}"
+                  SelectedItem="{Binding CurrentOrder.OrderType, Mode=TwoWay}"
+                  IsSynchronizedWithCurrentItem="False"
+                  ToolTip="Priority/Type of Order"/>
+        <Label Grid.Row="6" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Order Type"/>
+
+        <!-- 7: Is Heavy -->
+        <CheckBox Grid.Row="7" Grid.Column="0"
+                  IsChecked="{Binding CurrentOrder.IsHeavy, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                  ToolTip="Is This Order Heavy?"/>
+        <Label Grid.Row="7" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Is Heavy"/>
+
+        <!-- 8: Description -->
+        <TextBox Grid.Row="8" Grid.Column="0"
+                 Text="{Binding CurrentOrder.Description, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Order Description or Special Instructions"/>
+        <Label Grid.Row="8" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Description"/>
+
+        <!-- 9: Air Distance (Read-Only) -->
+        <TextBox Grid.Row="9" Grid.Column="0"
+                 Text="{Binding CurrentOrder.AirDistance, Mode=OneWay}"
+                 IsReadOnly="True"
+                 ToolTip="Calculated Aerial Distance from Hub"/>
+        <Label Grid.Row="9" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Air Distance"/>
+
+        <!-- 10: Action Button centered in the bottom row -->
+        <Button Grid.Row="10" Grid.Column="0"
+                Content="{Binding ButtonText}"
+                Click="btnAddUpdate_Click"
+                HorizontalAlignment="Center"
+                Margin="0,40,0,40"
+                Width="140"
+                Height="40"/>
     </Grid>
 </Window>

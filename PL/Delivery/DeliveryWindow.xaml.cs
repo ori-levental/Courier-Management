@@ -33,17 +33,16 @@ namespace PL.Delivery
         }
 
         // DependencyProperty that holds the mutable view-model instance shown on the screen
-        public DeliveryViewModel? CurrentDelivery
+        public DeliveryInListViewModel? CurrentDelivery
         {
-            get => (DeliveryViewModel?)GetValue(CurrentDeliveryProperty);
+            get => (DeliveryInListViewModel?)GetValue(CurrentDeliveryProperty);
             set => SetValue(CurrentDeliveryProperty, value);
         }
         public static readonly DependencyProperty CurrentDeliveryProperty =
-            DependencyProperty.Register(nameof(CurrentDelivery), typeof(DeliveryViewModel), typeof(DeliveryWindow), new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(CurrentDelivery), typeof(DeliveryInListViewModel), typeof(DeliveryWindow), new PropertyMetadata(null));
 
         // Helper collections for ComboBoxes (read-only)
         public IEnumerable<BO.ShippingType> DeliveryTypes { get; }
-        public IEnumerable<BO.ShipmentCompletionStatus> DeliveryEndTypes { get; }
 
         // expose static converter instances so XAML can reference them via x:Static
         public static readonly IValueConverter IdToReadOnlyKey = new IdToReadOnlyConverter();
@@ -58,7 +57,6 @@ namespace PL.Delivery
         {
             // prepare ComboSources (do this before InitializeComponent so XAML can use them)
             DeliveryTypes = Enum.GetValues(typeof(BO.ShippingType)).Cast<BO.ShippingType>();
-            DeliveryEndTypes = Enum.GetValues(typeof(BO.ShipmentCompletionStatus)).Cast<BO.ShipmentCompletionStatus>();
 
             // Set Button text BEFORE the view loads
             ButtonText = id == 0 ? "Add" : "Update";
@@ -71,63 +69,67 @@ namespace PL.Delivery
             if (id == 0)
             {
                 // Add mode: new mutable VM with default/empty values
-                CurrentDelivery = new DeliveryViewModel
+                CurrentDelivery = new DeliveryInListViewModel
                 {
                     DeliveryId = 0,
-                    CourierId = null,
-                    CourierName = string.Empty,
+                    FullName = string.Empty,
+                    IsActive = true,
                     ShippingType = BO.ShippingType.Car,
-                    DeliveryStartTime = DateTime.Now,
-                    DeliveryEndType = null,
-                    DeliveryEndTime = null
+                    EmploymentStartDate = DateTime.Now,
+                    SumOrderInTime = 0,
+                    SumOrderInLate = 0,
+                    IdOrderInCare = null
                 };
             }
             else
             {
                 try
                 {
-                    var doDelivery = s_dal.Delivery.Read(id);
-                    if (doDelivery != null)
+                    // Try to load from BL first
+                    var deliveryInList = s_bl.Courier.ListOfCourier(0, null, null)
+    .FirstOrDefault(d => d.Id == id);
+                    if (deliveryInList != null)
                     {
-                        var courierName = s_dal.Courier.Read(doDelivery.CourierId)?.FullName ?? string.Empty;
-
-                        CurrentDelivery = new DeliveryViewModel
+                        CurrentDelivery = new DeliveryInListViewModel
                         {
-                            DeliveryId = doDelivery.Id,
-                            CourierId = doDelivery.CourierId,
-                            CourierName = courierName,
-                            ShippingType = (BO.ShippingType)doDelivery.DeliveryShippingType,
-                            DeliveryStartTime = doDelivery.StartDeliveryTime,
-                            DeliveryEndType = doDelivery.EndType.HasValue ? (BO.ShipmentCompletionStatus?)doDelivery.EndType.Value : null,
-                            DeliveryEndTime = doDelivery.EndOrderTime
+                            DeliveryId = deliveryInList.Id,
+                            FullName = deliveryInList.FullName,
+                            IsActive = deliveryInList.IsActive,
+                            ShippingType = deliveryInList.DeliveryType,
+                            EmploymentStartDate = deliveryInList.EmploymentStartDate,
+                            SumOrderInTime = deliveryInList.SumOrderInTime,
+                            SumOrderInLate = deliveryInList.SumOrderInLate,
+                            IdOrderInCare = deliveryInList.IdOrderInCare
                         };
                     }
                     else
                     {
-                        CurrentDelivery = new DeliveryViewModel
+                        CurrentDelivery = new DeliveryInListViewModel
                         {
                             DeliveryId = id,
-                            CourierId = null,
-                            CourierName = string.Empty,
+                            FullName = string.Empty,
+                            IsActive = true,
                             ShippingType = BO.ShippingType.Car,
-                            DeliveryStartTime = DateTime.Now,
-                            DeliveryEndType = null,
-                            DeliveryEndTime = null
+                            EmploymentStartDate = DateTime.Now,
+                            SumOrderInTime = 0,
+                            SumOrderInLate = 0,
+                            IdOrderInCare = null
                         };
                         MessageBox.Show($"Delivery with ID {id} not found.", "Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
                 catch (Exception ex)
                 {
-                    CurrentDelivery = new DeliveryViewModel
+                    CurrentDelivery = new DeliveryInListViewModel
                     {
                         DeliveryId = id,
-                        CourierId = null,
-                        CourierName = string.Empty,
+                        FullName = string.Empty,
+                        IsActive = true,
                         ShippingType = BO.ShippingType.Car,
-                        DeliveryStartTime = DateTime.Now,
-                        DeliveryEndType = null,
-                        DeliveryEndTime = null
+                        EmploymentStartDate = DateTime.Now,
+                        SumOrderInTime = 0,
+                        SumOrderInLate = 0,
+                        IdOrderInCare = null
                     };
                     MessageBox.Show($"Error loading delivery: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
@@ -140,8 +142,8 @@ namespace PL.Delivery
             MessageBox.Show($"Action: {ButtonText}\nDeliveryId: {CurrentDelivery?.DeliveryId}", "Add/Update", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Mutable view-model used for TwoWay bindings
-        public class DeliveryViewModel : INotifyPropertyChanged
+        // Mutable view-model used for TwoWay bindings based on DeliveryInList properties
+        public class DeliveryInListViewModel : INotifyPropertyChanged
         {
             private int _deliveryId;
             public int DeliveryId
@@ -150,18 +152,18 @@ namespace PL.Delivery
                 set { if (_deliveryId != value) { _deliveryId = value; OnPropertyChanged(nameof(DeliveryId)); } }
             }
 
-            private int? _courierId;
-            public int? CourierId
+            private string _fullName = string.Empty;
+            public string FullName
             {
-                get => _courierId;
-                set { if (_courierId != value) { _courierId = value; OnPropertyChanged(nameof(CourierId)); } }
+                get => _fullName;
+                set { if (_fullName != value) { _fullName = value; OnPropertyChanged(nameof(FullName)); } }
             }
 
-            private string _courierName = string.Empty;
-            public string CourierName
+            private bool _isActive = true;
+            public bool IsActive
             {
-                get => _courierName;
-                set { if (_courierName != value) { _courierName = value; OnPropertyChanged(nameof(CourierName)); } }
+                get => _isActive;
+                set { if (_isActive != value) { _isActive = value; OnPropertyChanged(nameof(IsActive)); } }
             }
 
             private BO.ShippingType _shippingType = BO.ShippingType.Car;
@@ -171,25 +173,32 @@ namespace PL.Delivery
                 set { if (_shippingType != value) { _shippingType = value; OnPropertyChanged(nameof(ShippingType)); } }
             }
 
-            private DateTime _deliveryStartTime = DateTime.Now;
-            public DateTime DeliveryStartTime
+            private DateTime? _employmentStartDate = DateTime.Now;
+            public DateTime? EmploymentStartDate
             {
-                get => _deliveryStartTime;
-                set { if (_deliveryStartTime != value) { _deliveryStartTime = value; OnPropertyChanged(nameof(DeliveryStartTime)); } }
+                get => _employmentStartDate;
+                set { if (_employmentStartDate != value) { _employmentStartDate = value; OnPropertyChanged(nameof(EmploymentStartDate)); } }
             }
 
-            private BO.ShipmentCompletionStatus? _deliveryEndType;
-            public BO.ShipmentCompletionStatus? DeliveryEndType
+            private int _sumOrderInTime;
+            public int SumOrderInTime
             {
-                get => _deliveryEndType;
-                set { if (_deliveryEndType != value) { _deliveryEndType = value; OnPropertyChanged(nameof(DeliveryEndType)); } }
+                get => _sumOrderInTime;
+                set { if (_sumOrderInTime != value) { _sumOrderInTime = value; OnPropertyChanged(nameof(SumOrderInTime)); } }
             }
 
-            private DateTime? _deliveryEndTime;
-            public DateTime? DeliveryEndTime
+            private int _sumOrderInLate;
+            public int SumOrderInLate
             {
-                get => _deliveryEndTime;
-                set { if (_deliveryEndTime != value) { _deliveryEndTime = value; OnPropertyChanged(nameof(DeliveryEndTime)); } }
+                get => _sumOrderInLate;
+                set { if (_sumOrderInLate != value) { _sumOrderInLate = value; OnPropertyChanged(nameof(SumOrderInLate)); } }
+            }
+
+            private int? _idOrderInCare;
+            public int? IdOrderInCare
+            {
+                get => _idOrderInCare;
+                set { if (_idOrderInCare != value) { _idOrderInCare = value; OnPropertyChanged(nameof(IdOrderInCare)); } }
             }
 
             public event PropertyChangedEventHandler? PropertyChanged;

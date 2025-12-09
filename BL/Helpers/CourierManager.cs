@@ -61,9 +61,9 @@ internal static class CourierManager
     /// <summary>
     /// Converts a Data Object Courier to a lightweight CourierInList object for list displays.
     /// </summary>
-    private static BO.CourierInList DOToCourierInList(DO.Courier doCourier)
+    private static BO.DeliveryInList DOToCourierInList(DO.Courier doCourier)
     {
-        return new BO.CourierInList
+        return new BO.DeliveryInList
         {
             Id = doCourier.Id,
             FullName = doCourier.FullName,
@@ -276,7 +276,7 @@ internal static class CourierManager
     /// <summary>
     /// Filters the courier list based on active status. Returns all if filter is null.
     /// </summary>
-    internal static IEnumerable<BO.CourierInList> FilterByActive(bool? isActive = null)
+    internal static IEnumerable<BO.DeliveryInList> FilterByActive(bool? isActive = null)
     {
         IEnumerable<DO.Courier?> doList;
 
@@ -295,7 +295,7 @@ internal static class CourierManager
     /// <summary>
     /// Sorts the courier list based on the specified criteria Enum.
     /// </summary>
-    internal static IEnumerable<BO.CourierInList> SortBy(IEnumerable<BO.CourierInList> courierInLists, BO.CourierInListEnum? keySelector)
+    internal static IEnumerable<BO.DeliveryInList> SortBy(IEnumerable<BO.DeliveryInList> courierInLists, BO.CourierInListEnum? keySelector)
     {
         return keySelector switch
         {

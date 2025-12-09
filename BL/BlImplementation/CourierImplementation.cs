@@ -49,10 +49,10 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Retrieves a list of couriers, optionally filtered by status and sorted.
     /// </summary>
-    public IEnumerable<CourierInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? sortBy)
+    public IEnumerable<DeliveryInList> ListOfCourier(int requesterId, bool? isActive, CourierInListEnum? sortBy)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
-        IEnumerable<CourierInList> couriers = Helpers.CourierManager.FilterByActive(isActive);
+        IEnumerable<DeliveryInList> couriers = Helpers.CourierManager.FilterByActive(isActive);
         return Helpers.CourierManager.SortBy(couriers, sortBy);
     }
 

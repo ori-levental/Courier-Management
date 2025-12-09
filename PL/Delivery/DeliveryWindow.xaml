@@ -5,13 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL.Delivery"
         mc:Ignorable="d"
-        Title="DeliveryWindow" Height="450" Width="800"
+        Title="Delivery Details" Height="600" Width="700"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Window.Resources>
-        <!-- Converters to control IsReadOnly / Visibility based on DeliveryId -->
-        <local:IdToReadOnlyConverter x:Key="IdToReadOnlyKey"/>
-        <local:IdToVisibilityConverter x:Key="IdToVisibilityKey"/>
+        <!-- Converters removed - using static properties from code-behind instead -->
 
         <!-- Label style: right aligned, consistent margin -->
         <Style x:Key="RightLabelStyle" TargetType="Label">
@@ -25,18 +23,19 @@
         <Style x:Key="ValueControlStyle" TargetType="Control">
             <Setter Property="Margin" Value="6,4,12,4"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="MinWidth" Value="220"/>
+            <Setter Property="MinWidth" Value="200"/>
         </Style>
 
         <Style TargetType="TextBox" BasedOn="{StaticResource ValueControlStyle}"/>
         <Style TargetType="ComboBox" BasedOn="{StaticResource ValueControlStyle}"/>
         <Style TargetType="DatePicker" BasedOn="{StaticResource ValueControlStyle}"/>
+        <Style TargetType="CheckBox" BasedOn="{StaticResource ValueControlStyle}"/>
     </Window.Resources>
 
     <Grid Margin="16">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="180"/>
+            <ColumnDefinition Width="160"/>
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
@@ -46,66 +45,72 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"   />
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- 0: Delivery ID (string) - visible but readonly in both modes (binding via converter) -->
+        <!-- 0: Delivery ID - visible and readonly -->
         <TextBox Grid.Row="0" Grid.Column="0"
                  Text="{Binding CurrentDelivery.DeliveryId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 IsReadOnly="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToReadOnlyKey}}"
-                 ToolTip="Delivery ID"/>
+                 IsReadOnly="True"
+                 ToolTip="Unique Delivery Identifier"/>
         <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery ID"/>
 
-        <!-- 1: Courier ID -->
+        <!-- 1: Full Name -->
         <TextBox Grid.Row="1" Grid.Column="0"
-                 Text="{Binding CurrentDelivery.CourierId, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Courier ID"/>
-        <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Courier ID"/>
+                 Text="{Binding CurrentDelivery.FullName, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                 ToolTip="Full Name of Delivery Person"/>
+        <Label Grid.Row="1" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Full Name"/>
 
-        <!-- 2: Delivery Start Date -->
-        <DatePicker Grid.Row="2" Grid.Column="0"
-                    SelectedDate="{Binding CurrentDelivery.DeliveryStartTime, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                    ToolTip="Delivery Date"/>
-        <Label Grid.Row="2" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery start Date"/>
-
-        <!-- 3: Delivery End Date (show only in Update mode) -->
-        <Label Grid.Row="3" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery end Date"
-               Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
-        <DatePicker Grid.Row="3" Grid.Column="0"
-                    SelectedDate="{Binding CurrentDelivery.DeliveryEndTime, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                    ToolTip="Delivery End Date"
-                    Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
-        
-        <!-- 4: Courier Name -->
-        <TextBox Grid.Row="4" Grid.Column="0"
-                 Text="{Binding CurrentDelivery.CourierName, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
-                 ToolTip="Courier Name"/>
-        <Label Grid.Row="4" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Courier"/>
-
-        <!-- 5: Delivery Type -->
-        <ComboBox Grid.Row="5" Grid.Column="0"
+        <!-- 2: Delivery Type (Shipping Type) -->
+        <ComboBox Grid.Row="2" Grid.Column="0"
                   ItemsSource="{Binding DeliveryTypes}"
                   SelectedItem="{Binding CurrentDelivery.ShippingType, Mode=TwoWay}"
                   IsSynchronizedWithCurrentItem="False"
-                  ToolTip="Delivery Type"/>
-        <Label Grid.Row="5" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Type"/>
+                  ToolTip="Type of Vehicle/Shipping Method"/>
+        <Label Grid.Row="2" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Delivery Type"/>
 
-        <!-- 6: Delivery End Type (show only in Update mode) -->
-        <ComboBox Grid.Row="6" Grid.Column="0"
-                  ItemsSource="{Binding DeliveryEndTypes}"
-                  SelectedItem="{Binding CurrentDelivery.DeliveryEndType, Mode=TwoWay}"
-                  IsSynchronizedWithCurrentItem="False"
-                  ToolTip="Delivery End Type"
-                  Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
-        <Label Grid.Row="6" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="End Type"
-               Visibility="{Binding CurrentDelivery.DeliveryId, Converter={StaticResource IdToVisibilityKey}}"/>
+        <!-- 3: Employment Start Date -->
+        <DatePicker Grid.Row="3" Grid.Column="0"
+                    SelectedDate="{Binding CurrentDelivery.EmploymentStartDate, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                    ToolTip="Employment Start Date"/>
+        <Label Grid.Row="3" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Employment Date"/>
+
+        <!-- 4: Is Active Status -->
+        <CheckBox Grid.Row="4" Grid.Column="0"
+                  IsChecked="{Binding CurrentDelivery.IsActive, Mode=TwoWay, NotifyOnValidationError=True, ValidatesOnExceptions=True}"
+                  ToolTip="Is This Delivery Person Active?"/>
+        <Label Grid.Row="4" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Is Active"/>
+
+        <!-- 5: Sum Order In Time (Read-Only) -->
+        <TextBox Grid.Row="5" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.SumOrderInTime, Mode=OneWay}"
+                 IsReadOnly="True"
+                 ToolTip="Total Orders Delivered On Time"/>
+        <Label Grid.Row="5" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Orders In Time"/>
+
+        <!-- 6: Sum Order In Late (Read-Only) -->
+        <TextBox Grid.Row="6" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.SumOrderInLate, Mode=OneWay}"
+                 IsReadOnly="True"
+                 ToolTip="Total Orders Delivered Late"/>
+        <Label Grid.Row="6" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Orders Late"/>
+
+        <!-- 7: Order In Care (Read-Only) -->
+        <TextBox Grid.Row="7" Grid.Column="0"
+                 Text="{Binding CurrentDelivery.IdOrderInCare, Mode=OneWay}"
+                 IsReadOnly="True"
+                 ToolTip="Current Order Being Handled (null if idle)"/>
+        <Label Grid.Row="7" Grid.Column="1" Style="{StaticResource RightLabelStyle}" Content="Order In Care"/>
 
         <!-- Action Button centered in the bottom row -->
-        <Button Grid.Row="7" Grid.Column="0"
+        <Button Grid.Row="8" Grid.Column="0"
                 Content="{Binding ButtonText}"
                 Click="btnAddUpdate_Click"
                 HorizontalAlignment="Center"
                 Margin="0,40,0,40"
-                Width="156"/>
+                Width="140"
+                Height="40"/>
     </Grid>
 </Window>
