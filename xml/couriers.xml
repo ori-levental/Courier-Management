@@ -12,17 +12,6 @@
     <EmploymentStartDate>2020-07-17T12:00:00</EmploymentStartDate>
   </Courier>
   <Courier>
-    <Id>233895812</Id>
-    <FullName>David Levi</FullName>
-    <PhoneNumber>0506437591</PhoneNumber>
-    <Email>david.levi@example.com</Email>
-    <password>kaZXcFaI$d1.B</password>
-    <Active>False</Active>
-    <DistanceToDelivery>11</DistanceToDelivery>
-    <DeliveryType>Car</DeliveryType>
-    <EmploymentStartDate>2020-08-13T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
     <Id>368215315</Id>
     <FullName>Avraham Biton</FullName>
     <PhoneNumber>0529811289</PhoneNumber>
@@ -54,17 +43,6 @@
     <EmploymentStartDate>2022-10-20T12:00:00</EmploymentStartDate>
   </Courier>
   <Courier>
-    <Id>217317254</Id>
-    <FullName>Shimi Azulai</FullName>
-    <PhoneNumber>0508457306</PhoneNumber>
-    <Email>shimi.azulai@example.com</Email>
-    <password>fEwlU@BDTK1.B</password>
-    <Active>True</Active>
-    <DistanceToDelivery>5</DistanceToDelivery>
-    <DeliveryType>Bicycle</DeliveryType>
-    <EmploymentStartDate>2022-03-14T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
     <Id>354050767</Id>
     <FullName>Israel Israeli</FullName>
     <PhoneNumber>0599709664</PhoneNumber>
@@ -73,39 +51,6 @@
     <Active>True</Active>
     <DeliveryType>Car</DeliveryType>
     <EmploymentStartDate>2023-07-24T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
-    <Id>242676658</Id>
-    <FullName>Eliran Peretz</FullName>
-    <PhoneNumber>0587226456</PhoneNumber>
-    <Email>eliran.peretz@example.com</Email>
-    <password>g8M5TdTOs81.B</password>
-    <Active>True</Active>
-    <DistanceToDelivery>16</DistanceToDelivery>
-    <DeliveryType>Motorcycle</DeliveryType>
-    <EmploymentStartDate>2021-10-04T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
-    <Id>254170129</Id>
-    <FullName>Haim Malka</FullName>
-    <PhoneNumber>0598196409</PhoneNumber>
-    <Email>haim.malka@example.com</Email>
-    <password>8!qrmO2@eT1.B</password>
-    <Active>False</Active>
-    <DistanceToDelivery>6</DistanceToDelivery>
-    <DeliveryType>Bicycle</DeliveryType>
-    <EmploymentStartDate>2024-08-17T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
-    <Id>382710325</Id>
-    <FullName>Tomer Ohayon</FullName>
-    <PhoneNumber>0539670150</PhoneNumber>
-    <Email>tomer.ohayon@example.com</Email>
-    <password>iwEGiSm2WW1.B</password>
-    <Active>False</Active>
-    <DistanceToDelivery>1</DistanceToDelivery>
-    <DeliveryType>Walk</DeliveryType>
-    <EmploymentStartDate>2020-10-31T12:00:00</EmploymentStartDate>
   </Courier>
   <Courier>
     <Id>323076075</Id>
@@ -173,17 +118,6 @@
     <EmploymentStartDate>2020-08-03T12:00:00</EmploymentStartDate>
   </Courier>
   <Courier>
-    <Id>285013389</Id>
-    <FullName>Matan Ezra</FullName>
-    <PhoneNumber>0511417880</PhoneNumber>
-    <Email>matan.ezra@example.com</Email>
-    <password>C2Ooahom$q1.B</password>
-    <Active>True</Active>
-    <DistanceToDelivery>4</DistanceToDelivery>
-    <DeliveryType>Walk</DeliveryType>
-    <EmploymentStartDate>2021-09-10T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
     <Id>314337254</Id>
     <FullName>Omer Atias</FullName>
     <PhoneNumber>0584270141</PhoneNumber>
@@ -204,16 +138,5 @@
     <DistanceToDelivery>20</DistanceToDelivery>
     <DeliveryType>Motorcycle</DeliveryType>
     <EmploymentStartDate>2022-04-05T12:00:00</EmploymentStartDate>
-  </Courier>
-  <Courier>
-    <Id>232240705</Id>
-    <FullName>Meir Gabai</FullName>
-    <PhoneNumber>0542269910</PhoneNumber>
-    <Email>meir.gabai@example.com</Email>
-    <password>fwgewgwgAASD1!</password>
-    <Active>True</Active>
-    <DistanceToDelivery>12</DistanceToDelivery>
-    <DeliveryType>Bicycle</DeliveryType>
-    <EmploymentStartDate>2023-08-11T12:00:00</EmploymentStartDate>
   </Courier>
 </ArrayOfCourier>

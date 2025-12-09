@@ -146,6 +146,39 @@ namespace PL.Courier
             }
         }
 
+        /// <summary>
+        /// Deletes a courier after confirmation.
+        /// </summary>
+        private void BtnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Retrieve the courier object from the button row
+            if (sender is Button btn && btn.DataContext is BO.CourierInList courier)
+            {
+                // 2. Ask for confirmation
+                if (MessageBox.Show($"Are you sure you want to delete {courier.FullName}?",
+                                    "Delete Courier",
+                                    MessageBoxButton.YesNo,
+                                    MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        // 3. Get Manager ID and Execute Delete
+                        int managerId = s_bl.Admin.GetConfig().ManagerId;
+                        s_bl.Courier.DeleteCourier(managerId, courier.Id);
+
+                        // 4. Refresh List
+                        queryCourierList();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error: {ex.Message}");
+                    }
+                }
+            }
+
+            // Important: Stop the click from triggering the Row Double-Click event
+            e.Handled = true;
+        }
         #endregion
 
         #region Internal Logic & Observers
