@@ -289,8 +289,10 @@ internal static class OrderManager
 
     internal static IEnumerable<BO.OrderInList> ListOfOrder(OrderInListEnum? filterBy, object? filterValue, OrderInListEnum? sortBy)
     {
+        // 1. Retrieve all orders from DAL and convert them to BO.OrderInList
         var query = s_dal.Order.ReadAll().Select(o => DOToOrderInList(o!));
 
+        // 2. Apply Filtering logic if parameters are provided
         if (filterBy != null && filterValue != null)
         {
             if (filterBy == OrderInListEnum.OrderStatus)
@@ -299,20 +301,45 @@ internal static class OrderManager
                 query = query.Where(o => o.OrderType == (OrderType)filterValue);
         }
 
+        // 3. Apply Sorting logic based on the enum selection
         if (sortBy != null)
         {
             query = sortBy switch
             {
+                // Identity Fields
                 OrderInListEnum.OrderId => query.OrderBy(o => o.OrderId),
+                OrderInListEnum.DeliveryId => query.OrderBy(o => o.DeliveryId), // Sort nulls first by default usually
+
+                // Categorical Fields
+                OrderInListEnum.OrderType => query.OrderBy(o => o.OrderType),
                 OrderInListEnum.OrderStatus => query.OrderBy(o => o.OrderStatus),
-                OrderInListEnum.AirDistance => query.OrderBy(o => o.AirDistance),
+                OrderInListEnum.ScheduleStatus => query.OrderBy(o => o.ScheduleStatus),
+
+                // Numerical/Quantitative Fields
+                // Sorting Distance descending to see furthest orders first
+                OrderInListEnum.AirDistance => query.OrderByDescending(o => o.AirDistance),
+
+                // Sorting TimeRemaining ascending (smallest time/most urgent first)
+                OrderInListEnum.TimeRemaining => query.OrderBy(o => o.TimeRemaining),
+
+                // Sorting Processing Time descending (longest active orders first)
+                OrderInListEnum.TotalProcessingTime => query.OrderByDescending(o => o.TotalProcessingTime),
+
+                // Sorting Total Deliveries descending (problematic orders first)
+                OrderInListEnum.TotalDeliveries => query.OrderByDescending(o => o.TotalDeliveries),
+
+                // Fallback default
                 _ => query.OrderBy(o => o.OrderId)
             };
+        }
+        else
+        {
+            // Default behavior if no sort is selected
+            query = query.OrderBy(o => o.OrderId);
         }
 
         return query;
     }
-
     internal static IEnumerable<BO.OpenOrderInList> GetOpenOrdersForCourier(int courierId, OrderType? filterBy, OpenOrderInListEnum? sortBy)
     {
         // 1. Validate Courier

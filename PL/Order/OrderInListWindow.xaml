@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PL.Order"
         xmlns:bo="clr-namespace:BO;assembly=BL" 
         mc:Ignorable="d"
-        Title="Order List Management" Height="640" Width="1000"
+        Title="Order List Management" Height="640" Width="1050"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Grid>
@@ -60,7 +60,7 @@
 
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding OrderId}" Width="50"/>
+                    <GridViewColumn Header="Order ID" DisplayMemberBinding="{Binding OrderId}" Width="60"/>
                     <GridViewColumn Header="Del. ID" DisplayMemberBinding="{Binding DeliveryId, TargetNullValue='-'}" Width="60"/>
                     <GridViewColumn Header="Type" DisplayMemberBinding="{Binding OrderType}" Width="80"/>
                     <GridViewColumn Header="Status" DisplayMemberBinding="{Binding OrderStatus}" Width="90"/>
@@ -75,6 +75,16 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
 
+                    <GridViewColumn Header="Process Time" Width="90">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding TotalProcessingTime, StringFormat='hh\\:mm\\:ss'}" HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Total Deliv." DisplayMemberBinding="{Binding TotalDeliveries}" Width="80"/>
+
                     <GridViewColumn Header="Actions" Width="80">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
@@ -85,6 +95,8 @@
                                         <Style TargetType="Button">
                                             <Setter Property="IsEnabled" Value="False"/>
                                             <Setter Property="Background" Value="LightGray"/>
+                                            <Setter Property="BorderBrush" Value="Gray"/>
+
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="Button">
@@ -98,12 +110,14 @@
                                                 <DataTrigger Binding="{Binding OrderStatus}" Value="Open">
                                                     <Setter Property="IsEnabled" Value="True"/>
                                                     <Setter Property="Background" Value="#FFD700"/>
+                                                    <Setter Property="BorderBrush" Value="#DAA520"/>
                                                     <Setter Property="Cursor" Value="Hand"/>
                                                     <Setter Property="Foreground" Value="Black"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding OrderStatus}" Value="OnCare">
                                                     <Setter Property="IsEnabled" Value="True"/>
                                                     <Setter Property="Background" Value="#FFD700"/>
+                                                    <Setter Property="BorderBrush" Value="#DAA520"/>
                                                     <Setter Property="Cursor" Value="Hand"/>
                                                     <Setter Property="Foreground" Value="Black"/>
                                                 </DataTrigger>
@@ -123,7 +137,6 @@
                     <Setter Property="BorderBrush" Value="LightGray"/>
                     <Setter Property="BorderThickness" Value="0,0,0,1"/>
                     <Setter Property="Margin" Value="0,1,0,1"/>
-
                     <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
                 </Style>
             </ListView.ItemContainerStyle>
