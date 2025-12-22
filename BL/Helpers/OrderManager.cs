@@ -230,12 +230,14 @@ internal static class OrderManager
 
     internal static void OrderSelection(int courierId, int orderId)
     {
-        // 1. Verify Order availability
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId);
-        if (deliveries.Any(d =>
-            d?.EndOrderTime == null ||
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
+        // 1. Verify Order availability - only reject if ALREADY in progress or completed
+        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
+        
+        // בדוק אם יש דליברי פעיל (בתהליך) או שהסתיים
+        if (deliveries.Any(d => 
+            (d?.EndOrderTime == null && d?.CourierId != 0) ||  // בתהליך
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||  // סיים בהצלחה
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))  // בוטל
         {
             throw new BO.BlAlreadyExistsException("Order is already being handled, completed, or cancelled.");
         }

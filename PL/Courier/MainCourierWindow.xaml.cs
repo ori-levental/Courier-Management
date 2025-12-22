@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using PL.Order;
 
 namespace PL.Courier
 {
@@ -159,14 +160,27 @@ namespace PL.Courier
         }
         private void BtnPickOrder_Click(object sender, RoutedEventArgs e)
         {
-            // Need to link this button to the relevant window
-            MessageBox.Show("Opens Order Selection Window (Not implemented yet).");
+            // פתח את חלון בחירת ההזמנות
+            OrdersToPick pickWindow = new OrdersToPick(_courierId);
+            if (pickWindow.ShowDialog() == true)
+            {
+                // Window closed with DialogResult = true
+                // Refresh the current delivery display
+                LoadCurrentDelivery(); // Call whatever method updates the "Current Delivery" display
+            }
         }
 
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
             // Need to link this button to the relevant window
             MessageBox.Show("Opens History Window (Not implemented yet).");
+        }
+
+        // Add this method to the MainCourierWindow class to resolve CS0103
+        private void LoadCurrentDelivery()
+        {
+            // Refresh the courier data, which updates the current delivery display
+            RefreshData();
         }
     }
 }
