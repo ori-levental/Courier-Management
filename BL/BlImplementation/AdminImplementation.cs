@@ -38,6 +38,11 @@ internal class AdminImplementation : IAdmin
         Helpers.AdminManager.SetConfig(config);
     }
 
+    public bool CheackEnter(int id, string password)
+    {
+        return Helpers.AdminManager.CheackEnter(id, password);
+    }
+
     #region Stage 5
     public void AddClockObserver(Action clockObserver) =>
     AdminManager.ClockUpdatedObservers += clockObserver;

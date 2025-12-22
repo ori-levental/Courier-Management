@@ -41,6 +41,9 @@ public interface IAdmin
     /// <param name="config">The BO.Config object containing the updated settings.</param>
     public void SetConfig(BO.Config config);
 
+    bool CheackEnter(int id, string password);
+
+
     #region Stage 5
     void AddConfigObserver(Action configObserver);
     void RemoveConfigObserver(Action configObserver);

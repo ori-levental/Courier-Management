@@ -247,18 +247,6 @@ internal static class CourierManager
     #region Authentication & System Entry
 
     /// <summary>
-    /// Validates login credentials against stored data.
-    /// </summary>
-    internal static void CheckPasswordEntry(int id, string password)
-    {
-        DO.Courier? doCourier = s_dal.Courier.Read(id);
-
-        // Fail if user not found OR password mismatch
-        if (doCourier == null || password != doCourier.Password)
-            throw new BO.BlInvalidDataException("ERROR : userId or password are wrong");
-    }
-
-    /// <summary>
     /// Determines the user role (Manager or Courier) based on ID.
     /// </summary>
     internal static EmployType GetEmployType(int id)

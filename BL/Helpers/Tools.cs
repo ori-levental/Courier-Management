@@ -249,4 +249,22 @@ internal static class Tools
         }
         return result.ToString();
     }
+
+    internal static void CheckPasswordEntry(int id, string password)
+    {
+        // 1. cheack if the manager log in
+        if (id == s_dal.Config.ManagerId)
+        {
+            if (password != s_dal.Config.ManagerPassword)
+                throw new BO.BlInvalidDataException("ERROR: Incorrect manager password");
+
+            return;
+        }
+
+        // 2. cheack if a courier log in
+        DO.Courier? doCourier = s_dal.Courier.Read(id);
+
+        if (doCourier == null || password != doCourier.Password)
+            throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
+    }
 }

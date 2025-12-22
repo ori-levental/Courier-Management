@@ -1,0 +1,49 @@
+﻿<Window x:Class="PL.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PL"
+        mc:Ignorable="d"
+        Title="Login System" Height="450" Width="800"
+        WindowStartupLocation="CenterScreen" LayoutTransform="{x:Null}">
+
+    <Grid FlowDirection="LeftToRight">
+
+        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="10" 
+                HorizontalAlignment="Center" VerticalAlignment="Center" 
+                Padding="30" Background="#FAFAFA">
+
+            <StackPanel Width="250">
+                <TextBlock Text="WELCOME" FontSize="24" FontWeight="Bold" 
+                           HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+                <TextBlock Text="Enter ID:" FontWeight="SemiBold" Margin="0,5"/>
+                <TextBox x:Name="IdTextBox" Height="25" VerticalContentAlignment="Center"/>
+
+                <TextBlock Text="Enter Password:" FontWeight="SemiBold" Margin="0,10,0,5"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <PasswordBox x:Name="PasswordBox" Grid.Column="0" Height="25" VerticalContentAlignment="Center"/>
+
+                    <TextBox x:Name="VisiblePasswordBox" Grid.Column="0" Height="25" VerticalContentAlignment="Center" 
+                             Visibility="Collapsed"/>
+
+                    <Button Grid.Column="1" Content="👁" Width="30" Height="25" Margin="5,0,0,0"
+                            Background="Transparent" BorderThickness="0" Cursor="Hand"
+                            Click="BtnTogglePassword_Click" ToolTip="Show/Hide Password"/>
+                </Grid>
+                <TextBlock x:Name="ErrorMessage" Foreground="Red" FontSize="12" 
+                           Margin="0,10,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+
+                <Button Content="Login" Click="BtnLogin_Click" 
+                        Height="35" Margin="0,20,0,0" FontWeight="Bold" Background="#DDDDDD"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

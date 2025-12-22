@@ -286,5 +286,12 @@ internal static class AdminManager //stage 4
         }
     }
 
+    public static bool CheackEnter(int id, string password)
+    {
+        if (id == s_dal.Config.ManagerId && password == s_dal.Config.ManagerPassword)
+            return true;
+        return false;
+    }
+
     #endregion Stage 7 base
 }

@@ -42,7 +42,7 @@ internal class CourierImplementation : ICourier
     public EmployType EnterToSystem(int id, string password)
     {
         Helpers.CourierManager.CheckId(id);
-        Helpers.CourierManager.CheckPasswordEntry(id, password);
+        Helpers.Tools.CheckPasswordEntry(id, password);
         return Helpers.CourierManager.GetEmployType(id);
     }
 
