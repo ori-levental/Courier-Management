@@ -286,7 +286,6 @@ public static class Initialization
 
             if (availableCouriersByDistance.Count == 0) continue;
 
-            // --- FINAL LOGIC FIX ---
             DateTime potentialStartTime;
 
             if (i < closedCount) // Historical (Closed) Deliveries
@@ -297,7 +296,6 @@ public static class Initialization
             }
             else // Active (OnCare) Deliveries
             {
-                // TIKUN: Start exactly NOW.
                 // Failing to do so causes short deliveries (motorcycle/short distance) 
                 // to expire immediately upon initialization.
                 potentialStartTime = s_dal!.Config!.Clock;

@@ -14,7 +14,7 @@ namespace PL.Courier
         private static readonly IBl s_bl = Factory.Get();
         private int _courierId;
 
-        // משתנה עזר למניעת לולאות עדכון סיסמה
+        // Helper flag to prevent password update loops
         private bool _isPasswordSyncing = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -53,7 +53,7 @@ namespace PL.Courier
             {
                 Courier = s_bl.Courier.SearchCourier(_courierId, _courierId);
 
-                // עדכון הסיסמה בתיבה המוסתרת (PasswordBox לא תומך ב-Binding)
+                // Update password in the hidden box (PasswordBox does not support Binding)
                 if (Courier.Password != null)
                 {
                     _isPasswordSyncing = true;
@@ -82,33 +82,32 @@ namespace PL.Courier
 
         private void PbPassword_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            // אם המשתמש מקליד בתיבה המוסתרת, נעדכן את האובייקט
+            // If the user types in the hidden box, update the object
             if (!_isPasswordSyncing)
             {
                 Courier.Password = pbPassword.Password;
             }
         }
 
-        // helped bt gemini
         private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
         {
-            // החלפה בין מצב גלוי למצב מוסתר
+            // Toggle between visible and hidden modes
             if (pbPassword.Visibility == Visibility.Visible)
             {
-                // מעבר למצב גלוי
+                // Switch to visible mode
                 pbPassword.Visibility = Visibility.Collapsed;
                 txtVisiblePassword.Visibility = Visibility.Visible;
 
-                // עדכון הטקסט הגלוי (Binding כבר עושה את זה, אבל ליתר ביטחון)
-                // txtVisiblePassword מחובר ב-Binding, אז הוא יתעדכן לבד
+                // Update visible text (Binding handles this, but ensuring sync)
+                // txtVisiblePassword is bound via Binding, so it updates automatically
             }
             else
             {
-                // מעבר למצב מוסתר (נקודות)
+                // Switch to hidden mode (dots)
                 txtVisiblePassword.Visibility = Visibility.Collapsed;
                 pbPassword.Visibility = Visibility.Visible;
 
-                // סנכרון חזרה למקרה ששינו את הטקסט הגלוי
+                // Sync back in case the visible text changed
                 _isPasswordSyncing = true;
                 pbPassword.Password = Courier.Password;
                 _isPasswordSyncing = false;
@@ -121,7 +120,7 @@ namespace PL.Courier
         {
             try
             {
-                // וידוא שהסיסמה מעודכנת באובייקט לפני השליחה (במקרה שערכו בתיבה הגלויה)
+                // Ensure password is updated in the object before sending (if edited in the visible box)
                 if (txtVisiblePassword.Visibility == Visibility.Visible)
                     Courier.Password = txtVisiblePassword.Text;
                 else
@@ -144,10 +143,10 @@ namespace PL.Courier
 
             try
             {
-                // ה-DeliveryId כבר קיים באובייקט OrderInCare שמגיע מ-Tools
+                // DeliveryId already exists in the OrderInCare object from Tools
                 int deliveryId = Courier.OrderInCare.DeliveryId;
 
-                // סגירת ההזמנה
+                // Close the order
                 s_bl.Order.CloseOrder(_courierId, _courierId, deliveryId);
 
                 MessageBox.Show("Order delivered successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -160,11 +159,13 @@ namespace PL.Courier
         }
         private void BtnPickOrder_Click(object sender, RoutedEventArgs e)
         {
+            // Need to link this button to the relevant window
             MessageBox.Show("Opens Order Selection Window (Not implemented yet).");
         }
 
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
+            // Need to link this button to the relevant window
             MessageBox.Show("Opens History Window (Not implemented yet).");
         }
     }
