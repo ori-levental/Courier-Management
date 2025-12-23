@@ -172,9 +172,10 @@ namespace PL.Courier
 
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
-            // Need to link this button to the relevant window
-            MessageBox.Show("Opens History Window (Not implemented yet).");
+            OrdersHistory historyWindow = new OrdersHistory(_courierId);
+            historyWindow.ShowDialog();
         }
+        
 
         // Add this method to the MainCourierWindow class to resolve CS0103
         private void LoadCurrentDelivery()
@@ -182,5 +183,7 @@ namespace PL.Courier
             // Refresh the courier data, which updates the current delivery display
             RefreshData();
         }
+
+          
     }
 }
