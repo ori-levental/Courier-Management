@@ -15,12 +15,10 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header with Courier Info -->
         <Border Grid.Row="0" Background="#F0F8FF" BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="15">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
@@ -30,20 +28,18 @@
                                Text="{Binding CourierInfo}"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="20,0,20,0" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Vertical" Margin="20,0,0,0" VerticalAlignment="Center">
                     <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="DarkBlue">
                         <Run Text="Max Distance: "/>
                         <Run Text="{Binding MaxDistanceDisplay}"/>
                     </TextBlock>
                 </StackPanel>
 
-                <Button Grid.Column="2" Content="Close" Click="BtnClose_Click" Width="100" Height="35" 
-                        Background="#FFB6C1" FontWeight="Bold"/>
             </Grid>
         </Border>
 
-        <!-- Orders ListView -->
-        <ListView Grid.Row="1" ItemsSource="{Binding OrderList}" SelectedItem="{Binding SelectedOrder}"
+        <ListView Grid.Row="1" ItemsSource="{Binding OrderList}" 
+                  SelectedItem="{Binding SelectedOrder}"
                   MouseDoubleClick="ListView_MouseDoubleClick" x:Name="lvOrders">
             <ListView.View>
                 <GridView>
@@ -53,18 +49,28 @@
                     <GridViewColumn Header="Order Type" DisplayMemberBinding="{Binding OrderType}" Width="100"/>
                     <GridViewColumn Header="Is Heavy" DisplayMemberBinding="{Binding IsHeavy}" Width="70"/>
                     <GridViewColumn Header="Time Remaining" DisplayMemberBinding="{Binding TimeRemainingDisplay}" Width="130"/>
-                    <GridViewColumn Header="Schedule Status" DisplayMemberBinding="{Binding ScheduleStatus}" Width="120"/>
+
+                    <GridViewColumn Header="Schedule Status" Width="120">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ScheduleStatus}" 
+                                           Foreground="Black"
+                                           FontWeight="Bold"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
 
-        <!-- Action Buttons -->
         <Border Grid.Row="2" Background="#EEEEEE" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="15">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Button Content="Pick Order" Click="BtnPickOrder_Click" Width="180" Height="40" Margin="15" 
                         FontWeight="Bold" Background="#90EE90" IsEnabled="{Binding IsOrderSelected}"/>
+
                 <Button Content="Refresh List" Click="BtnRefresh_Click" Width="150" Height="40" Margin="15" FontWeight="SemiBold"/>
-                <Button Content="Cancel" Click="BtnClose_Click" Width="150" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
+
+                <Button Content="Close" Click="BtnClose_Click" Width="150" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
             </StackPanel>
         </Border>
     </Grid>

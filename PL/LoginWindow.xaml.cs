@@ -1,61 +1,85 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls; // Required for PasswordBox and TextBox
+using System.Windows.Controls;
 using System.Windows.Input;
 using BlApi;
 using BO;
 
 namespace PL
 {
+    /// <summary>
+    /// Interaction logic for LoginWindow.xaml.
+    /// Handles user authentication and navigation.
+    /// </summary>
     public partial class LoginWindow : Window
     {
-        // Access to the Logic Layer
-        static readonly IBl s_bl = Factory.Get();
+        private static readonly IBl s_bl = Factory.Get();
+
+        #region Dependency Properties
+
+        // Dependency Property for MVVM Binding of the User ID
+        public string UserIdInput
+        {
+            get { return (string)GetValue(UserIdInputProperty); }
+            set { SetValue(UserIdInputProperty, value); }
+        }
+
+        public static readonly DependencyProperty UserIdInputProperty =
+            DependencyProperty.Register(nameof(UserIdInput), typeof(string), typeof(LoginWindow), new PropertyMetadata(""));
+
+        #endregion
 
         public LoginWindow()
         {
             InitializeComponent();
+
+            // Set DataContext to self to enable DataBinding for UserIdInput
+            this.DataContext = this;
         }
 
-        // --- Password Show/Hide Logic ---
+        #region UI Event Handlers
+
+        /// <summary>
+        /// Toggles password visibility between the PasswordBox and the visible TextBox.
+        /// </summary>
         private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
         {
             if (PasswordBox.Visibility == Visibility.Visible)
             {
-                // Switch to visible mode (text)
-                VisiblePasswordBox.Text = PasswordBox.Password; // Copy password to the visible textbox
+                // Switch to visible mode
+                VisiblePasswordBox.Text = PasswordBox.Password;
                 PasswordBox.Visibility = Visibility.Collapsed;
                 VisiblePasswordBox.Visibility = Visibility.Visible;
             }
             else
             {
-                // Switch to hidden mode (dots)
-                PasswordBox.Password = VisiblePasswordBox.Text; // Copy password to the hidden passwordbox
+                // Switch to hidden mode
+                PasswordBox.Password = VisiblePasswordBox.Text;
                 VisiblePasswordBox.Visibility = Visibility.Collapsed;
                 PasswordBox.Visibility = Visibility.Visible;
             }
         }
 
+        /// <summary>
+        /// Handles the login process.
+        /// Uses DataBinding for ID (MVVM compliant) and direct access for Password (security best practice).
+        /// </summary>
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // Reset previous error messages
             ErrorMessage.Visibility = Visibility.Collapsed;
 
-            string idInput = IdTextBox.Text;
+            // Use the Bound Property for ID instead of accessing the TextBox directly
+            string idInput = UserIdInput;
 
-            // Retrieve password from the currently visible box
-            string passwordInput = (PasswordBox.Visibility == Visibility.Visible)
-                                    ? PasswordBox.Password
-                                    : VisiblePasswordBox.Text;
+            // Retrieve password from the active control
+            string passwordInput = (PasswordBox.Visibility == Visibility.Visible) ? PasswordBox.Password : VisiblePasswordBox.Text;
 
-            // 1. Basic input validation (empty)
             if (string.IsNullOrWhiteSpace(idInput) || string.IsNullOrWhiteSpace(passwordInput))
             {
                 ShowError("Please enter your ID and password.");
                 return;
             }
 
-            // 2. Validate that ID is a number
             if (!int.TryParse(idInput, out int id))
             {
                 ShowError("ID must contain only numbers.");
@@ -64,14 +88,12 @@ namespace PL
 
             try
             {
-                // 3. Call BL
                 EmployType type = s_bl.Courier.EnterToSystem(id, passwordInput);
 
-                // 4. Route based on returned employee type
                 switch (type)
                 {
                     case EmployType.Manager:
-                        new MainWindow().Show(); // Open manager screen
+                        new MainWindow().Show();
                         this.Close();
                         break;
 
@@ -95,18 +117,16 @@ namespace PL
             }
         }
 
-        // Helper function to display errors
+        #endregion
+
+        #region Helpers
+
         private void ShowError(string message)
         {
             ErrorMessage.Text = message;
             ErrorMessage.Visibility = Visibility.Visible;
         }
 
-        // Function ensuring the box accepts only numbers
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            System.Text.RegularExpressions.Regex regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
+        #endregion
     }
 }
