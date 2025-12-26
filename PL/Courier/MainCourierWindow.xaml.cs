@@ -4,24 +4,24 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using PL.Order;
 
 namespace PL.Courier
 {
+    /// <summary>
+    /// Interaction logic for MainCourierWindow.
+    /// Implements the Observer pattern to synchronize UI state with Business Layer changes.
+    /// </summary>
     public partial class MainCourierWindow : Window, INotifyPropertyChanged
     {
         private static readonly IBl s_bl = Factory.Get();
         private int _courierId;
 
-        // Helper flag to prevent password update loops
-        private bool _isPasswordSyncing = false;
-
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        // --- Dependency Properties ---
+        #region Dependency Properties
 
+        // Using DependencyProperties to enable built-in WPF binding engine optimizations
         public BO.Courier Courier
         {
             get { return (BO.Courier)GetValue(CourierProperty); }
@@ -38,152 +38,99 @@ namespace PL.Courier
         public static readonly DependencyProperty HasActiveOrderProperty =
             DependencyProperty.Register("HasActiveOrder", typeof(bool), typeof(MainCourierWindow));
 
+        #endregion
+
+        #region Calculated Properties
+
+        // These properties depend on the state of HasActiveOrder.
+        // PropertyChanged notifications are manually triggered in RefreshData().
         public bool HasNoActiveOrder => !HasActiveOrder;
         public bool IsVehicleEditable => HasNoActiveOrder;
 
+        #endregion
+
+        #region Observer Implementation
+
+        /// <summary>
+        /// Observer callback invoked by the Business Layer.
+        /// Executes UI refresh on the Dispatcher thread to avoid Cross-Thread Exceptions.
+        /// </summary>
+        private void courierObserver() => this.Dispatcher.Invoke(RefreshData);
+
+        #endregion
+
         public MainCourierWindow(int courierId)
         {
-            InitializeComponent();
             _courierId = courierId;
+            InitializeComponent();
+
+            // Explicitly setting DataContext to allow Property binding in XAML
+            this.DataContext = this;
+
+            // Lifecycle event registration for Observer subscription management
+            this.Loaded += (s, e) => s_bl.Order.AddObserver(courierObserver);
+            this.Closed += (s, e) => s_bl.Order.RemoveObserver(courierObserver);
+
             RefreshData();
         }
 
+        /// <summary>
+        /// Synchronizes the local Courier state with the database and notifies the UI.
+        /// </summary>
         private void RefreshData()
         {
             try
             {
-                Courier = s_bl.Courier.SearchCourier(_courierId, _courierId);
+                Courier = s_bl.Courier.GetCourierById(_courierId);
+                HasActiveOrder = Courier.CurrentDelivery != null;
 
-                // Update password in the hidden box (PasswordBox does not support Binding)
-                if (Courier.Password != null)
-                {
-                    _isPasswordSyncing = true;
-                    pbPassword.Password = Courier.Password;
-                    _isPasswordSyncing = false;
-                }
-
-                HasActiveOrder = (Courier.OrderInCare != null);
-
-                OnPropertyChanged(nameof(HasNoActiveOrder));
-                OnPropertyChanged(nameof(IsVehicleEditable));
+                // Manually notify UI of changes in non-Dependency calculated properties
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasNoActiveOrder)));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsVehicleEditable)));
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading data: {ex.Message}");
-                Close();
+                // Critical data fetching errors are caught here to prevent UI thread termination
+                MessageBox.Show($"Data Synchronization Error: {ex.Message}", "Sync Failure", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void OnPropertyChanged(string propertyName)
+        #region UI Handlers
+
+        private void BtnPickOrder_Click(object sender, RoutedEventArgs e)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // --- Password Logic ---
-
-        private void PbPassword_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            // If the user types in the hidden box, update the object
-            if (!_isPasswordSyncing)
-            {
-                Courier.Password = pbPassword.Password;
-            }
-        }
-
-        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
-        {
-            // Toggle between visible and hidden modes
-            if (pbPassword.Visibility == Visibility.Visible)
-            {
-                // Switch to visible mode
-                pbPassword.Visibility = Visibility.Collapsed;
-                txtVisiblePassword.Visibility = Visibility.Visible;
-
-                // Update visible text (Binding handles this, but ensuring sync)
-                // txtVisiblePassword is bound via Binding, so it updates automatically
-            }
-            else
-            {
-                // Switch to hidden mode (dots)
-                txtVisiblePassword.Visibility = Visibility.Collapsed;
-                pbPassword.Visibility = Visibility.Visible;
-
-                // Sync back in case the visible text changed
-                _isPasswordSyncing = true;
-                pbPassword.Password = Courier.Password;
-                _isPasswordSyncing = false;
-            }
-        }
-
-        // --- Main Actions ---
-
-        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                // Ensure password is updated in the object before sending (if edited in the visible box)
-                if (txtVisiblePassword.Visibility == Visibility.Visible)
-                    Courier.Password = txtVisiblePassword.Text;
-                else
-                    Courier.Password = pbPassword.Password;
-
-                s_bl.Courier.UpdateCourier(_courierId, Courier);
-                MessageBox.Show("Details updated successfully!", "Update", MessageBoxButton.OK, MessageBoxImage.Information);
-                RefreshData();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Update failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                RefreshData();
-            }
+            // The observer will automatically update the main window once an order is assigned in the child window.
+            new OrdersToPick(_courierId).ShowDialog();
         }
 
         private void BtnFinishOrder_Click(object sender, RoutedEventArgs e)
         {
-            if (Courier.OrderInCare == null) return;
-
             try
             {
-                // DeliveryId already exists in the OrderInCare object from Tools
-                int deliveryId = Courier.OrderInCare.DeliveryId;
-
-                // Close the order
-                s_bl.Order.CloseOrder(_courierId, _courierId, deliveryId);
-
-                MessageBox.Show("Order delivered successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                RefreshData();
+                if (Courier.CurrentDelivery != null)
+                {
+                    s_bl.Order.CloseOrder(_courierId, _courierId, Courier.CurrentDelivery.DeliveryId);
+                    MessageBox.Show("Delivery completed successfully.", "Success");
+                    // RefreshData() call is optional here if the BL triggers the observer immediately.
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error finishing order: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-        private void BtnPickOrder_Click(object sender, RoutedEventArgs e)
-        {
-            // פתח את חלון בחירת ההזמנות
-            OrdersToPick pickWindow = new OrdersToPick(_courierId);
-            if (pickWindow.ShowDialog() == true)
-            {
-                // Window closed with DialogResult = true
-                // Refresh the current delivery display
-                LoadCurrentDelivery(); // Call whatever method updates the "Current Delivery" display
+                MessageBox.Show($"Failed to close order: {ex.Message}");
             }
         }
 
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
-            OrdersHistory historyWindow = new OrdersHistory(_courierId);
-            historyWindow.ShowDialog();
+            new OrdersHistory(_courierId).ShowDialog();
         }
-        
 
-        // Add this method to the MainCourierWindow class to resolve CS0103
-        private void LoadCurrentDelivery()
+        private void BtnLogout_Click(object sender, RoutedEventArgs e)
         {
-            // Refresh the courier data, which updates the current delivery display
-            RefreshData();
+            new LoginWindow().Show();
+            this.Close();
         }
 
-          
+        #endregion
     }
 }
