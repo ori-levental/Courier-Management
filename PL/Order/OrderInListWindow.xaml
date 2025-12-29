@@ -63,14 +63,86 @@
                     <GridViewColumn Header="Order ID" DisplayMemberBinding="{Binding OrderId}" Width="60"/>
                     <GridViewColumn Header="Del. ID" DisplayMemberBinding="{Binding DeliveryId, TargetNullValue='-'}" Width="60"/>
                     <GridViewColumn Header="Type" DisplayMemberBinding="{Binding OrderType}" Width="80"/>
-                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding OrderStatus}" Width="90"/>
-                    <GridViewColumn Header="Schedule" DisplayMemberBinding="{Binding ScheduleStatus}" Width="80"/>
-                    <GridViewColumn Header="Dist (km)" DisplayMemberBinding="{Binding AirDistance, StringFormat=F2}" Width="70"/>
 
-                    <GridViewColumn Header="Time Left" Width="80">
+                    <GridViewColumn Header="Status" Width="90">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding TimeRemaining, StringFormat='hh\\:mm'}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding OrderStatus}" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="Open">
+                                                    <Setter Property="Foreground" Value="Green"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="OnCare">
+                                                    <Setter Property="Foreground" Value="Blue"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="Cancelled">
+                                                    <Setter Property="Foreground" Value="Red"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding OrderStatus}" Value="Provided">
+                                                    <Setter Property="Foreground" Value="Gray"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Schedule" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding ScheduleStatus}" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="OnTime">
+                                                    <Setter Property="Foreground" Value="Green"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="InRisk">
+                                                    <Setter Property="Foreground" Value="Orange"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="Late">
+                                                    <Setter Property="Foreground" Value="Red"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Dist (km)" DisplayMemberBinding="{Binding AirDistance, StringFormat=F2}" Width="70"/>
+
+                    <GridViewColumn Header="Time Left" Width="130">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding TimeRemaining, StringFormat={}{0:dd}d {0:hh}:{0:mm}:{0:ss}}" 
+                                           HorizontalAlignment="Center" FontWeight="SemiBold">
+
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="Black"/>
+
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="Late">
+                                                    <Setter Property="Foreground" Value="Red"/>
+                                                    <Setter Property="FontWeight" Value="ExtraBold"/>
+                                                </DataTrigger>
+
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="InRisk">
+                                                    <Setter Property="Foreground" Value="OrangeRed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+
+                                </TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

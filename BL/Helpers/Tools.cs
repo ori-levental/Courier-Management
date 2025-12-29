@@ -59,14 +59,14 @@ internal static class Tools
     /// </summary>
     internal static DateTime MaxArrivalTimeCalculate(DO.Order order)
     {
-        double MaxTime = order.Type switch
+        double maxHours = order.Type switch
         {
             DO.Enums.OrderType.SameDay => 24,
-            DO.Enums.OrderType.Express => 24 * 3,
+            DO.Enums.OrderType.Express => 48,     
             DO.Enums.OrderType.Scheduled => 24 * 7,
-            _ => 24 * 14
+            _ => 24 * 14                          
         };
-        return order.StartOrderTime.AddHours(MaxTime);
+        return order.StartOrderTime.AddHours(maxHours);
     }
 
     /// <summary>

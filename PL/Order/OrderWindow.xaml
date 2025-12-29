@@ -98,10 +98,47 @@
                     </Grid.RowDefinitions>
 
                     <Label Content="Status:" Grid.Row="0"/>
-                    <TextBlock Text="{Binding CurrentOrder.OrderStatus}" Grid.Row="0" Grid.Column="1" FontWeight="Bold" Foreground="Blue" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentOrder.OrderStatus}" Grid.Row="0" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Open">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="OnCare">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Cancelled">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Provided">
+                                        <Setter Property="Foreground" Value="Gray"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
 
                     <Label Content="Schedule:" Grid.Row="1"/>
-                    <TextBlock Text="{Binding CurrentOrder.ScheduleStatus}" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentOrder.ScheduleStatus}" Grid.Row="1" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentOrder.ScheduleStatus}" Value="OnTime">
+                                        <Setter Property="Foreground" Value="Green"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.ScheduleStatus}" Value="InRisk">
+                                        <Setter Property="Foreground" Value="OrangeRed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.ScheduleStatus}" Value="Late">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
 
                     <Label Content="Created At:" Grid.Row="2"/>
                     <TextBlock Text="{Binding CurrentOrder.StartOrderTime}" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center"/>
@@ -110,7 +147,22 @@
                     <TextBlock Text="{Binding CurrentOrder.MaxArrivalTime}" Grid.Row="3" Grid.Column="1" Foreground="Red" VerticalAlignment="Center"/>
 
                     <Label Content="Time Left:" Grid.Row="4"/>
-                    <TextBlock Text="{Binding CurrentOrder.TimeRemaining, StringFormat='hh\\:mm\\:ss'}" Grid.Row="4" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding CurrentOrder.TimeRemaining, StringFormat={}{0:dd}d {0:hh}:{0:mm}:{0:ss}}" 
+                               Grid.Row="4" Grid.Column="1" FontWeight="Bold" VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentOrder.ScheduleStatus}" Value="Late">
+                                        <Setter Property="Foreground" Value="Red"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentOrder.ScheduleStatus}" Value="InRisk">
+                                        <Setter Property="Foreground" Value="OrangeRed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </Grid>
             </GroupBox>
 
@@ -136,13 +188,13 @@
                     FontWeight="Bold" FontSize="16" Height="40" Width="200" Margin="10">
                 <Button.Style>
                     <Style TargetType="Button">
-                        <Setter Property="IsEnabled" Value="True"/>
+                        <Setter Property="Visibility" Value="Visible"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Provided">
-                                <Setter Property="IsEnabled" Value="False"/>
+                                <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding CurrentOrder.OrderStatus}" Value="Cancelled">
-                                <Setter Property="IsEnabled" Value="False"/>
+                                <Setter Property="Visibility" Value="Collapsed"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

@@ -162,12 +162,30 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,5">
-                            <Run Text="Order #" FontWeight="Bold" FontSize="14"/>
-                            <Run Text="{Binding Courier.OrderInCare.OrderId, Mode=OneWay}" FontWeight="Bold" FontSize="14"/>
-                            <Run Text="  |  "/> 
-                            <Run Text="{Binding Courier.OrderInCare.ScheduleStatus, Mode=OneWay}" Foreground="Blue" FontWeight="Bold"/>
-                        </TextBlock>
+                        <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Margin="0,0,0,5" Orientation="Horizontal">
+                            <TextBlock Text="Order #" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding Courier.OrderInCare.OrderId, Mode=OneWay}" FontWeight="Bold" FontSize="14" Margin="5,0,0,0"/>
+                            <TextBlock Text=" | " Margin="5,0"/>
+
+                            <TextBlock Text="{Binding Courier.OrderInCare.ScheduleStatus, Mode=OneWay}" FontWeight="Bold">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Courier.OrderInCare.ScheduleStatus}" Value="OnTime">
+                                                <Setter Property="Foreground" Value="Green"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Courier.OrderInCare.ScheduleStatus}" Value="InRisk">
+                                                <Setter Property="Foreground" Value="OrangeRed"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Courier.OrderInCare.ScheduleStatus}" Value="Late">
+                                                <Setter Property="Foreground" Value="Red"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
 
                         <Label Content="Customer:" Grid.Row="1" Grid.Column="0" Padding="0,2"/>
                         <TextBlock Grid.Row="1" Grid.Column="1" VerticalAlignment="Center">
@@ -182,7 +200,7 @@
                         <Label Content="Trip Info:" Grid.Row="3" Grid.Column="0" Padding="0,2"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
                             <Run Text="Dist: "/><Run Text="{Binding Courier.OrderInCare.Distance, StringFormat={}{0:F1} km, Mode=OneWay}"/>
-                            <Run Text="  |  ETA: "/><Run Text="{Binding Courier.OrderInCare.EstimatedArrivalTime, StringFormat='HH:mm', Mode=OneWay}"/>
+                            <Run Text="  | ETA: "/><Run Text="{Binding Courier.OrderInCare.EstimatedArrivalTime, StringFormat='HH:mm', Mode=OneWay}"/>
                         </TextBlock>
 
                         <Label Content="Note:" Grid.Row="4" Grid.Column="0" Padding="0,2"/>

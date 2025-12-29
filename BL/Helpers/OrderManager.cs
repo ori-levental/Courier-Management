@@ -118,8 +118,8 @@ internal static class OrderManager
         TimeSpan timeRemaining = Tools.MaxArrivalTimeCalculate(doOrder) - Helpers.AdminManager.Now;
 
         // Clamp negative time for closed orders
-        if (timeRemaining < TimeSpan.Zero || status == ShipmentCompletionStatus.Provided || status == ShipmentCompletionStatus.Cancelled)
-            timeRemaining = TimeSpan.Zero;
+        var dummyDelivery = delivery ?? new DO.Delivery();
+        var scheduleStatus = Tools.ScheduleStatusCalculate(doOrder, dummyDelivery);
 
         return new BO.OrderInList
         {
@@ -130,7 +130,8 @@ internal static class OrderManager
             AirDistance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude),
             TimeRemaining = timeRemaining,
             TotalDeliveries = deliveries.Count(),
-            TotalProcessingTime = totalProcessing
+            TotalProcessingTime = totalProcessing,
+            ScheduleStatus = (BO.ScheduleStatus)scheduleStatus
         };
     }
 

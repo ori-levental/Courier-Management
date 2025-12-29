@@ -25,7 +25,7 @@
                 <StackPanel Grid.Column="0" Orientation="Vertical">
                     <TextBlock FontSize="18" FontWeight="Bold" Text="Available Orders for Pickup"/>
                     <TextBlock FontSize="12" Foreground="Gray" Margin="0,5,0,0" 
-                               Text="{Binding CourierInfo}"/>
+                            Text="{Binding CourierInfo}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Vertical" Margin="20,0,0,0" VerticalAlignment="Center">
@@ -48,14 +48,37 @@
                     <GridViewColumn Header="Air Distance (km)" DisplayMemberBinding="{Binding AirDistanceDisplay}" Width="120"/>
                     <GridViewColumn Header="Order Type" DisplayMemberBinding="{Binding OrderType}" Width="100"/>
                     <GridViewColumn Header="Is Heavy" DisplayMemberBinding="{Binding IsHeavy}" Width="70"/>
-                    <GridViewColumn Header="Time Remaining" DisplayMemberBinding="{Binding TimeRemainingDisplay}" Width="130"/>
+
+                    <GridViewColumn Header="Time Remaining" Width="130">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding TimeRemaining, StringFormat={}{0:dd}d {0:hh}:{0:mm}:{0:ss}}" 
+                                           HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
 
                     <GridViewColumn Header="Schedule Status" Width="120">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding ScheduleStatus}" 
-                                           Foreground="Black"
-                                           FontWeight="Bold"/>
+                                <TextBlock Text="{Binding ScheduleStatus}" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Foreground" Value="Black"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="OnTime">
+                                                    <Setter Property="Foreground" Value="Green"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="InRisk">
+                                                    <Setter Property="Foreground" Value="OrangeRed"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding ScheduleStatus}" Value="Late">
+                                                    <Setter Property="Foreground" Value="Red"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

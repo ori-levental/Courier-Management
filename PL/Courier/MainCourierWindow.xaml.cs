@@ -1,10 +1,10 @@
 ﻿using BlApi;
 using BO;
+using PL.Order;
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
-using PL.Order;
+using System.Windows.Controls;
 
 namespace PL.Courier
 {
@@ -16,6 +16,9 @@ namespace PL.Courier
     {
         private static readonly IBl s_bl = Factory.Get();
         private int _courierId;
+
+        // Helper for password syncing to prevent infinite loops
+        private bool _isPasswordSyncing = false;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -61,17 +64,29 @@ namespace PL.Courier
 
         public MainCourierWindow(int courierId)
         {
-            _courierId = courierId;
             InitializeComponent();
+            _courierId = courierId;
 
             // Explicitly setting DataContext to allow Property binding in XAML
             this.DataContext = this;
 
             // Lifecycle event registration for Observer subscription management
-            this.Loaded += (s, e) => s_bl.Order.AddObserver(courierObserver);
-            this.Closed += (s, e) => s_bl.Order.RemoveObserver(courierObserver);
+            this.Loaded += Window_Loaded;
+            this.Closed += Window_Closed;
+        }
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             RefreshData();
+            // Listen to Order changes (status updates) and Courier changes (details)
+            s_bl.Order.AddObserver(courierObserver);
+            s_bl.Courier.AddObserver(courierObserver);
+        }
+
+        private void Window_Closed(object? sender, EventArgs e)
+        {
+            s_bl.Order.RemoveObserver(courierObserver);
+            s_bl.Courier.RemoveObserver(courierObserver);
         }
 
         /// <summary>
@@ -81,8 +96,19 @@ namespace PL.Courier
         {
             try
             {
-                Courier = s_bl.Courier.GetCourierById(_courierId);
-                HasActiveOrder = Courier.CurrentDelivery != null;
+                // FIX: Use SearchCourier correctly
+                Courier = s_bl.Courier.SearchCourier(_courierId, _courierId);
+
+                // Sync password to PasswordBox UI
+                if (Courier.Password != null && pbPassword != null)
+                {
+                    _isPasswordSyncing = true;
+                    pbPassword.Password = Courier.Password;
+                    _isPasswordSyncing = false;
+                }
+
+                // FIX: Use OrderInCare property
+                HasActiveOrder = (Courier.OrderInCare != null);
 
                 // Manually notify UI of changes in non-Dependency calculated properties
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasNoActiveOrder)));
@@ -92,6 +118,7 @@ namespace PL.Courier
             {
                 // Critical data fetching errors are caught here to prevent UI thread termination
                 MessageBox.Show($"Data Synchronization Error: {ex.Message}", "Sync Failure", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
             }
         }
 
@@ -107,11 +134,12 @@ namespace PL.Courier
         {
             try
             {
-                if (Courier.CurrentDelivery != null)
+                // FIX: Use OrderInCare
+                if (Courier.OrderInCare != null)
                 {
-                    s_bl.Order.CloseOrder(_courierId, _courierId, Courier.CurrentDelivery.DeliveryId);
+                    s_bl.Order.CloseOrder(_courierId, _courierId, Courier.OrderInCare.DeliveryId);
                     MessageBox.Show("Delivery completed successfully.", "Success");
-                    // RefreshData() call is optional here if the BL triggers the observer immediately.
+                    // RefreshData() is called automatically by the Observer!
                 }
             }
             catch (Exception ex)
@@ -122,13 +150,53 @@ namespace PL.Courier
 
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
-            new OrdersHistory(_courierId).ShowDialog();
+            OrdersHistory historyWindow = new OrdersHistory(_courierId);
+            historyWindow.ShowDialog();
         }
 
-        private void BtnLogout_Click(object sender, RoutedEventArgs e)
+        private void BtnUpdate_Click(object sender, RoutedEventArgs e)
         {
-            new LoginWindow().Show();
-            this.Close();
+            try
+            {
+                // Ensure password is sync
+                if (txtVisiblePassword.Visibility == Visibility.Visible)
+                    Courier.Password = txtVisiblePassword.Text;
+                else
+                    Courier.Password = pbPassword.Password;
+
+                s_bl.Courier.UpdateCourier(Courier.Id, Courier);
+                MessageBox.Show("Details updated successfully!", "Update", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Observer will trigger refresh
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                RefreshData(); // Revert changes in UI
+            }
+        }
+
+        private void PbPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_isPasswordSyncing)
+            {
+                Courier.Password = pbPassword.Password;
+            }
+        }
+
+        private void BtnTogglePassword_Click(object sender, RoutedEventArgs e)
+        {
+            if (pbPassword.Visibility == Visibility.Visible)
+            {
+                txtVisiblePassword.Text = pbPassword.Password;
+                pbPassword.Visibility = Visibility.Collapsed;
+                txtVisiblePassword.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                pbPassword.Password = txtVisiblePassword.Text;
+                txtVisiblePassword.Visibility = Visibility.Collapsed;
+                pbPassword.Visibility = Visibility.Visible;
+            }
         }
 
         #endregion
