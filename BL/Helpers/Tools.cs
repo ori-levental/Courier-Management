@@ -74,28 +74,37 @@ internal static class Tools
     /// </summary>
     internal static ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery delivery)
     {
-        TimeSpan maxDuration = s_dal.Config.MaxDeliveryTime;
+        TimeSpan riskRange = s_dal.Config.RiskRange;
 
         // Scenario A: Delivery is finished (Historically)
         if (delivery.EndType != null && delivery.EndOrderTime != null)
         {
-            if (delivery.EndOrderTime - order.StartOrderTime <= maxDuration)
+            // For finished deliveries, check if they completed on time
+            TimeSpan actualDuration = delivery.EndOrderTime.Value - order.StartOrderTime;
+            TimeSpan maxDuration = s_dal.Config.MaxDeliveryTime;
+            
+            if (actualDuration <= maxDuration)
                 return ScheduleStatus.OnTime;
             else
                 return ScheduleStatus.Late;
         }
-        // Scenario B: Delivery is in progress (Real-time check)
+        // Scenario B: Delivery is in progress or order is open (Real-time check)
         else
         {
-            DateTime deadline = order.StartOrderTime + maxDuration;
+            // Use MaxArrivalTimeCalculate (like OrdersToPick does) for consistency
+            DateTime deadline = MaxArrivalTimeCalculate(order);
             DateTime now = Helpers.AdminManager.Now;
+            TimeSpan timeRemaining = deadline - now;
 
-            if (now > deadline)
+            // If deadline already passed
+            if (timeRemaining < TimeSpan.Zero)
                 return ScheduleStatus.Late;
 
-            if (deadline - now <= (s_dal.Config.RiskRange))
+            // If within risk range (less time remaining than risk range)
+            if (timeRemaining <= riskRange)
                 return ScheduleStatus.InRisk;
 
+            // Otherwise, plenty of time left
             return ScheduleStatus.OnTime;
         }
     }
@@ -266,5 +275,10 @@ internal static class Tools
 
         if (doCourier == null || password != doCourier.Password)
             throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
+    }
+
+    internal static ScheduleStatus ScheduleStatusCalculate(DO.Order order)
+    {
+        throw new NotImplementedException();
     }
 }

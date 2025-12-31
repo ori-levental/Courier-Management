@@ -385,6 +385,19 @@ internal static class OrderManager
                 TimeSpan timeLeft = maxTime - Helpers.AdminManager.Now;
                 if (timeLeft < TimeSpan.Zero) timeLeft = TimeSpan.Zero;
 
+                // Create a dummy delivery object to calculate schedule status
+                // (Open orders don't have a delivery yet, but we need one for ScheduleStatusCalculate)
+                var dummyDelivery = new DO.Delivery
+                {
+                    OrderId = item.Order.Id,
+                    CourierId = 0,
+                    StartDeliveryTime = Helpers.AdminManager.Now,
+                    DeliveryShippingType = DO.Enums.ShippingType.Motorcycle,
+                    Distance = 0,
+                    EndOrderTime = null,  // Not completed yet
+                    EndType = null
+                };
+
                 return new BO.OpenOrderInList
                 {
                     OrderId = item.Order.Id,
@@ -394,7 +407,7 @@ internal static class OrderManager
                     IsHeavy = false,
                     MaxArrivalTime = maxTime,
                     TimeRemaining = timeLeft,
-                    ScheduleStatus = ScheduleStatus.OnTime,
+                    ScheduleStatus = (ScheduleStatus)Tools.ScheduleStatusCalculate(item.Order, dummyDelivery),
                     ActualDistance = item.Distance,
                 };
             })
