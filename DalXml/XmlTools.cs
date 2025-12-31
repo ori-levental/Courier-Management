@@ -254,9 +254,29 @@ static class XMLTools
 
     /// <summary>
     /// Extension method: Safely tries to parse an element's value to a nullable DateTime.
+    /// Supports both English and Hebrew date formats.
     /// </summary>
-    public static DateTime? ToDateTimeNullable(this XElement element, string name) =>
-        DateTime.TryParse((string?)element.Element(name), out var result) ? (DateTime?)result : null;
+    public static DateTime? ToDateTimeNullable(this XElement element, string name)
+    {
+        string? dateStr = (string?)element.Element(name);
+        if (dateStr == null) return null;
+        
+        // Try parsing with Hebrew culture first (for Hebrew dates)
+        if (DateTime.TryParse(dateStr, System.Globalization.CultureInfo.GetCultureInfo("he-IL"), 
+            System.Globalization.DateTimeStyles.None, out var hebrewResult))
+        {
+            return hebrewResult;
+        }
+        
+        // Fall back to English/current culture
+        if (DateTime.TryParse(dateStr, System.Globalization.CultureInfo.GetCultureInfo("en-US"), 
+            System.Globalization.DateTimeStyles.None, out var englishResult))
+        {
+            return englishResult;
+        }
+        
+        return null;
+    }
 
     /// <summary>
     /// Extension method: Safely tries to parse an element's value to a nullable TimeSpan.

@@ -20,6 +20,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Grid.Column="0" Orientation="Vertical">
@@ -35,6 +36,24 @@
                     </TextBlock>
                 </StackPanel>
 
+                <StackPanel Grid.Column="2" Orientation="Vertical" Margin="20,0,0,0" VerticalAlignment="Center">
+                    <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="DarkBlue" Margin="0,0,0,5">
+                        <Run Text="Sort By:"/>
+                    </TextBlock>
+                    <ComboBox Name="CmbSortBy"
+                              SelectedValuePath="Content"
+                              SelectedValue="{Binding SortBy, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Padding="8"
+                              Foreground="#333"
+                              Width="150">
+                        <ComboBoxItem>Time Remaining</ComboBoxItem>
+                        <ComboBoxItem>Air Distance</ComboBoxItem>
+                        <ComboBoxItem>Order ID</ComboBoxItem>
+                        <ComboBoxItem>Order Type</ComboBoxItem>
+                        <ComboBoxItem>Schedule Status</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
             </Grid>
         </Border>
 
@@ -47,7 +66,6 @@
                     <GridViewColumn Header="Address" DisplayMemberBinding="{Binding FullAddress}" Width="300"/>
                     <GridViewColumn Header="Air Distance (km)" DisplayMemberBinding="{Binding AirDistanceDisplay}" Width="120"/>
                     <GridViewColumn Header="Order Type" DisplayMemberBinding="{Binding OrderType}" Width="100"/>
-                    <GridViewColumn Header="Is Heavy" DisplayMemberBinding="{Binding IsHeavy}" Width="70"/>
 
                     <GridViewColumn Header="Time Remaining" Width="130">
                         <GridViewColumn.CellTemplate>

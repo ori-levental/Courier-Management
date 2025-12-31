@@ -65,6 +65,16 @@ namespace PL.Order
         public static readonly DependencyProperty IsOrderSelectedProperty =
             DependencyProperty.Register("IsOrderSelected", typeof(bool), typeof(OrdersToPick), new PropertyMetadata(false));
 
+        // Dependency Property: SortBy (Sort dropdown)
+        public string? SortBy
+        {
+            get { return (string?)GetValue(SortByProperty); }
+            set { SetValue(SortByProperty, value); }
+        }
+        public static readonly DependencyProperty SortByProperty =
+            DependencyProperty.Register("SortBy", typeof(string), typeof(OrdersToPick),
+                new PropertyMetadata("Time Remaining", (d, e) => ((OrdersToPick)d).LoadOrderList()));
+
         #endregion
 
         #region Constructor
@@ -120,14 +130,25 @@ namespace PL.Order
         }
 
         /// <summary>
-        /// Loads the list of available orders.
+        /// Loads the list of available orders with sorting.
         /// </summary>
         private void LoadOrderList()
         {
             try
             {
                 var openOrders = s_bl.Order.GetOpenOrdersForCourier(CourierId, CourierId, null, null).ToList();
-                OrderList = openOrders.Select(o => new OrderDisplayWrapper(o)).ToList();
+                
+                // Apply sorting based on selected criteria
+                var sortedOrders = SortBy switch
+                {
+                    "Air Distance" => openOrders.OrderBy(o => o.AirDistance),
+                    "Order ID" => openOrders.OrderBy(o => o.OrderId),
+                    "Order Type" => openOrders.OrderBy(o => o.OrderType),
+                    "Schedule Status" => openOrders.OrderBy(o => o.ScheduleStatus),
+                    _ => openOrders.OrderBy(o => o.TimeRemaining) // Default: Time Remaining
+                };
+                
+                OrderList = sortedOrders.Select(o => new OrderDisplayWrapper(o)).ToList();
             }
             catch (Exception ex)
             {
