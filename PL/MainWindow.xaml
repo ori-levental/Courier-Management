@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PL"
         mc:Ignorable="d"
-        Title="MainWindow - Delivery System Management" Height="700" Width="1000"
+        Title="MainWindow - Delivery System Management" Height="760" Width="1000"
+        WindowState="Maximized"
+
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Grid>
@@ -24,7 +26,8 @@
 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Label Content="System Clock:" FontWeight="Bold" FontSize="16" VerticalAlignment="Center"/>
-                    <Label Content="{Binding CurrentTime}" FontSize="18" Foreground="DarkBlue" FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <Label Content="{Binding CurrentTime}" FontSize="18" Foreground="DarkBlue" 
+                           FontWeight="SemiBold" VerticalAlignment="Center" Margin="5,0,0,0"/>
                 </StackPanel>
 
                 <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -45,11 +48,37 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Label Grid.Row="0" Content="System Configuration" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                <GroupBox Grid.Row="0" Header="Orders Status Summary" Margin="5" Padding="10" BorderBrush="DarkBlue" Background="#FAFAFA">
+                    <UniformGrid Columns="5" Rows="1">
+                        <StackPanel HorizontalAlignment="Center">
+                            <Label Content="Open" FontWeight="Bold" Foreground="Green"/>
+                            <TextBlock Text="{Binding OrderStatistics.OpenCount}" HorizontalAlignment="Center" FontSize="16"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Label Content="On Care" FontWeight="Bold" Foreground="Orange"/>
+                            <TextBlock Text="{Binding OrderStatistics.OnCareCount}" HorizontalAlignment="Center" FontSize="16"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Label Content="Provided" FontWeight="Bold" Foreground="Gray"/>
+                            <TextBlock Text="{Binding OrderStatistics.ProvidedCount}" HorizontalAlignment="Center" FontSize="16"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Label Content="Refused" FontWeight="Bold" Foreground="DarkRed"/>
+                            <TextBlock Text="{Binding OrderStatistics.RefusedCount}" HorizontalAlignment="Center" FontSize="16"/>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <Label Content="Cancelled" FontWeight="Bold" Foreground="Red"/>
+                            <TextBlock Text="{Binding OrderStatistics.CancelledCount}" HorizontalAlignment="Center" FontSize="16"/>
+                        </StackPanel>
+                    </UniformGrid>
+                </GroupBox>
 
-                <GroupBox Grid.Row="1" Header="Average Speeds (km/h)" Margin="5" Padding="10">
+                <Label Grid.Row="1" Content="System Configuration" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,15,0,15"/>
+
+                <GroupBox Grid.Row="2" Header="Average Speeds (km/h)" Margin="5" Padding="10">
                     <UniformGrid Columns="4" Rows="1">
                         <StackPanel Margin="5">
                             <Label Content="Car Speed:"/>
@@ -70,7 +99,7 @@
                     </UniformGrid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="2" Header="Location &amp; Distance Limits" Margin="5" Padding="10">
+                <GroupBox Grid.Row="3" Header="Location &amp; Distance Limits" Margin="5" Padding="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
@@ -91,29 +120,29 @@
                     </Grid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="3" Header="Time Constraints (Format: DD.HH:MM:SS)" Margin="5" Padding="10">
+                <GroupBox Grid.Row="4" Header="Time Constraints" Margin="5" Padding="10">
                     <UniformGrid Columns="3" Rows="1">
 
                         <StackPanel Margin="5">
                             <Label Content="Max Delivery Time:"/>
-                            <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds (e.g. 1.05:00:00)">
+                            <TextBox Padding="3" ToolTip="Format: Hours:Minutes:Seconds">
                                 <TextBox.Text>
                                     <Binding Path="Configuration.MaxDeliveryTime" 
-                             UpdateSourceTrigger="PropertyChanged" 
-                             Mode="TwoWay"
-                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                             UpdateSourceTrigger="PropertyChanged" 
+                                             Mode="TwoWay"
+                                             StringFormat="{}{0:hh\:mm\:ss}"/>
                                 </TextBox.Text>
                             </TextBox>
                         </StackPanel>
 
                         <StackPanel Margin="5">
                             <Label Content="Risk Range:"/>
-                            <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds (e.g. 0.00:30:00)">
+                            <TextBox Padding="3" ToolTip="Format: Hours:Minutes:Seconds">
                                 <TextBox.Text>
                                     <Binding Path="Configuration.RiskRange" 
-                             UpdateSourceTrigger="PropertyChanged" 
-                             Mode="TwoWay"
-                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                             UpdateSourceTrigger="PropertyChanged" 
+                                             Mode="TwoWay"
+                                             StringFormat="{}{0:hh\:mm\:ss}"/>
                                 </TextBox.Text>
                             </TextBox>
                         </StackPanel>
@@ -123,9 +152,9 @@
                             <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds">
                                 <TextBox.Text>
                                     <Binding Path="Configuration.CourierInactivityTime" 
-                             UpdateSourceTrigger="PropertyChanged" 
-                             Mode="TwoWay"
-                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                             UpdateSourceTrigger="PropertyChanged" 
+                                             Mode="TwoWay"
+                                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
                                 </TextBox.Text>
                             </TextBox>
                         </StackPanel>
@@ -133,7 +162,7 @@
                     </UniformGrid>
                 </GroupBox>
 
-                <Button Grid.Row="4" Content="Update Configuration" Click="BtnSaveConfig_Click" 
+                <Button Grid.Row="5" Content="Update Configuration" Click="BtnSaveConfig_Click" 
                         HorizontalAlignment="Center" Width="200" Height="35" Margin="0,20,0,0" FontWeight="Bold"/>
             </Grid>
         </ScrollViewer>
@@ -144,7 +173,8 @@
 
                 <Button Content="Reset DB" Click="BtnResetDB_Click" Width="130" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
 
-                <Button Content="Manage Couriers" Click="BtnShowList_Click" Width="180" Height="40" Margin="50,15,15,15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFBEC6FF"/>
+                <Button Content="Manage Couriers" Click="BtnShowList_Click" 
+                        Width="180" Height="40" Margin="50,15,15,15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFBEC6FF"/>
 
                 <Button Content="Manage Orders" Click="BtnShowOrderList_Click" Width="180" Height="40" Margin="15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFE4B5"/>
             </StackPanel>

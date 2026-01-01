@@ -2,6 +2,7 @@
 using BO;
 using PL.Order;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -41,6 +42,25 @@ namespace PL.Courier
         public static readonly DependencyProperty HasActiveOrderProperty =
             DependencyProperty.Register("HasActiveOrder", typeof(bool), typeof(MainCourierWindow));
 
+        // --- Addition: List of options for completion status (excluding Cancelled) ---
+        public IEnumerable<BO.ShipmentCompletionStatus> DeliveryOutcomeOptions
+        {
+            get { return (IEnumerable<BO.ShipmentCompletionStatus>)GetValue(DeliveryOutcomeOptionsProperty); }
+            set { SetValue(DeliveryOutcomeOptionsProperty, value); }
+        }
+        public static readonly DependencyProperty DeliveryOutcomeOptionsProperty =
+            DependencyProperty.Register("DeliveryOutcomeOptions", typeof(IEnumerable<BO.ShipmentCompletionStatus>), typeof(MainCourierWindow));
+
+        // --- Addition: The status selected by the courier ---
+        public BO.ShipmentCompletionStatus SelectedOutcome
+        {
+            get { return (BO.ShipmentCompletionStatus)GetValue(SelectedOutcomeProperty); }
+            set { SetValue(SelectedOutcomeProperty, value); }
+        }
+        public static readonly DependencyProperty SelectedOutcomeProperty =
+            DependencyProperty.Register("SelectedOutcome", typeof(BO.ShipmentCompletionStatus), typeof(MainCourierWindow),
+                new PropertyMetadata(BO.ShipmentCompletionStatus.Provided)); // Default: Provided
+
         #endregion
 
         #region Calculated Properties
@@ -69,6 +89,16 @@ namespace PL.Courier
 
             // Explicitly setting DataContext to allow Property binding in XAML
             this.DataContext = this;
+
+            // --- Initialize status list (manual filtering) ---
+            DeliveryOutcomeOptions = new List<BO.ShipmentCompletionStatus>
+            {
+                BO.ShipmentCompletionStatus.Provided,
+                BO.ShipmentCompletionStatus.Refused,
+            };
+
+            // Set default selection
+            SelectedOutcome = BO.ShipmentCompletionStatus.Provided;
 
             // Lifecycle event registration for Observer subscription management
             this.Loaded += Window_Loaded;
@@ -134,17 +164,19 @@ namespace PL.Courier
         {
             try
             {
-                // FIX: Use OrderInCare
+                // Verify there is an active order
                 if (Courier.OrderInCare != null)
                 {
-                    s_bl.Order.CloseOrder(_courierId, _courierId, Courier.OrderInCare.DeliveryId);
-                    MessageBox.Show("Delivery completed successfully.", "Success");
+                    // FIX: Use the status selected in the ComboBox instead of a hardcoded one
+                    s_bl.Order.CloseOrder(_courierId, _courierId, Courier.OrderInCare.DeliveryId, SelectedOutcome);
+
+                    MessageBox.Show($"Order marked as {SelectedOutcome} successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     // RefreshData() is called automatically by the Observer!
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to close order: {ex.Message}");
+                MessageBox.Show($"Failed to update order: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

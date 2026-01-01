@@ -79,11 +79,12 @@ namespace PL.Order
 
         #region Constructor
 
-        public OrdersToPick(int courierId = 0)
+        public OrdersToPick(int courierId)
         {
             InitializeComponent();
             CourierId = courierId;
-            this.Loaded += Window_Loaded;
+            LoadOrderList();
+            s_bl.Order.AddObserver(orderListObserver);
             this.Closed += Window_Closed;
         }
 
@@ -199,11 +200,9 @@ namespace PL.Order
             LoadOrderList();
             s_bl.Order.AddObserver(orderListObserver);
         }
-
-        private void Window_Closed(object? sender, EventArgs e)
-        {
+        private void Window_Closed(object? sender, EventArgs e)=>
             s_bl.Order.RemoveObserver(orderListObserver);
-        }
+
 
         #endregion
 
@@ -228,10 +227,8 @@ namespace PL.Order
             public BO.OrderType OrderType => _order.OrderType;
             public bool IsHeavy => _order.IsHeavy;
             public TimeSpan TimeRemaining => _order.TimeRemaining;
-
-            // תיקון פורמט התצוגה כאן
-            public string TimeRemainingDisplay => _order.TimeRemaining.ToString(@"dd\.hh\:mm\:ss");
-
+            public string TimeRemainingDisplay => _order.TimeRemaining.ToString(@"hh\:mm\:ss");
+            public string TravelTimeDisplay => _order.ActualTimeEstimation?.ToString(@"hh\:mm\:ss") ?? "-";
             public BO.ScheduleStatus ScheduleStatus => _order.ScheduleStatus;
         }
 

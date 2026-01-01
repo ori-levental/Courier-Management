@@ -8,7 +8,7 @@
         Title="Login System" Height="450" Width="800"
         WindowStartupLocation="CenterScreen" LayoutTransform="{x:Null}">
 
-    <Grid FlowDirection="LeftToRight">
+    <Grid FlowDirection="LeftToRight" Background="#FFAFCACA">
         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="10" 
                 HorizontalAlignment="Center" VerticalAlignment="Center" 
                 Padding="30" Background="#FAFAFA">

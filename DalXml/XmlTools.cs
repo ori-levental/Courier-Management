@@ -153,13 +153,27 @@ static class XMLTools
     }
 
     /// <summary>
-    /// Reads a configuration value and returns it as a non-nullable DateTime. Throws FormatException if conversion fails.
+    /// Reads a configuration value and returns it as a non-nullable DateTime.
+    /// Supports both International (ISO) format and Local (Hebrew/English) format.
     /// </summary>
     public static DateTime GetConfigDateVal(string xmlFileName, string elemName)
     {
         XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
-        DateTime dt = root.ToDateTimeNullable(elemName) ?? throw new FormatException($"can't convert:  {xmlFileName}, {elemName}");
-        return dt;
+        XElement? elem = root.Element(elemName);
+
+        if (elem == null || string.IsNullOrEmpty(elem.Value))
+            throw new FormatException($"can't convert: {xmlFileName}, {elemName} (Element missing or empty)");
+
+        // 1. Try parsing as International format (Invariant Culture) - Best practice
+        if (DateTime.TryParse(elem.Value, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime res))
+            return res;
+
+        // 2. Fallback: Try parsing using the current computer's local settings (e.g., Hebrew)
+        // This handles old files that were saved specifically in Hebrew.
+        if (DateTime.TryParse(elem.Value, out res))
+            return res;
+
+        throw new FormatException($"can't convert: {xmlFileName}, {elemName}, Value: {elem.Value}");
     }
 
     /// <summary>
@@ -194,12 +208,21 @@ static class XMLTools
 
     /// <summary>
     /// Sets a new non-nullable DateTime value in the config file.
+    /// Saves in International Standard Format (ISO 8601) to ensure cross-computer compatibility.
     /// </summary>
     public static void SetConfigDateVal(string xmlFileName, string elemName, DateTime elemVal)
     {
         XElement root = XMLTools.LoadListFromXMLElement(xmlFileName);
-        root.Element(elemName)?.SetValue((elemVal).ToString());
-        XMLTools.SaveListToXMLElement(root, xmlFileName);
+        XElement? elem = root.Element(elemName);
+
+        if (elem != null)
+        {
+            // Save using "s" (Sortable/ISO 8601) format.
+            // Result example: "2024-01-01T12:00:00" (Works on ALL computers, unlike Hebrew format)
+            elem.SetValue(elemVal.ToString("s", System.Globalization.CultureInfo.InvariantCulture));
+
+            XMLTools.SaveListToXMLElement(root, xmlFileName);
+        }
     }
 
     /// <summary>

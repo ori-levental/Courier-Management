@@ -31,12 +31,12 @@ internal class OrderImplementation : IOrder
     /// <summary>
     /// Marks a specific delivery as closed/provided by the courier.
     /// </summary>
-    public void CloseOrder(int requesterId, int courierId, int deliveryId)
+    public void CloseOrder(int requesterId, int courierId, int deliveryId, ShipmentCompletionStatus status)
     {
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
-        Helpers.OrderManager.CloseOrder(courierId, deliveryId);
+        Helpers.OrderManager.CloseOrder(courierId, deliveryId,status);
     }
 
     /// <summary>

@@ -22,10 +22,10 @@ public enum ScheduleStatus
 }
 public enum OrderType
 {
-    Express,
-    Standard,
-    Scheduled,
-    SameDay
+    Private,
+    Business,
+    Wholesale,
+    PublicSector
 }
 public enum EmployType
 {

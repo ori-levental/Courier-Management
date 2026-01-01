@@ -65,7 +65,7 @@ public interface IOrder : IObservable
     /// <param name="requesterId">The ID of the user (must be the courier).</param>
     /// <param name="courierId">The ID of the courier closing the delivery.</param>
     /// <param name="deliveryId">The ID of the delivery being closed.</param>
-    void CloseOrder(int requesterId, int courierId, int deliveryId);
+    void CloseOrder(int requesterId, int courierId, int deliveryId, ShipmentCompletionStatus status);
 
     /// <summary>
     /// Assigns an order to a courier (Courier selects an order to handle).

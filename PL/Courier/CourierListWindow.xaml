@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:PL.Courier"
         mc:Ignorable="d"
         Title="Courier List" Height="640" Width="800"
+        WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
     <Grid>
         <Grid.ColumnDefinitions>

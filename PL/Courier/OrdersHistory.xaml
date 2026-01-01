@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:PL.Courier"
         Title="Order History" Height="600" Width="1000"
+        WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Background="#F5F5F5">
     <Grid>

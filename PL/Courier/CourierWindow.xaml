@@ -8,6 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Courier Details" Height="550" Width="800"
+        WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Window.Resources>
@@ -181,8 +182,7 @@
                     <TextBlock Text="{Binding EstimatedArrivalTime, StringFormat='HH:mm'}" Grid.Row="5" Grid.Column="1"/>
 
                     <Label Content="Time Left:" Grid.Row="6"/>
-                    <TextBlock Text="{Binding TimeLeft, StringFormat={}{0:dd\\.hh\\:mm}}" Grid.Row="6" Grid.Column="1" FontWeight="Bold"/>
-
+                    <TextBlock Text="{Binding TimeLeft, StringFormat={}{0:hh\\:mm}}" Grid.Row="6" Grid.Column="1" FontWeight="Bold"/>
                     <Label Content="Note:" Grid.Row="7"/>
                     <TextBlock Text="{Binding Description}" Grid.Row="7" Grid.Column="1" FontStyle="Italic" TextWrapping="Wrap"/>
                 </Grid>

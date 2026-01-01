@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:PL.Order"
         mc:Ignorable="d"
         Title="Available Orders" Height="600" Width="900"
+        WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Grid>
@@ -53,7 +54,6 @@
                         <ComboBoxItem>Schedule Status</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
-
             </Grid>
         </Border>
 
@@ -63,20 +63,23 @@
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Order ID" DisplayMemberBinding="{Binding OrderId}" Width="80"/>
-                    <GridViewColumn Header="Address" DisplayMemberBinding="{Binding FullAddress}" Width="300"/>
-                    <GridViewColumn Header="Air Distance (km)" DisplayMemberBinding="{Binding AirDistanceDisplay}" Width="120"/>
+                    <GridViewColumn Header="Address" DisplayMemberBinding="{Binding FullAddress}" Width="250"/>
+                    <GridViewColumn Header="Dist. (km)" DisplayMemberBinding="{Binding AirDistanceDisplay}" Width="80"/>
+
+                    <GridViewColumn Header="Travel Time" DisplayMemberBinding="{Binding TravelTimeDisplay}" Width="100"/>
+
                     <GridViewColumn Header="Order Type" DisplayMemberBinding="{Binding OrderType}" Width="100"/>
 
                     <GridViewColumn Header="Time Remaining" Width="130">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding TimeRemaining, StringFormat={}{0:dd}d {0:hh}:{0:mm}:{0:ss}}" 
+                                <TextBlock Text="{Binding TimeRemaining, StringFormat={}{0:hh}:{0:mm}:{0:ss}}" 
                                            HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
 
-                    <GridViewColumn Header="Schedule Status" Width="120">
+                    <GridViewColumn Header="Status" Width="120">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding ScheduleStatus}" FontWeight="Bold">

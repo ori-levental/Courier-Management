@@ -49,7 +49,6 @@ namespace PL.Order
             IsAddMode = true;
             ButtonContent = "Add Order";
 
-            // אתחול אובייקט BO.Order נקי
             CurrentOrder = new BO.Order
             {
                 Id = 0,
@@ -57,13 +56,12 @@ namespace PL.Order
                 PhoneNumber = "",
                 FullAddress = "",
                 Description = "",
-                StartOrderTime = DateTime.Now,
-                OrderType = BO.OrderType.Standard,
+                StartOrderTime = s_bl.Admin.GetClock(),
+                OrderType = BO.OrderType.Private,
                 DeliveryHistory = new List<DeliveryPerOrderInList>(),
                 OrderStatus = ShipmentCompletionStatus.Open,
-                // אתחול ערכי ברירת מחדל כדי למנוע קריסה ב-Binding
-                MaxArrivalTime = DateTime.Now.AddDays(1),
-                TimeRemaining = TimeSpan.Zero
+                MaxArrivalTime = s_bl.Admin.GetClock() + s_bl.Admin.GetConfig().MaxDeliveryTime,
+                TimeRemaining = s_bl.Admin.GetConfig().MaxDeliveryTime
             };
         }
 

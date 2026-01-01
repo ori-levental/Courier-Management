@@ -46,33 +46,28 @@ namespace PL
         {
             if (PasswordBox.Visibility == Visibility.Visible)
             {
-                // Switch to visible mode
+                // Switch to visible
                 VisiblePasswordBox.Text = PasswordBox.Password;
-                PasswordBox.Visibility = Visibility.Collapsed;
                 VisiblePasswordBox.Visibility = Visibility.Visible;
+                PasswordBox.Visibility = Visibility.Collapsed;
             }
             else
             {
-                // Switch to hidden mode
+                // Switch to hidden
+                // Ensure any edits made in the visible textbox are synced back to the password box.
                 PasswordBox.Password = VisiblePasswordBox.Text;
-                VisiblePasswordBox.Visibility = Visibility.Collapsed;
                 PasswordBox.Visibility = Visibility.Visible;
+                VisiblePasswordBox.Visibility = Visibility.Collapsed;
             }
         }
 
-        /// <summary>
-        /// Handles the login process.
-        /// Uses DataBinding for ID (MVVM compliant) and direct access for Password (security best practice).
-        /// </summary>
         private void BtnLogin_Click(object sender, RoutedEventArgs e)
         {
-            ErrorMessage.Visibility = Visibility.Collapsed;
+            // Sync password if currently visible
+            string passwordInput = (PasswordBox.Visibility == Visibility.Visible) ?
+                PasswordBox.Password : VisiblePasswordBox.Text;
 
-            // Use the Bound Property for ID instead of accessing the TextBox directly
             string idInput = UserIdInput;
-
-            // Retrieve password from the active control
-            string passwordInput = (PasswordBox.Visibility == Visibility.Visible) ? PasswordBox.Password : VisiblePasswordBox.Text;
 
             if (string.IsNullOrWhiteSpace(idInput) || string.IsNullOrWhiteSpace(passwordInput))
             {

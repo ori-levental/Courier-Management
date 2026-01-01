@@ -233,7 +233,6 @@ public static class Initialization
             Enums.OrderType Type = (Enums.OrderType)s_rand.Next(0, 3);
             string? description = "Order for: " + Type.ToString();
 
-            // Filter addresses to only those within the company's max range
             var validAddresses = s_addresses.Where(a =>
                 GetAirDistance(s_hqLat, s_hqLon, a.Latitude, a.Longitude) <= s_dal!.Config!.MaxAirDistance
             ).ToList();
@@ -247,9 +246,18 @@ public static class Initialization
             string orderingName = s_customerNames[s_rand.Next(s_customerNames.Length)];
             string phoneNumber = $"05{s_rand.Next(0, 10)}-{s_rand.Next(1000000, 10000000)}";
 
-            DateTime startOrderTime = s_dal!.Config!.Clock.AddDays(-s_rand.Next(1, 29));
+            // --- FIX: Realistic Time Initialization ---
+            // Create orders ONLY within the last 6 hours relative to the current clock.
+            // SLA is 4 hours.
+            // 0 - 3.5 hours ago -> OnTime
+            // 3.5 - 4.0 hours ago -> InRisk
+            // 4.0 - 6.0 hours ago -> Late (Realistic backlog)
 
-            // Check for ID collision (though DAL assigns final ID)
+            int minutesAgo = s_rand.Next(5, 6 * 60); // Random time between 5 minutes and 6 hours ago
+            DateTime startOrderTime = s_dal!.Config!.Clock.AddMinutes(-minutesAgo);
+
+            // ------------------------------------------
+
             int id_check;
             do id_check = s_rand.Next(1000, 2000);
             while (s_dal!.Order!.Read(id_check) != null);
@@ -257,7 +265,6 @@ public static class Initialization
             s_dal!.Order!.Create(new(0, Type, description, address, latitude, longitude, orderingName, phoneNumber, startOrderTime));
         }
     }
-
     private static void CreateDeliveries()
     {
         var couriers = s_dal!.Courier.ReadAll();

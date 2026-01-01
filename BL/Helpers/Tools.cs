@@ -12,13 +12,14 @@ internal static class Tools
     private static IDal s_dal = Factory.Get;
 
     #region Calculations & Algorithms
-
     /// <summary>
-    /// Calculates the aerial distance between two geographical coordinates using the Haversine formula.
-    /// If target coordinates are not provided, defaults to the company's hub location.
+    /// Calculates aerial distance with safety checks for 0 or null coordinates.
+    /// FIX: Prevents calculation errors when coordinates are missing.
     /// </summary>
     internal static double CalculateAirDistance(double lat1, double lon1, double? lat2 = null, double? lon2 = null)
     {
+        if (lat1 == 0 && lon1 == 0) return 0;
+
         double targetLat = lat2 ?? s_dal.Config.Latitude ?? 0;
         double targetLon = lon2 ?? s_dal.Config.Longitude ?? 0;
 
@@ -36,10 +37,13 @@ internal static class Tools
     }
 
     /// <summary>
-    /// Estimates the arrival time based on the distance and the average speed of the courier's vehicle type.
+    /// Estimates arrival time.
+    /// Handles null Distance to prevent NullReferenceException.
     /// </summary>
     internal static DateTime EstimatedArrivalTimeCalculate(DO.Delivery delivery)
     {
+        if (delivery == null) return DateTime.MinValue;
+
         double speed = delivery.DeliveryShippingType switch
         {
             DO.Enums.ShippingType.Walk => s_dal.Config.AvgWalkSpeed,
@@ -50,65 +54,68 @@ internal static class Tools
 
         if (speed <= 0) speed = 1;
 
-        double travelTimeInHours = delivery.Distance!.Value / speed;
+        double distance = delivery.Distance ?? 0;
+
+        double travelTimeInHours = distance / speed;
         return delivery.StartDeliveryTime.AddHours(travelTimeInHours);
     }
 
     /// <summary>
-    /// Calculates the maximum allowable delivery time (SLA) based on the order's urgency.
+    /// Calculates max arrival time.
+    /// Forces use of Config.MaxDeliveryTime (4 hours) instead of logic based on OrderType.
+    /// This fixes the bug where orders showed "16 days left" instead of hours.
     /// </summary>
     internal static DateTime MaxArrivalTimeCalculate(DO.Order order)
     {
-        double maxHours = order.Type switch
-        {
-            DO.Enums.OrderType.SameDay => 24,
-            DO.Enums.OrderType.Express => 48,     
-            DO.Enums.OrderType.Scheduled => 24 * 7,
-            _ => 24 * 14                          
-        };
-        return order.StartOrderTime.AddHours(maxHours);
+        return order.StartOrderTime + s_dal.Config.MaxDeliveryTime;
     }
+
 
     /// <summary>
     /// Determines the current schedule status (OnTime, Late, or InRisk).
     /// </summary>
-    internal static ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery delivery)
+    internal static BO.ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery? delivery)
     {
         TimeSpan riskRange = s_dal.Config.RiskRange;
 
-        // Scenario A: Delivery is finished (Historically)
-        if (delivery.EndType != null && delivery.EndOrderTime != null)
+        // Logic Check: Has the order been finalized?
+        // We consider an order "Closed" for SLA purposes ONLY if it was Provided or Refused by the customer.
+        // If it was Cancelled (e.g., courier cancelled), the order is still pending fulfillment, so the clock must keep running.
+        bool isSuccessfullyClosed = delivery != null &&
+                                    delivery.EndType != null &&
+                                    (delivery.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
+                                     delivery.EndType == DO.Enums.ShipmentCompletionStatus.Refused);
+
+        // Scenario A: Order is successfully closed (Provided/Refused)
+        // We check the historical duration to see if it WAS on time.
+        if (isSuccessfullyClosed && delivery!.EndOrderTime != null)
         {
-            // For finished deliveries, check if they completed on time
             TimeSpan actualDuration = delivery.EndOrderTime.Value - order.StartOrderTime;
             TimeSpan maxDuration = s_dal.Config.MaxDeliveryTime;
-            
-            if (actualDuration <= maxDuration)
-                return ScheduleStatus.OnTime;
-            else
-                return ScheduleStatus.Late;
+
+            return (actualDuration <= maxDuration) ? BO.ScheduleStatus.OnTime : BO.ScheduleStatus.Late;
         }
-        // Scenario B: Delivery is in progress or order is open (Real-time check)
+
+        // Scenario B: Order is Open, Active (OnCare), or was Cancelled (needs re-delivery)
+        // We check the current clock against the deadline.
         else
         {
-            // Use MaxArrivalTimeCalculate (like OrdersToPick does) for consistency
             DateTime deadline = MaxArrivalTimeCalculate(order);
             DateTime now = Helpers.AdminManager.Now;
             TimeSpan timeRemaining = deadline - now;
 
-            // If deadline already passed
+            // 1. Deadline passed?
             if (timeRemaining < TimeSpan.Zero)
-                return ScheduleStatus.Late;
+                return BO.ScheduleStatus.Late;
 
-            // If within risk range (less time remaining than risk range)
+            // 2. Approaching deadline?
             if (timeRemaining <= riskRange)
-                return ScheduleStatus.InRisk;
+                return BO.ScheduleStatus.InRisk;
 
-            // Otherwise, plenty of time left
-            return ScheduleStatus.OnTime;
+            // 3. Plenty of time left
+            return BO.ScheduleStatus.OnTime;
         }
-    }
-
+    }   
     #endregion Calculations & Algorithms
 
     #region Validations

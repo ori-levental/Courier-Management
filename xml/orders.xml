@@ -2,552 +2,552 @@
 <ArrayOfOrder xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <Order>
     <Id>1</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Superland, Rishon LeZion</CustomerAddress>
-    <Latitude>31.984</Latitude>
-    <Longitude>34.7538</Longitude>
-    <OrderingName>Eitan Yahalomi</OrderingName>
-    <PhoneNumber>055-4269235</PhoneNumber>
-    <StartOrderTime>2023-12-14T12:00:00</StartOrderTime>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Ichilov Hospital, Tel Aviv</CustomerAddress>
+    <Latitude>32.0831</Latitude>
+    <Longitude>34.7876</Longitude>
+    <OrderingName>Maya Regev</OrderingName>
+    <PhoneNumber>055-7085426</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:43:00</StartOrderTime>
   </Order>
   <Order>
     <Id>2</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Holon Institute of Technology</CustomerAddress>
-    <Latitude>32.0142</Latitude>
-    <Longitude>34.7963</Longitude>
-    <OrderingName>Ofri Brodutch</OrderingName>
-    <PhoneNumber>056-6766303</PhoneNumber>
-    <StartOrderTime>2024-01-01T12:00:00</StartOrderTime>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Ramat Gan City Hall</CustomerAddress>
+    <Latitude>32.0827</Latitude>
+    <Longitude>34.8113</Longitude>
+    <OrderingName>Keren Munder</OrderingName>
+    <PhoneNumber>053-6174663</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:34:00</StartOrderTime>
   </Order>
   <Order>
     <Id>3</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Coca-Cola Factory, Bnei Brak</CustomerAddress>
-    <Latitude>32.091</Latitude>
-    <Longitude>34.8234</Longitude>
-    <OrderingName>Adi Shoham</OrderingName>
-    <PhoneNumber>054-1174981</PhoneNumber>
-    <StartOrderTime>2023-12-31T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>4</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Habima Square, Tel Aviv</CustomerAddress>
-    <Latitude>32.0709</Latitude>
-    <Longitude>34.7796</Longitude>
-    <OrderingName>Raz Katz-Asher</OrderingName>
-    <PhoneNumber>052-5165451</PhoneNumber>
-    <StartOrderTime>2024-01-07T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>5</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Wolfson Medical Center, Holon</CustomerAddress>
-    <Latitude>32.0319</Latitude>
-    <Longitude>34.7648</Longitude>
-    <OrderingName>Hanna Peri</OrderingName>
-    <PhoneNumber>056-6614012</PhoneNumber>
-    <StartOrderTime>2024-01-03T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>6</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Herzliya Marina</CustomerAddress>
-    <Latitude>32.1648</Latitude>
-    <Longitude>34.8021</Longitude>
-    <OrderingName>Ruti Munder</OrderingName>
-    <PhoneNumber>053-6127687</PhoneNumber>
-    <StartOrderTime>2024-01-01T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>7</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Bat Yam Mall</CustomerAddress>
-    <Latitude>32.0194</Latitude>
-    <Longitude>34.757</Longitude>
-    <OrderingName>Ruti Munder</OrderingName>
-    <PhoneNumber>056-7034194</PhoneNumber>
-    <StartOrderTime>2023-12-24T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>8</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Tel Aviv University</CustomerAddress>
-    <Latitude>32.1138</Latitude>
-    <Longitude>34.8048</Longitude>
-    <OrderingName>Hanna Peri</OrderingName>
-    <PhoneNumber>056-1733630</PhoneNumber>
-    <StartOrderTime>2023-12-30T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>9</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Wolfson Medical Center, Holon</CustomerAddress>
-    <Latitude>32.0319</Latitude>
-    <Longitude>34.7648</Longitude>
-    <OrderingName>Judith Raanan</OrderingName>
-    <PhoneNumber>051-5697460</PhoneNumber>
-    <StartOrderTime>2024-01-08T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>10</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Yamit 2000 Water Park</CustomerAddress>
-    <Latitude>32.0001</Latitude>
-    <Longitude>34.7709</Longitude>
-    <OrderingName>Ofri Brodutch</OrderingName>
-    <PhoneNumber>054-1649914</PhoneNumber>
-    <StartOrderTime>2023-12-17T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>11</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Arlozorov Train Station, Tel Aviv</CustomerAddress>
-    <Latitude>32.0868</Latitude>
-    <Longitude>34.7951</Longitude>
-    <OrderingName>Shiri Weiss</OrderingName>
-    <PhoneNumber>057-4880054</PhoneNumber>
-    <StartOrderTime>2023-12-19T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>12</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Reichman University (IDC), Herzliya</CustomerAddress>
-    <Latitude>32.1681</Latitude>
-    <Longitude>34.8075</Longitude>
-    <OrderingName>Adi Shoham</OrderingName>
-    <PhoneNumber>052-2441529</PhoneNumber>
-    <StartOrderTime>2023-12-15T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>13</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Rosh HaAyin North</CustomerAddress>
-    <Latitude>32.1086</Latitude>
-    <Longitude>34.952</Longitude>
-    <OrderingName>Ofelia Roitman</OrderingName>
-    <PhoneNumber>059-6209899</PhoneNumber>
-    <StartOrderTime>2023-12-24T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>14</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
     <CustomerAddress>Arena Mall, Herzliya</CustomerAddress>
     <Latitude>32.1666</Latitude>
     <Longitude>34.8016</Longitude>
-    <OrderingName>Sharon Avigdori</OrderingName>
-    <PhoneNumber>059-5880158</PhoneNumber>
-    <StartOrderTime>2024-01-08T12:00:00</StartOrderTime>
+    <OrderingName>Ohad Munder</OrderingName>
+    <PhoneNumber>051-1175628</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:49:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>15</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Namal Tel Aviv (Port)</CustomerAddress>
-    <Latitude>32.095</Latitude>
-    <Longitude>34.7739</Longitude>
-    <OrderingName>Hagar Brodutch</OrderingName>
-    <PhoneNumber>055-9618735</PhoneNumber>
-    <StartOrderTime>2023-12-23T12:00:00</StartOrderTime>
+    <Id>4</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Coca-Cola Factory, Bnei Brak</CustomerAddress>
+    <Latitude>32.091</Latitude>
+    <Longitude>34.8234</Longitude>
+    <OrderingName>Norlin Agojo</OrderingName>
+    <PhoneNumber>053-6008653</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:28:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>16</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
+    <Id>5</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Reichman University (IDC), Herzliya</CustomerAddress>
+    <Latitude>32.1681</Latitude>
+    <Longitude>34.8075</Longitude>
+    <OrderingName>Raz Katz-Asher</OrderingName>
+    <PhoneNumber>053-2010439</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:46:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>6</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Giv'at Shmuel Center</CustomerAddress>
+    <Latitude>32.0792</Latitude>
+    <Longitude>34.8516</Longitude>
+    <OrderingName>Avigail Idan</OrderingName>
+    <PhoneNumber>058-4011534</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:32:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>7</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
     <CustomerAddress>Lod City Hall</CustomerAddress>
     <Latitude>31.954</Latitude>
     <Longitude>34.888</Longitude>
-    <OrderingName>Hanna Peri</OrderingName>
-    <PhoneNumber>058-2355483</PhoneNumber>
-    <StartOrderTime>2024-01-06T12:00:00</StartOrderTime>
+    <OrderingName>Hagar Brodutch</OrderingName>
+    <PhoneNumber>050-3970760</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:51:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>17</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Herzliya Medical Center</CustomerAddress>
-    <Latitude>32.1691</Latitude>
-    <Longitude>34.8</Longitude>
-    <OrderingName>Shiri Weiss</OrderingName>
-    <PhoneNumber>052-5275051</PhoneNumber>
-    <StartOrderTime>2024-01-06T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>18</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Petah Tikva Grand Mall (HaGadol)</CustomerAddress>
-    <Latitude>32.0872</Latitude>
-    <Longitude>34.869</Longitude>
-    <OrderingName>Yaffa Adar</OrderingName>
-    <PhoneNumber>058-1723047</PhoneNumber>
-    <StartOrderTime>2024-01-07T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>19</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Ramla Market</CustomerAddress>
-    <Latitude>31.928</Latitude>
-    <Longitude>34.87</Longitude>
-    <OrderingName>Daniel Aloni</OrderingName>
-    <PhoneNumber>052-4525271</PhoneNumber>
-    <StartOrderTime>2023-12-23T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>20</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Old Jaffa Port</CustomerAddress>
-    <Latitude>32.0544</Latitude>
-    <Longitude>34.7523</Longitude>
-    <OrderingName>Yaffa Adar</OrderingName>
-    <PhoneNumber>050-9173879</PhoneNumber>
-    <StartOrderTime>2023-12-28T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>21</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Bursa (Diamond Exchange), Ramat Gan</CustomerAddress>
-    <Latitude>32.0815</Latitude>
-    <Longitude>34.7995</Longitude>
-    <OrderingName>Avigail Idan</OrderingName>
-    <PhoneNumber>058-6777406</PhoneNumber>
-    <StartOrderTime>2024-01-01T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>22</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Ra'anana Park</CustomerAddress>
-    <Latitude>32.1869</Latitude>
-    <Longitude>34.866</Longitude>
-    <OrderingName>Aviv Katz-Asher</OrderingName>
-    <PhoneNumber>055-6453362</PhoneNumber>
-    <StartOrderTime>2023-12-19T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>23</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
+    <Id>8</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
     <CustomerAddress>Yarkon Park, Tel Aviv</CustomerAddress>
     <Latitude>32.1054</Latitude>
     <Longitude>34.7942</Longitude>
-    <OrderingName>Gabriela Leimberg</OrderingName>
-    <PhoneNumber>055-9781607</PhoneNumber>
-    <StartOrderTime>2023-12-14T12:00:00</StartOrderTime>
+    <OrderingName>Raz Katz-Asher</OrderingName>
+    <PhoneNumber>057-1198935</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:10:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>24</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Tel Aviv Museum of Art</CustomerAddress>
-    <Latitude>32.0778</Latitude>
-    <Longitude>34.7878</Longitude>
-    <OrderingName>Hanna Katzir</OrderingName>
-    <PhoneNumber>053-8691897</PhoneNumber>
-    <StartOrderTime>2023-12-22T12:00:00</StartOrderTime>
+    <Id>9</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Design Museum Holon</CustomerAddress>
+    <Latitude>32.0116</Latitude>
+    <Longitude>34.7816</Longitude>
+    <OrderingName>Emily Hand</OrderingName>
+    <PhoneNumber>057-7702285</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:42:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>25</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Holon Institute of Technology</CustomerAddress>
-    <Latitude>32.0142</Latitude>
-    <Longitude>34.7963</Longitude>
-    <OrderingName>Tami Metzger</OrderingName>
-    <PhoneNumber>057-8552005</PhoneNumber>
-    <StartOrderTime>2023-12-31T12:00:00</StartOrderTime>
+    <Id>10</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Kikar HaMedina, Tel Aviv</CustomerAddress>
+    <Latitude>32.0869</Latitude>
+    <Longitude>34.7828</Longitude>
+    <OrderingName>Daniel Aloni</OrderingName>
+    <PhoneNumber>052-9698925</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:33:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>26</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Superland, Rishon LeZion</CustomerAddress>
-    <Latitude>31.984</Latitude>
-    <Longitude>34.7538</Longitude>
+    <Id>11</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Lod City Hall</CustomerAddress>
+    <Latitude>31.954</Latitude>
+    <Longitude>34.888</Longitude>
     <OrderingName>Noam Avigdori</OrderingName>
-    <PhoneNumber>056-4921774</PhoneNumber>
-    <StartOrderTime>2024-01-08T12:00:00</StartOrderTime>
+    <PhoneNumber>059-5003870</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:20:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>27</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Kiryat Arye, Petah Tikva</CustomerAddress>
-    <Latitude>32.1</Latitude>
-    <Longitude>34.848</Longitude>
-    <OrderingName>Yaffa Adar</OrderingName>
-    <PhoneNumber>050-1873401</PhoneNumber>
-    <StartOrderTime>2024-01-10T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>28</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Ramat Gan City Hall</CustomerAddress>
-    <Latitude>32.0827</Latitude>
-    <Longitude>34.8113</Longitude>
-    <OrderingName>Hanna Peri</OrderingName>
-    <PhoneNumber>053-6259558</PhoneNumber>
-    <StartOrderTime>2024-01-10T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>29</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Beit Vilnai, Givatayim</CustomerAddress>
-    <Latitude>32.0768</Latitude>
-    <Longitude>34.808</Longitude>
+    <Id>12</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>IKEA Rishon LeZion</CustomerAddress>
+    <Latitude>31.9701</Latitude>
+    <Longitude>34.7702</Longitude>
     <OrderingName>Ofelia Roitman</OrderingName>
-    <PhoneNumber>059-7488320</PhoneNumber>
-    <StartOrderTime>2023-12-21T12:00:00</StartOrderTime>
+    <PhoneNumber>052-7717975</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:40:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>30</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Givatayim Mall</CustomerAddress>
-    <Latitude>32.069</Latitude>
-    <Longitude>34.8055</Longitude>
-    <OrderingName>Gabriela Leimberg</OrderingName>
-    <PhoneNumber>056-8225332</PhoneNumber>
-    <StartOrderTime>2023-12-18T12:00:00</StartOrderTime>
+    <Id>13</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Rishon LeZion City Hall</CustomerAddress>
+    <Latitude>31.9634</Latitude>
+    <Longitude>34.8078</Longitude>
+    <OrderingName>Shoshan Haran</OrderingName>
+    <PhoneNumber>054-1071241</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:59:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>31</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Rishon LeZion Gold Mall (Kenyon HaZahav)</CustomerAddress>
-    <Latitude>31.9723</Latitude>
-    <Longitude>34.7607</Longitude>
-    <OrderingName>Ditza Heiman</OrderingName>
-    <PhoneNumber>052-3403839</PhoneNumber>
-    <StartOrderTime>2023-12-27T12:00:00</StartOrderTime>
+    <Id>14</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Ra'anana Park</CustomerAddress>
+    <Latitude>32.1869</Latitude>
+    <Longitude>34.866</Longitude>
+    <OrderingName>Shoshan Haran</OrderingName>
+    <PhoneNumber>053-4381508</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:16:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>32</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Dizengoff Center, Tel Aviv</CustomerAddress>
-    <Latitude>32.076</Latitude>
-    <Longitude>34.777</Longitude>
-    <OrderingName>Ditza Heiman</OrderingName>
-    <PhoneNumber>054-3280692</PhoneNumber>
-    <StartOrderTime>2024-01-09T12:00:00</StartOrderTime>
+    <Id>15</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Herzliya Medical Center</CustomerAddress>
+    <Latitude>32.1691</Latitude>
+    <Longitude>34.8</Longitude>
+    <OrderingName>Adina Moshe</OrderingName>
+    <PhoneNumber>059-9003884</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:52:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>33</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Beit Vilnai, Givatayim</CustomerAddress>
-    <Latitude>32.0768</Latitude>
-    <Longitude>34.808</Longitude>
-    <OrderingName>Avigail Idan</OrderingName>
-    <PhoneNumber>059-3299321</PhoneNumber>
-    <StartOrderTime>2024-01-09T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>34</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Petah Tikva City Center</CustomerAddress>
-    <Latitude>32.0886</Latitude>
-    <Longitude>34.885</Longitude>
-    <OrderingName>Daniel Aloni</OrderingName>
-    <PhoneNumber>057-1686019</PhoneNumber>
-    <StartOrderTime>2023-12-18T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>35</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Holon Institute of Technology</CustomerAddress>
-    <Latitude>32.0142</Latitude>
-    <Longitude>34.7963</Longitude>
-    <OrderingName>Rimon Kirsht Buchstab</OrderingName>
-    <PhoneNumber>053-2675238</PhoneNumber>
-    <StartOrderTime>2024-01-05T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>36</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Herzliya Marina</CustomerAddress>
-    <Latitude>32.1648</Latitude>
-    <Longitude>34.8021</Longitude>
-    <OrderingName>Ada Sagi</OrderingName>
-    <PhoneNumber>059-2822635</PhoneNumber>
-    <StartOrderTime>2023-12-23T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>37</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Wolfson Medical Center, Holon</CustomerAddress>
-    <Latitude>32.0319</Latitude>
-    <Longitude>34.7648</Longitude>
-    <OrderingName>Tami Metzger</OrderingName>
-    <PhoneNumber>053-1161217</PhoneNumber>
-    <StartOrderTime>2023-12-25T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>38</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Ness Ziona Center</CustomerAddress>
-    <Latitude>31.9281</Latitude>
-    <Longitude>34.798</Longitude>
-    <OrderingName>Noga Weiss</OrderingName>
-    <PhoneNumber>059-1261900</PhoneNumber>
-    <StartOrderTime>2024-01-03T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>39</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Florentin, Tel Aviv</CustomerAddress>
-    <Latitude>32.0573</Latitude>
-    <Longitude>34.77</Longitude>
-    <OrderingName>Noam Avigdori</OrderingName>
-    <PhoneNumber>058-7239116</PhoneNumber>
-    <StartOrderTime>2024-01-09T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>40</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Ramat Gan City Hall</CustomerAddress>
-    <Latitude>32.0827</Latitude>
-    <Longitude>34.8113</Longitude>
-    <OrderingName>Daniel Aloni</OrderingName>
-    <PhoneNumber>053-7915190</PhoneNumber>
-    <StartOrderTime>2024-01-08T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>41</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Habima Square, Tel Aviv</CustomerAddress>
-    <Latitude>32.0709</Latitude>
-    <Longitude>34.7796</Longitude>
-    <OrderingName>Gabriela Leimberg</OrderingName>
-    <PhoneNumber>058-7397708</PhoneNumber>
-    <StartOrderTime>2024-01-05T12:00:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>42</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
+    <Id>16</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
     <CustomerAddress>Tel Aviv Museum of Art</CustomerAddress>
     <Latitude>32.0778</Latitude>
     <Longitude>34.7878</Longitude>
     <OrderingName>Raz Katz-Asher</OrderingName>
-    <PhoneNumber>056-9447025</PhoneNumber>
-    <StartOrderTime>2024-01-02T12:00:00</StartOrderTime>
+    <PhoneNumber>056-2486564</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:07:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>43</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Lod City Hall</CustomerAddress>
-    <Latitude>31.954</Latitude>
-    <Longitude>34.888</Longitude>
-    <OrderingName>Ofelia Roitman</OrderingName>
-    <PhoneNumber>051-2072625</PhoneNumber>
-    <StartOrderTime>2024-01-03T12:00:00</StartOrderTime>
+    <Id>17</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Florentin, Tel Aviv</CustomerAddress>
+    <Latitude>32.0573</Latitude>
+    <Longitude>34.77</Longitude>
+    <OrderingName>Rimon Kirsht Buchstab</OrderingName>
+    <PhoneNumber>054-7142915</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:57:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>44</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Petah Tikva City Center</CustomerAddress>
-    <Latitude>32.0886</Latitude>
-    <Longitude>34.885</Longitude>
+    <Id>18</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Herzliya Medical Center</CustomerAddress>
+    <Latitude>32.1691</Latitude>
+    <Longitude>34.8</Longitude>
+    <OrderingName>Yaffa Adar</OrderingName>
+    <PhoneNumber>051-1618155</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:15:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>19</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Ben Gurion Airport (Terminal 3)</CustomerAddress>
+    <Latitude>32.0094</Latitude>
+    <Longitude>34.886</Longitude>
+    <OrderingName>Clara Marman</OrderingName>
+    <PhoneNumber>051-4958266</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:39:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>20</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Sarona Market, Tel Aviv</CustomerAddress>
+    <Latitude>32.0717</Latitude>
+    <Longitude>34.7865</Longitude>
+    <OrderingName>Ruti Munder</OrderingName>
+    <PhoneNumber>054-4669164</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:44:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>21</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Ramat Gan City Hall</CustomerAddress>
+    <Latitude>32.0827</Latitude>
+    <Longitude>34.8113</Longitude>
+    <OrderingName>Hanna Peri</OrderingName>
+    <PhoneNumber>055-7724591</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:38:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>22</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Kikar HaMedina, Tel Aviv</CustomerAddress>
+    <Latitude>32.0869</Latitude>
+    <Longitude>34.7828</Longitude>
     <OrderingName>Noga Weiss</OrderingName>
-    <PhoneNumber>057-4622483</PhoneNumber>
-    <StartOrderTime>2023-12-24T12:00:00</StartOrderTime>
+    <PhoneNumber>053-8003258</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:07:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>45</Id>
-    <Type>Standard</Type>
-    <Description>Order for: Standard</Description>
-    <CustomerAddress>Ramla Market</CustomerAddress>
-    <Latitude>31.928</Latitude>
-    <Longitude>34.87</Longitude>
-    <OrderingName>Judith Raanan</OrderingName>
-    <PhoneNumber>059-6497908</PhoneNumber>
-    <StartOrderTime>2023-12-18T12:00:00</StartOrderTime>
+    <Id>23</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Yarkon Park, Tel Aviv</CustomerAddress>
+    <Latitude>32.1054</Latitude>
+    <Longitude>34.7942</Longitude>
+    <OrderingName>Hila Rotem Shoshani</OrderingName>
+    <PhoneNumber>051-2127171</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:24:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>46</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Herzliya Marina</CustomerAddress>
-    <Latitude>32.1648</Latitude>
-    <Longitude>34.8021</Longitude>
-    <OrderingName>Aviv Katz-Asher</OrderingName>
-    <PhoneNumber>059-8146380</PhoneNumber>
-    <StartOrderTime>2023-12-22T12:00:00</StartOrderTime>
+    <Id>24</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Ramat Gan City Hall</CustomerAddress>
+    <Latitude>32.0827</Latitude>
+    <Longitude>34.8113</Longitude>
+    <OrderingName>Natalie Raanan</OrderingName>
+    <PhoneNumber>056-8743775</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:49:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>47</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
+    <Id>25</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Gordon Beach, Tel Aviv</CustomerAddress>
+    <Latitude>32.0833</Latitude>
+    <Longitude>34.7681</Longitude>
+    <OrderingName>Shiri Weiss</OrderingName>
+    <PhoneNumber>052-8431207</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:15:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>26</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
     <CustomerAddress>Coca-Cola Factory, Bnei Brak</CustomerAddress>
     <Latitude>32.091</Latitude>
     <Longitude>34.8234</Longitude>
-    <OrderingName>Nave Shoham</OrderingName>
-    <PhoneNumber>054-4554036</PhoneNumber>
-    <StartOrderTime>2024-01-09T12:00:00</StartOrderTime>
+    <OrderingName>Gabriela Leimberg</OrderingName>
+    <PhoneNumber>058-9296977</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:11:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>27</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Beilinson Hospital, Petah Tikva</CustomerAddress>
+    <Latitude>32.0934</Latitude>
+    <Longitude>34.8763</Longitude>
+    <OrderingName>Alma Or</OrderingName>
+    <PhoneNumber>056-9894538</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:39:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>28</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Lod City Hall</CustomerAddress>
+    <Latitude>31.954</Latitude>
+    <Longitude>34.888</Longitude>
+    <OrderingName>Natalie Raanan</OrderingName>
+    <PhoneNumber>056-7240943</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:47:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>29</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Gordon Beach, Tel Aviv</CustomerAddress>
+    <Latitude>32.0833</Latitude>
+    <Longitude>34.7681</Longitude>
+    <OrderingName>Aviv Katz-Asher</OrderingName>
+    <PhoneNumber>056-1910504</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:59:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>30</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Kiryat Ono Center</CustomerAddress>
+    <Latitude>32.0642</Latitude>
+    <Longitude>34.8557</Longitude>
+    <OrderingName>Norlin Agojo</OrderingName>
+    <PhoneNumber>050-6960343</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:21:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>31</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Kfar Saba Center</CustomerAddress>
+    <Latitude>32.1764</Latitude>
+    <Longitude>34.908</Longitude>
+    <OrderingName>Natalie Raanan</OrderingName>
+    <PhoneNumber>053-8041101</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:02:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>32</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Sheba Medical Center, Tel HaShomer</CustomerAddress>
+    <Latitude>32.0468</Latitude>
+    <Longitude>34.8468</Longitude>
+    <OrderingName>Maya Regev</OrderingName>
+    <PhoneNumber>050-8860804</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:18:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>33</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>IKEA Rishon LeZion</CustomerAddress>
+    <Latitude>31.9701</Latitude>
+    <Longitude>34.7702</Longitude>
+    <OrderingName>Avigail Idan</OrderingName>
+    <PhoneNumber>053-5692973</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:16:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>34</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Herzliya Medical Center</CustomerAddress>
+    <Latitude>32.1691</Latitude>
+    <Longitude>34.8</Longitude>
+    <OrderingName>Aviv Katz-Asher</OrderingName>
+    <PhoneNumber>056-9422939</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:51:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>35</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Rabin Square, Tel Aviv</CustomerAddress>
+    <Latitude>32.0809</Latitude>
+    <Longitude>34.781</Longitude>
+    <OrderingName>Tami Metzger</OrderingName>
+    <PhoneNumber>053-2583583</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:38:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>36</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Ramat Gan National Park</CustomerAddress>
+    <Latitude>32.0632</Latitude>
+    <Longitude>34.8175</Longitude>
+    <OrderingName>Adi Shoham</OrderingName>
+    <PhoneNumber>054-9632195</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:49:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>37</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Florentin, Tel Aviv</CustomerAddress>
+    <Latitude>32.0573</Latitude>
+    <Longitude>34.77</Longitude>
+    <OrderingName>Ditza Heiman</OrderingName>
+    <PhoneNumber>052-9164237</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:15:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>38</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Kfar Saba Center</CustomerAddress>
+    <Latitude>32.1764</Latitude>
+    <Longitude>34.908</Longitude>
+    <OrderingName>Daniel Aloni</OrderingName>
+    <PhoneNumber>059-6126523</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:24:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>39</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Holon Institute of Technology</CustomerAddress>
+    <Latitude>32.0142</Latitude>
+    <Longitude>34.7963</Longitude>
+    <OrderingName>Natalie Raanan</OrderingName>
+    <PhoneNumber>051-4774639</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:01:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>40</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Ramat Gan National Park</CustomerAddress>
+    <Latitude>32.0632</Latitude>
+    <Longitude>34.8175</Longitude>
+    <OrderingName>Shiri Weiss</OrderingName>
+    <PhoneNumber>050-5403737</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:20:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>41</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Arlozorov Train Station, Tel Aviv</CustomerAddress>
+    <Latitude>32.0868</Latitude>
+    <Longitude>34.7951</Longitude>
+    <OrderingName>Noam Or</OrderingName>
+    <PhoneNumber>053-2274998</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:18:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>42</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Arlozorov Train Station, Tel Aviv</CustomerAddress>
+    <Latitude>32.0868</Latitude>
+    <Longitude>34.7951</Longitude>
+    <OrderingName>Daniel Aloni</OrderingName>
+    <PhoneNumber>059-6277715</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:57:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>43</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Kiryat Arye, Petah Tikva</CustomerAddress>
+    <Latitude>32.1</Latitude>
+    <Longitude>34.848</Longitude>
+    <OrderingName>Ruti Munder</OrderingName>
+    <PhoneNumber>052-7575420</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:22:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>44</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Givatayim Mall</CustomerAddress>
+    <Latitude>32.069</Latitude>
+    <Longitude>34.8055</Longitude>
+    <OrderingName>Ada Sagi</OrderingName>
+    <PhoneNumber>054-8182718</PhoneNumber>
+    <StartOrderTime>2024-11-01T10:56:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>45</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Kiryat Ono Center</CustomerAddress>
+    <Latitude>32.0642</Latitude>
+    <Longitude>34.8557</Longitude>
+    <OrderingName>Hagar Brodutch</OrderingName>
+    <PhoneNumber>057-6671444</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:40:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>46</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Tel Aviv Museum of Art</CustomerAddress>
+    <Latitude>32.0778</Latitude>
+    <Longitude>34.7878</Longitude>
+    <OrderingName>Noga Weiss</OrderingName>
+    <PhoneNumber>059-7164205</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:56:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>47</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>Rabin Square, Tel Aviv</CustomerAddress>
+    <Latitude>32.0809</Latitude>
+    <Longitude>34.781</Longitude>
+    <OrderingName>Eitan Yahalomi</OrderingName>
+    <PhoneNumber>057-4683272</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:04:00</StartOrderTime>
   </Order>
   <Order>
     <Id>48</Id>
-    <Type>Express</Type>
-    <Description>Order for: Express</Description>
-    <CustomerAddress>Rishon LeZion City Hall</CustomerAddress>
-    <Latitude>31.9634</Latitude>
-    <Longitude>34.8078</Longitude>
-    <OrderingName>Emily Hand</OrderingName>
-    <PhoneNumber>051-5913452</PhoneNumber>
-    <StartOrderTime>2023-12-17T12:00:00</StartOrderTime>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Rosh HaAyin North</CustomerAddress>
+    <Latitude>32.1086</Latitude>
+    <Longitude>34.952</Longitude>
+    <OrderingName>Ada Sagi</OrderingName>
+    <PhoneNumber>057-4445027</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:15:00</StartOrderTime>
   </Order>
   <Order>
     <Id>49</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Bursa (Diamond Exchange), Ramat Gan</CustomerAddress>
-    <Latitude>32.0815</Latitude>
-    <Longitude>34.7995</Longitude>
-    <OrderingName>Sharon Avigdori</OrderingName>
-    <PhoneNumber>058-2312484</PhoneNumber>
-    <StartOrderTime>2024-01-09T12:00:00</StartOrderTime>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>Arena Mall, Herzliya</CustomerAddress>
+    <Latitude>32.1666</Latitude>
+    <Longitude>34.8016</Longitude>
+    <OrderingName>Tami Metzger</OrderingName>
+    <PhoneNumber>053-8197227</PhoneNumber>
+    <StartOrderTime>2024-11-01T11:51:00</StartOrderTime>
   </Order>
   <Order>
     <Id>50</Id>
-    <Type>Scheduled</Type>
-    <Description>Order for: Scheduled</Description>
-    <CustomerAddress>Ra'anana Park</CustomerAddress>
-    <Latitude>32.1869</Latitude>
-    <Longitude>34.866</Longitude>
-    <OrderingName>Hila Rotem Shoshani</OrderingName>
-    <PhoneNumber>053-3926199</PhoneNumber>
-    <StartOrderTime>2023-12-24T12:00:00</StartOrderTime>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>Namal Tel Aviv (Port)</CustomerAddress>
+    <Latitude>32.095</Latitude>
+    <Longitude>34.7739</Longitude>
+    <OrderingName>Hanna Peri</OrderingName>
+    <PhoneNumber>058-1831972</PhoneNumber>
+    <StartOrderTime>2024-11-01T08:17:00</StartOrderTime>
   </Order>
 </ArrayOfOrder>

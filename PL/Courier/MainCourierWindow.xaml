@@ -9,6 +9,8 @@
         mc:Ignorable="d"
         Title="Courier Dashboard" Height="680" Width="500"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
+
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Window.Resources>
@@ -200,7 +202,7 @@
                         <Label Content="Trip Info:" Grid.Row="3" Grid.Column="0" Padding="0,2"/>
                         <TextBlock Grid.Row="3" Grid.Column="1" VerticalAlignment="Center">
                             <Run Text="Dist: "/><Run Text="{Binding Courier.OrderInCare.Distance, StringFormat={}{0:F1} km, Mode=OneWay}"/>
-                            <Run Text="  | ETA: "/><Run Text="{Binding Courier.OrderInCare.EstimatedArrivalTime, StringFormat='HH:mm', Mode=OneWay}"/>
+                            <Run Text="  |  ETA: "/><Run Text="{Binding Courier.OrderInCare.EstimatedArrivalTime, StringFormat='HH:mm', Mode=OneWay}"/>
                         </TextBlock>
 
                         <Label Content="Note:" Grid.Row="4" Grid.Column="0" Padding="0,2"/>
@@ -209,9 +211,19 @@
                     </Grid>
                 </StackPanel>
 
-                <Label Grid.Row="1" Grid.Column="0" Content="Action:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <Button Grid.Row="1" Grid.Column="1" Content="Delivery Provided" 
-                        Click="BtnFinishOrder_Click" Background="#90EE90" Width="140"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="Set Outcome:" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <ComboBox ItemsSource="{Binding DeliveryOutcomeOptions}"
+                              SelectedItem="{Binding SelectedOutcome}"
+                              Width="120" Height="30" Margin="0,0,10,0"
+                              VerticalContentAlignment="Center"/>
+
+                    <Button Content="Confirm" 
+                            Click="BtnFinishOrder_Click" 
+                            Background="#90EE90" Width="80" Height="30" Margin="0"/>
+                </StackPanel>
+
             </Grid>
         </GroupBox>
 

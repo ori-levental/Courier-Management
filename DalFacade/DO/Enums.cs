@@ -22,10 +22,10 @@ public class Enums
     }
     public enum OrderType
     {
-        Express,
-        Standard, 
-        Scheduled, 
-        SameDay
+        Private,
+        Business, 
+        Wholesale, 
+        PublicSector
     }
 }
 
