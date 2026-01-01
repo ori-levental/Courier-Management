@@ -91,20 +91,45 @@
                     </Grid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="3" Header="Time Constraints (Format: HH:MM:SS)" Margin="5" Padding="10">
+                <GroupBox Grid.Row="3" Header="Time Constraints (Format: DD.HH:MM:SS)" Margin="5" Padding="10">
                     <UniformGrid Columns="3" Rows="1">
+
                         <StackPanel Margin="5">
                             <Label Content="Max Delivery Time:"/>
-                            <TextBox Text="{Binding Configuration.MaxDeliveryTime, UpdateSourceTrigger=PropertyChanged}" Padding="3" ToolTip="Example: 00:45:00"/>
+                            <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds (e.g. 1.05:00:00)">
+                                <TextBox.Text>
+                                    <Binding Path="Configuration.MaxDeliveryTime" 
+                             UpdateSourceTrigger="PropertyChanged" 
+                             Mode="TwoWay"
+                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                </TextBox.Text>
+                            </TextBox>
                         </StackPanel>
+
                         <StackPanel Margin="5">
                             <Label Content="Risk Range:"/>
-                            <TextBox Text="{Binding Configuration.RiskRange, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                            <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds (e.g. 0.00:30:00)">
+                                <TextBox.Text>
+                                    <Binding Path="Configuration.RiskRange" 
+                             UpdateSourceTrigger="PropertyChanged" 
+                             Mode="TwoWay"
+                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                </TextBox.Text>
+                            </TextBox>
                         </StackPanel>
+
                         <StackPanel Margin="5">
                             <Label Content="Inactivity Timeout:"/>
-                            <TextBox Text="{Binding Configuration.CourierInactivityTime, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
+                            <TextBox Padding="3" ToolTip="Format: Days.Hours:Minutes:Seconds">
+                                <TextBox.Text>
+                                    <Binding Path="Configuration.CourierInactivityTime" 
+                             UpdateSourceTrigger="PropertyChanged" 
+                             Mode="TwoWay"
+                             StringFormat="{}{0:dd\.hh\:mm\:ss}"/>
+                                </TextBox.Text>
+                            </TextBox>
                         </StackPanel>
+
                     </UniformGrid>
                 </GroupBox>
 

@@ -154,7 +154,7 @@ public static class Initialization
         s_dal!.Config!.AvgWalkSpeed = 5;
         s_dal!.Config!.MaxDeliveryTime = TimeSpan.FromHours(4);
         s_dal!.Config!.RiskRange = TimeSpan.FromMinutes(30);
-        s_dal!.Config!.CourierInactivityTime = TimeSpan.FromHours(8);
+        s_dal!.Config!.CourierInactivityTime = TimeSpan.FromDays(180);
     }
 
     private static void CreateCouriers()
