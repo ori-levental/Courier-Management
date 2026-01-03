@@ -4,6 +4,9 @@ using DO;
 using System.Collections; // Required for non-generic IEnumerable
 using System.Reflection;  // Required for Reflection
 using System.Text;
+using System.Net.Http;
+using System.Text.Json;
+using System.Globalization;
 
 namespace Helpers;
 
@@ -283,9 +286,53 @@ internal static class Tools
         if (doCourier == null || password != doCourier.Password)
             throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
     }
-
-    internal static ScheduleStatus ScheduleStatusCalculate(DO.Order order)
+    public static (double Latitude, double Longitude) GetCoordinates(string address)
     {
-        throw new NotImplementedException();
+        string url =
+            $"https://nominatim.openstreetmap.org/search" +
+            $"?q={Uri.EscapeDataString(address)}&format=json&limit=1";
+
+        using (HttpClient client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "LogicalLayerApp");
+
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            string json = response.Content.ReadAsStringAsync().Result;
+
+            JsonDocument doc = JsonDocument.Parse(json);
+            JsonElement root = doc.RootElement;
+
+            if (root.GetArrayLength() == 0)
+                throw new Exception("Address not found");
+
+            double lat = double.Parse(
+                root[0].GetProperty("lat").GetString(),
+                CultureInfo.InvariantCulture);
+
+            double lon = double.Parse(
+                root[0].GetProperty("lon").GetString(),
+                CultureInfo.InvariantCulture);
+
+            return (lat, lon);
+        }
     }
+    public static double CalculateDistanceKm(double lat1, double lon1,double lat2, double lon2)
+    {
+        const double R = 6371;
+
+        double dLat = ToRadians(lat2 - lat1);
+        double dLon = ToRadians(lon2 - lon1);
+
+        double a =
+            Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+            Math.Cos(ToRadians(lat1)) *
+            Math.Cos(ToRadians(lat2)) *
+            Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return R * c;
+    }
+
+    private static double ToRadians(double deg) => deg * Math.PI / 180;
+
 }
