@@ -168,6 +168,20 @@ internal static class OrderManager
         // Set StartOrderTime to current simulated clock
         doOrder = doOrder with { StartOrderTime = Helpers.AdminManager.Now };
 
+        // Automatically get coordinates from address if latitude/longitude are 0
+        if (doOrder.Latitude == 0 && doOrder.Longitude == 0)
+        {
+            try
+            {
+                var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
+                doOrder = doOrder with { Latitude = lat, Longitude = lon };
+            }
+            catch (Exception ex)
+            {
+                throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
+            }
+        }
+
         try
         {
             s_dal.Order.Create(doOrder);
@@ -189,6 +203,21 @@ internal static class OrderManager
     internal static void UpdateOrder(BO.Order order)
     {
         DO.Order doOrder = BOToDOOrder(order);
+
+        // Automatically get coordinates if address changed and coords are 0
+        if (doOrder.Latitude == 0 && doOrder.Longitude == 0)
+        {
+            try
+            {
+                var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
+                doOrder = doOrder with { Latitude = lat, Longitude = lon };
+            }
+            catch (Exception ex)
+            {
+                throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
+            }
+        }
+
         try
         {
             s_dal.Order.Update(doOrder);

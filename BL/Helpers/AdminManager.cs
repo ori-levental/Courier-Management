@@ -110,7 +110,7 @@ internal static class AdminManager //stage 4
     [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     internal static void SetConfig(BO.Config configuration) //stage 4
     {
-        bool configChanged = false; // stage 5
+        bool configChanged = false;
 
         // --- Basic Settings ---
         if (s_dal.Config.MaxAirDistance != configuration.MaxRange)
@@ -128,10 +128,27 @@ internal static class AdminManager //stage 4
             s_dal.Config.ManagerPassword = configuration.ManagerPassword;
             configChanged = true;
         }
+        
+        // Company Address - Get Coordinates Automatically
         if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
         {
             s_dal.Config.CompanyAddress = configuration.CompanyAddress;
             configChanged = true;
+
+            // Automatically get coordinates from the new address
+            if (!string.IsNullOrWhiteSpace(configuration.CompanyAddress))
+            {
+                try
+                {
+                    var (lat, lon) = Helpers.Tools.GetCoordinates(configuration.CompanyAddress);
+                    s_dal.Config.Latitude = lat;
+                    s_dal.Config.Longitude = lon;
+                }
+                catch (Exception ex)
+                {
+                    throw new BO.BlInvalidDataException($"Could not get coordinates for company address: {ex.Message}");
+                }
+            }
         }
 
         // --- Speeds ---
@@ -173,13 +190,9 @@ internal static class AdminManager //stage 4
             configChanged = true;
         }
 
-        //TO_DO: //stage 4
-        //add a condition+assignment for each configuration property
-        //...
-
-        //Calling all the observers of configuration update
-        if (configChanged) // stage 5
-            ConfigUpdatedObservers?.Invoke(); // stage 5
+        // Calling all the observers of configuration update
+        if (configChanged)
+            ConfigUpdatedObservers?.Invoke();
     }
 
     internal static void ResetDB() //stage 4-7
