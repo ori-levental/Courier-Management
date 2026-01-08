@@ -132,9 +132,6 @@ internal static class AdminManager //stage 4
         // Company Address - Get Coordinates Automatically
         if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
         {
-            s_dal.Config.CompanyAddress = configuration.CompanyAddress;
-            configChanged = true;
-
             // Automatically get coordinates from the new address
             if (!string.IsNullOrWhiteSpace(configuration.CompanyAddress))
             {
@@ -149,6 +146,12 @@ internal static class AdminManager //stage 4
                     throw new BO.BlInvalidDataException($"Could not get coordinates for company address: {ex.Message}");
                 }
             }
+            else               
+                s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
+
+
+            s_dal.Config.CompanyAddress = configuration.CompanyAddress;
+            configChanged = true;
         }
 
         // --- Speeds ---

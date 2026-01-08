@@ -14,6 +14,9 @@ internal static class Tools
 {
     private static IDal s_dal = Factory.Get;
 
+    // Static HttpClient to prevent socket exhaustion (resource waste)
+    private static readonly HttpClient client = new HttpClient();
+
     #region Calculations & Algorithms
     /// <summary>
     /// Calculates aerial distance with safety checks for 0 or null coordinates.
@@ -286,35 +289,57 @@ internal static class Tools
         if (doCourier == null || password != doCourier.Password)
             throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
     }
+
     public static (double Latitude, double Longitude) GetCoordinates(string address)
     {
-        string url =
-            $"https://nominatim.openstreetmap.org/search" +
-            $"?q={Uri.EscapeDataString(address)}&format=json&limit=1";
+        string url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(address)}&format=json&limit=1";
 
-        using (HttpClient client = new HttpClient())
+        try
         {
-            client.DefaultRequestHeaders.Add("User-Agent", "LogicalLayerApp");
+            // Set User-Agent as required by Nominatim API policies
+            if (!client.DefaultRequestHeaders.Contains("User-Agent"))
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "DeliverySystemApp");
+            }
 
-            HttpResponseMessage response = client.GetAsync(url).Result;
-            string json = response.Content.ReadAsStringAsync().Result;
+            // This runs the network request on a background thread.
+            var response = Task.Run(() => client.GetAsync(url)).Result;
 
-            JsonDocument doc = JsonDocument.Parse(json);
-            JsonElement root = doc.RootElement;
+            // Check if the server returned a valid response (e.g., not 404 or 500)
+            if (!response.IsSuccessStatusCode)
+                throw new BO.BlInvalidDataException("Server error: Unable to fetch coordinates.");
 
-            if (root.GetArrayLength() == 0)
-                throw new Exception("Address not found");
+            var json = Task.Run(() => response.Content.ReadAsStringAsync()).Result;
 
-            double lat = double.Parse(
-                root[0].GetProperty("lat").GetString(),
-                CultureInfo.InvariantCulture);
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                JsonElement root = doc.RootElement;
 
-            double lon = double.Parse(
-                root[0].GetProperty("lon").GetString(),
-                CultureInfo.InvariantCulture);
+                // Check if the results array is empty (Address not found)
+                if (root.GetArrayLength() == 0)
+                    throw new BO.BlInvalidDataException("Address not found.");
 
-            return (lat, lon);
+                double lat = double.Parse(
+                    root[0].GetProperty("lat").GetString()!,
+                    CultureInfo.InvariantCulture);
+
+                double lon = double.Parse(
+                    root[0].GetProperty("lon").GetString()!,
+                    CultureInfo.InvariantCulture);
+
+                return (lat, lon);
+            }
+        }
+        catch (AggregateException ex)
+        {
+            // Unwrap the AggregateException to get the real network error message
+            string msg = ex.InnerException?.Message ?? ex.Message;
+            throw new BO.BlNetworkException($"Network error: {msg}");
+        }
+        catch (Exception ex)
+        {
+            // Catch any other errors (parsing, etc.) and throw a friendly message
+            throw new BO.BlGeneralException($"Error fetching coordinates: {ex.Message}");
         }
     }
-
 }

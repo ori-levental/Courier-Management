@@ -31,6 +31,9 @@ namespace PL
         // Access to the Business Layer via Factory
         static readonly IBl s_bl = Factory.Get();
 
+        // Flag to prevent infinite loops during password sync
+        private bool _isPasswordSyncing = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -60,7 +63,7 @@ namespace PL
         public static readonly DependencyProperty ConfigurationProperty =
             DependencyProperty.Register("Configuration", typeof(BO.Config), typeof(MainWindow));
 
-        // 3. Dependency Property for Order Statistics (New)
+        // 3. Dependency Property for Order Statistics
         public OrderStats OrderStatistics
         {
             get { return (OrderStats)GetValue(OrderStatisticsProperty); }
@@ -73,27 +76,29 @@ namespace PL
 
         #region Observers
 
-        /// <summary>
-        /// Observer method triggered when the BL Clock updates.
-        /// Updates the UI Clock and refreshes order statistics (as statuses depend on time).
-        /// </summary>
         private void clockObserver()
         {
             this.Dispatcher.Invoke(() =>
             {
                 CurrentTime = s_bl.Admin.GetClock();
-                UpdateOrderStats(); // Refresh stats on every tick
+                UpdateOrderStats();
             });
         }
 
-        /// <summary>
-        /// Observer method triggered when Configuration updates.
-        /// </summary>
         private void configObserver()
         {
             this.Dispatcher.Invoke(() =>
             {
-                Configuration = s_bl.Admin.GetConfig();
+                var newConfig = s_bl.Admin.GetConfig();
+                Configuration = newConfig;
+
+                // Sync PasswordBox only if changed externally
+                if (pbManagerPass.Password != newConfig.ManagerPassword)
+                {
+                    _isPasswordSyncing = true;
+                    pbManagerPass.Password = newConfig.ManagerPassword;
+                    _isPasswordSyncing = false;
+                }
             });
         }
 
@@ -105,8 +110,18 @@ namespace PL
         {
             // Initial data fetch
             CurrentTime = s_bl.Admin.GetClock();
-            Configuration = s_bl.Admin.GetConfig();
-            UpdateOrderStats(); // Initial stats calculation
+            var config = s_bl.Admin.GetConfig();
+            Configuration = config;
+
+            // Sync initial password to PasswordBox
+            if (config.ManagerPassword != null)
+            {
+                _isPasswordSyncing = true;
+                pbManagerPass.Password = config.ManagerPassword;
+                _isPasswordSyncing = false;
+            }
+
+            UpdateOrderStats();
 
             // Subscribe to BL updates
             s_bl.Admin.AddClockObserver(clockObserver);
@@ -115,14 +130,10 @@ namespace PL
 
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
-            // Unsubscribe to prevent memory leaks
             s_bl.Admin.RemoveClockObserver(clockObserver);
             s_bl.Admin.RemoveConfigObserver(configObserver);
         }
 
-        /// <summary>
-        /// Fetches the list of orders and calculates the count per status.
-        /// </summary>
         private void UpdateOrderStats()
         {
             try
@@ -149,83 +160,52 @@ namespace PL
 
         #region Buttons & Logic
 
-        // Time Manipulation Buttons
+        // Time Manipulation
         private void BtnAddMinute_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Minute));
         private void BtnAddHour_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Hour));
         private void BtnAddDay_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Day));
         private void BtnAddMonth_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Month));
         private void BtnAddYear_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Year));
 
-        /// <summary>
-        /// Initializes the Database with dummy data.
-        /// </summary>
         private async void BtnInitDB_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to Initialize DB? Existing data will be overwritten.",
-                                "Confirm Initialization",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                                "Confirm Initialization", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
                     CloseAllWindows();
-
-                    // Run heavy task on background thread
                     await Task.Run(() => s_bl.Admin.InitializeDB());
-                    await Task.Delay(1000); // Allow file I/O to complete
-
-                    // Refresh UI
-                    Configuration = s_bl.Admin.GetConfig();
+                    await Task.Delay(1000);
+                    Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
                     CurrentTime = s_bl.Admin.GetClock();
                     UpdateOrderStats();
-
                     MessageBox.Show("Database Initialized successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error during initialization: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                finally
-                {
-                    Mouse.OverrideCursor = null;
-                }
+                catch (Exception ex) { MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+                finally { Mouse.OverrideCursor = null; }
             }
         }
 
-        /// <summary>
-        /// Resets the Database (Deletes all data).
-        /// </summary>
         private async void BtnResetDB_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("RESET DB? All data will be lost forever!",
-                                "Critical Warning",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Error) == MessageBoxResult.Yes)
+            if (MessageBox.Show("RESET DB? All data will be lost forever!", "Critical Warning",
+                                MessageBoxButton.YesNo, MessageBoxImage.Error) == MessageBoxResult.Yes)
             {
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
                     CloseAllWindows();
-
                     await Task.Run(() => s_bl.Admin.ResetDB());
                     await Task.Delay(1000);
-
-                    // Refresh UI
-                    Configuration = s_bl.Admin.GetConfig();
+                    Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
                     CurrentTime = s_bl.Admin.GetClock();
                     UpdateOrderStats();
-
                     MessageBox.Show("Database Reset successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error during reset: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                finally
-                {
-                    Mouse.OverrideCursor = null;
-                }
+                catch (Exception ex) { MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); }
+                finally { Mouse.OverrideCursor = null; }
             }
         }
 
@@ -233,85 +213,80 @@ namespace PL
         {
             SafeExec(() =>
             {
+                // Ensure password is synced before saving
+                if (txtVisibleManagerPass.Visibility == Visibility.Visible)
+                    Configuration.ManagerPassword = txtVisibleManagerPass.Text;
+                else
+                    Configuration.ManagerPassword = pbManagerPass.Password;
+
                 s_bl.Admin.SetConfig((BO.Config)Configuration);
                 MessageBox.Show("Configuration updated successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
             });
         }
 
         private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenCourierList);
-
         private void BtnShowOrderList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenOrderList);
+
+        #endregion
+
+        #region Password Handling
+
+        private void PbManagerPass_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (!_isPasswordSyncing)
+            {
+                Configuration.ManagerPassword = pbManagerPass.Password;
+            }
+        }
+
+        private void BtnToggleManagerPass_Click(object sender, RoutedEventArgs e)
+        {
+            if (pbManagerPass.Visibility == Visibility.Visible)
+            {
+                txtVisibleManagerPass.Text = pbManagerPass.Password;
+                pbManagerPass.Visibility = Visibility.Collapsed;
+                txtVisibleManagerPass.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                pbManagerPass.Password = txtVisibleManagerPass.Text;
+                txtVisibleManagerPass.Visibility = Visibility.Collapsed;
+                pbManagerPass.Visibility = Visibility.Visible;
+            }
+        }
 
         #endregion
 
         #region Window Helpers
 
-        /// <summary>
-        /// Wrapper for safe execution of actions with global error handling.
-        /// </summary>
         public static void SafeExec(Action action)
         {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            try { action(); }
+            catch (Exception ex) { MessageBox.Show($"Error: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error); }
         }
 
         private void OpenCourierList()
         {
             var openWindow = Application.Current.Windows.OfType<CourierListWindow>().FirstOrDefault();
-
-            if (openWindow != null)
-            {
-                openWindow.Activate();
-                if (openWindow.WindowState == WindowState.Minimized)
-                    openWindow.WindowState = WindowState.Normal;
-            }
-            else
-            {
-                new CourierListWindow().Show();
-            }
+            if (openWindow != null) { openWindow.Activate(); if (openWindow.WindowState == WindowState.Minimized) openWindow.WindowState = WindowState.Normal; }
+            else { new CourierListWindow().Show(); }
         }
 
         private void OpenOrderList()
         {
             var openWindow = Application.Current.Windows.OfType<OrderListWindow>().FirstOrDefault();
-
-            if (openWindow != null)
-            {
-                openWindow.Activate();
-                if (openWindow.WindowState == WindowState.Minimized)
-                    openWindow.WindowState = WindowState.Normal;
-            }
-            else
-            {
-                new OrderListWindow().Show();
-            }
+            if (openWindow != null) { openWindow.Activate(); if (openWindow.WindowState == WindowState.Minimized) openWindow.WindowState = WindowState.Normal; }
+            else { new OrderListWindow().Show(); }
         }
 
-        /// <summary>
-        /// Closes all auxiliary windows to prevent data inconsistency during DB operations.
-        /// </summary>
         private void CloseAllWindows()
         {
             List<Window> windowsToClose = [];
-
             foreach (Window window in Application.Current.Windows)
             {
-                if (window != this)
-                {
-                    windowsToClose.Add(window);
-                }
+                if (window != this) windowsToClose.Add(window);
             }
-
-            foreach (var window in windowsToClose)
-            {
-                window.Close();
-            }
+            foreach (var window in windowsToClose) window.Close();
         }
 
         #endregion

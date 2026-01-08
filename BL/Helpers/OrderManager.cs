@@ -182,6 +182,19 @@ internal static class OrderManager
             }
         }
 
+        // comany addres data
+        double companyLat = s_dal.Config.Latitude ?? 0;
+        double companyLon = s_dal.Config.Longitude ?? 0;
+        double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+
+        // calculate distance
+        double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
+
+        // if is too far
+        if (maxDistance > 0 && distance > maxDistance)
+            throw new BO.BlInvalidDataException($"Address is too far! Distance: {distance:F2}km, Max allowed: {maxDistance}km");
+
+
         try
         {
             s_dal.Order.Create(doOrder);
@@ -205,18 +218,28 @@ internal static class OrderManager
         DO.Order doOrder = BOToDOOrder(order);
 
         // Automatically get coordinates if address changed and coords are 0
-        if (doOrder.Latitude == 0 && doOrder.Longitude == 0)
+        try
         {
-            try
-            {
-                var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
-                doOrder = doOrder with { Latitude = lat, Longitude = lon };
-            }
-            catch (Exception ex)
-            {
-                throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
-            }
+            var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
+            doOrder = doOrder with { Latitude = lat, Longitude = lon };
         }
+        catch (Exception ex)
+        {
+            throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
+        }
+
+        // comany addres data
+        double companyLat = s_dal.Config.Latitude ?? 0;
+        double companyLon = s_dal.Config.Longitude ?? 0;
+        double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+
+        // calculate distance
+        double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
+
+        // if is too far
+        if (maxDistance > 0 && distance > maxDistance)
+            throw new BO.BlInvalidDataException($"Address is too far! Distance: {distance:F2}km, Max allowed: {maxDistance}km");
+
 
         try
         {

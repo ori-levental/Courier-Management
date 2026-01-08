@@ -8,6 +8,14 @@ public class BlGeneralException : Exception
     public BlGeneralException(string? message, Exception? innerException) : base(message, innerException) { }
 }
 
+[Serializable]
+public class BlNetworkException : Exception
+{
+    public BlNetworkException() : base() { }
+    public BlNetworkException(string? message) : base(message) { }
+    public BlNetworkException(string? message, Exception? innerException) : base(message, innerException) { }
+}
+
 #region DAL Parallel Exceptions
 // These exceptions correspond to DO exceptions and are intended to wrap them when the DAL throws an error.
 
