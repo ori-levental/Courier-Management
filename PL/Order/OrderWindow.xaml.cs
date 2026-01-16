@@ -76,6 +76,8 @@ namespace PL.Order
             {
                 int managerId = s_bl.Admin.GetConfig().ManagerId;
                 CurrentOrder = s_bl.Order.OrderDetails(managerId, orderId);
+                this.Loaded += (s, e) => s_bl.Order.AddObserver(orderRefresher);
+                this.Closed += (s, e) => s_bl.Order.RemoveObserver(orderRefresher);
             }
             catch (Exception ex)
             {
@@ -129,6 +131,31 @@ namespace PL.Order
                     MessageBox.Show($"Error: {ex.Message}");
                 }
             }
+        }
+
+        private void orderRefresher()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    // If we are in insert mode, there is nothing to refresh
+                    if (IsAddMode) return;
+
+                    int managerId = s_bl.Admin.GetConfig().ManagerId;
+
+                    // Re-fetch the order from the BL
+                    var updatedOrder = s_bl.Order.OrderDetails(managerId, CurrentOrder.Id);
+
+                    // Update the displayed object (this will automatically update the screen thanks to the Binding)
+                    CurrentOrder = updatedOrder;
+                }
+                catch
+                {
+                    // If the order was deleted or an error occurred, we will close the window
+                    Close();
+                }
+            });
         }
     }
 }

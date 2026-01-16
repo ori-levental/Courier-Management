@@ -10,6 +10,10 @@
         WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
+    <Window.Resources>
+        <local:DurationToTextConverter x:Key="DurationConverter"/>
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="39*"/>
@@ -123,7 +127,7 @@
                     <GridViewColumn Header="Time Left" Width="130">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding TimeRemaining, StringFormat={}{0:hh}:{0:mm}:{0:ss}}" 
+                                <TextBlock Text="{Binding TimeRemaining, Converter={StaticResource DurationConverter}}" 
                                            HorizontalAlignment="Center" FontWeight="SemiBold">
 
                                     <TextBlock.Style>
@@ -151,7 +155,7 @@
                     <GridViewColumn Header="Process Time" Width="90">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding TotalProcessingTime, StringFormat='hh\\:mm\\:ss'}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding TotalProcessingTime, Converter={StaticResource DurationConverter}}" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>

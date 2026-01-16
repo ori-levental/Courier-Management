@@ -83,12 +83,15 @@ namespace PL.Courier
             {
                 // Fetch full details from BL
                 CurrentCourier = s_bl.Courier.SearchCourier(s_bl.Admin.GetConfig().ManagerId, courierId);
+                this.Loaded += Window_Loaded;
+                this.Closed += Window_Closed;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading courier: {ex.Message}");
                 Close();
             }
+
         }
 
         // --- Event Handlers ---
@@ -143,6 +146,45 @@ namespace PL.Courier
                     MessageBox.Show($"Error: {ex.Message}", "Deletion Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+
+        // --- Observer Logic (להוסיף את החלק הזה) ---
+
+        /// <summary>
+        /// A method that is called automatically when there is any change in the system (Observer)
+        /// </summary>
+        private void courierObserver()
+        {
+            if (IsAddMode) return; // Nothing to update if we are creating a new messenger that does not yet exist
+
+            Dispatcher.Invoke(() =>
+            {
+                try
+                {
+                    int managerId = s_bl.Admin.GetConfig().ManagerId;
+                    // Re-fetch the most up-to-date data from the BL
+                    CurrentCourier = s_bl.Courier.SearchCourier(managerId, CurrentCourier.Id);
+                }
+                catch
+                {
+                    // If the messenger has been deleted by someone else in the meantime - we will close the window
+                    Close();
+                }
+            });
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Register to listen only if we are in edit mode
+            if (!IsAddMode)
+                s_bl.Courier.AddObserver(courierObserver);
+        }
+
+        private void Window_Closed(object? sender, EventArgs e)
+        {
+            // Remove the port listener to prevent memory leaks and errors
+            if (!IsAddMode)
+                s_bl.Courier.RemoveObserver(courierObserver);
         }
     }
 }

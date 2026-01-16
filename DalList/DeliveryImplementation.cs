@@ -3,6 +3,7 @@ using DalApi;
 using DO;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 /// <summary>
 /// Implements the IDelivery interface for managing Delivery data
@@ -17,6 +18,8 @@ internal class DeliveryImplementation : IDelivery
     /// The ID on the passed 'item' is ignored.
     /// </summary>
     /// <param name="item">The delivery object to copy data from.</param>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Create(Delivery item)
     {
         // 'with' creates a shallow copy of 'item', 
@@ -32,6 +35,8 @@ internal class DeliveryImplementation : IDelivery
     /// </summary>
     /// <param name="id">The ID of the delivery to delete.</param>
     /// <exception cref="Exception">Throws if a delivery with the ID is not found.</exception>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Delete(int id)
     {
         // Find the item to delete, throw exception if not found
@@ -44,6 +49,8 @@ internal class DeliveryImplementation : IDelivery
     /// <summary>
     /// Clears the entire list of deliveries from the data source.
     /// </summary>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void DeleteAll()
     {
         DataSource.Deliveries.Clear();
@@ -54,6 +61,8 @@ internal class DeliveryImplementation : IDelivery
     /// </summary>
     /// <param name="id">The ID of the delivery to find.</param>
     /// <returns>The found delivery object, or null if not found.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public Delivery? Read(int id)
     {
         return DataSource.Deliveries.FirstOrDefault(T => T.Id == id);
@@ -63,6 +72,8 @@ internal class DeliveryImplementation : IDelivery
     /// </summary>
     /// <param name="filter">A lambda expression (predicate) to filter the entities.</param>
     /// <returns>The first matching entity, or null if no entity is found.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public Delivery? Read(Func<Delivery, bool> filter)
     {
         return DataSource.Deliveries.FirstOrDefault(filter);
@@ -72,6 +83,8 @@ internal class DeliveryImplementation : IDelivery
     /// Returns a copy of the entire list of deliveries.
     /// </summary>
     /// <returns>A new list containing all delivery objects.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public IEnumerable<Delivery> ReadAll(Func<Delivery, bool>? filter = null) //stage 2
     {
         // without filter - return the list
@@ -89,6 +102,8 @@ internal class DeliveryImplementation : IDelivery
     /// </summary>
     /// <param name="item">The delivery object with updated information.</param>
     /// <exception cref="Exception">Throws if a delivery with the item's ID does not exist (from Delete).</exception>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Update(Delivery item)
     {
         // Delete the old version of the item (throws if not found)

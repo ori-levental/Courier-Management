@@ -227,7 +227,17 @@ namespace PL.Order
             public BO.OrderType OrderType => _order.OrderType;
             public bool IsHeavy => _order.IsHeavy;
             public TimeSpan TimeRemaining => _order.TimeRemaining;
-            public string TimeRemainingDisplay => _order.TimeRemaining.ToString(@"hh\:mm\:ss");
+            public string TimeRemainingDisplay
+            {
+                get
+                {
+                    // if is more than 24 hours
+                    if (_order.TimeRemaining.TotalDays >= 1)
+                        return "Over one day";
+                    // else
+                    return _order.TimeRemaining.ToString(@"hh\:mm\:ss");
+                }
+            }
             public string TravelTimeDisplay => _order.ActualTimeEstimation?.ToString(@"hh\:mm\:ss") ?? "-";
             public BO.ScheduleStatus ScheduleStatus => _order.ScheduleStatus;
         }

@@ -166,4 +166,21 @@ namespace PL.Order
         }
         private void Window_Closed(object? sender, EventArgs e) => s_bl.Order.RemoveObserver(orderListObserver);
     }
+
+    /// <summary>
+    /// convertot for prosses time
+    /// </summary>
+    public class DurationToTextConverter : System.Windows.Data.IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is TimeSpan ts)
+            {
+                if (ts.TotalDays >= 1) return "Over one day";
+                return ts.ToString(@"hh\:mm\:ss");
+            }
+            return value;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => throw new NotImplementedException();
+    }
 }

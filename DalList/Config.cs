@@ -86,7 +86,8 @@ static internal class Config
         Clock = default(DateTime).AddYears(1999);
         // Reset credentials
         ManagerId = 0;
-        CompanyAddress = ManagerPassword = "";
+        ManagerPassword = "";
+        CompanyAddress = "";
         // Resetting all numeric and location values to 0
         Latitude = 32.0749;
         Longitude = 34.7923;

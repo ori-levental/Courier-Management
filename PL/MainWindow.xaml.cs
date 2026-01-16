@@ -102,6 +102,14 @@ namespace PL
             });
         }
 
+        private void orderObserver()
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                UpdateOrderStats();
+            });
+        }
+
         #endregion
 
         #region Lifecycle Events
@@ -126,12 +134,14 @@ namespace PL
             // Subscribe to BL updates
             s_bl.Admin.AddClockObserver(clockObserver);
             s_bl.Admin.AddConfigObserver(configObserver);
+            s_bl.Order.AddObserver(orderObserver);
         }
 
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
             s_bl.Admin.RemoveClockObserver(clockObserver);
             s_bl.Admin.RemoveConfigObserver(configObserver);
+            s_bl.Order.RemoveObserver(orderObserver);
         }
 
         private void UpdateOrderStats()
@@ -179,6 +189,11 @@ namespace PL
                     await Task.Run(() => s_bl.Admin.InitializeDB());
                     await Task.Delay(1000);
                     Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
+
+                    _isPasswordSyncing = true; 
+                    pbManagerPass.Password = Configuration.ManagerPassword ?? "";
+                    _isPasswordSyncing = false;
+
                     CurrentTime = s_bl.Admin.GetClock();
                     UpdateOrderStats();
                     MessageBox.Show("Database Initialized successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -200,6 +215,11 @@ namespace PL
                     await Task.Run(() => s_bl.Admin.ResetDB());
                     await Task.Delay(1000);
                     Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
+
+                    _isPasswordSyncing = true;
+                    pbManagerPass.Password = Configuration.ManagerPassword ?? "";
+                    _isPasswordSyncing = false;
+
                     CurrentTime = s_bl.Admin.GetClock();
                     UpdateOrderStats();
                     MessageBox.Show("Database Reset successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);

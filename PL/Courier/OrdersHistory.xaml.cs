@@ -374,7 +374,18 @@ namespace PL.Courier
             public double ActualDistanceKm => _delivery.ActualDistanceKm ?? 0.0;
             public string ActualDistanceDisplay => $"{(_delivery.ActualDistanceKm ?? 0.0):F2} km";
             public TimeSpan TotalProcessingTime => _delivery.TotalProcessingTime;
-            public string TotalProcessingTimeDisplay => _delivery.TotalProcessingTime.ToString(@"hh\:mm\:ss");
+            public string TotalProcessingTimeDisplay
+            {
+                get
+                {
+                    // אם עבר יותר מיום אחד (TotalDays >= 1)
+                    if (_delivery.TotalProcessingTime.TotalDays >= 1)
+                        return "Over one day";
+
+                    // אחרת, הצג רגיל
+                    return _delivery.TotalProcessingTime.ToString(@"hh\:mm\:ss");
+                }
+            }
             public OrderType OrderType => _delivery.OrderType;
             public BO.ShippingType ShippingType => _delivery.ShippingType;
         }

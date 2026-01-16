@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <config>
-  <NextOrderId>52</NextOrderId>
+  <NextOrderId>51</NextOrderId>
   <NextDeliveryId>31</NextDeliveryId>
-  <Clock>2025-03-07T18:05:00</Clock>
+  <Clock>2024-11-01T12:00:00</Clock>
   <ManagerId>111111118</ManagerId>
   <ManagerPassword>nxnsj544bh@!</ManagerPassword>
-  <CompanyAddress>קניון עזריאלי תל אביב</CompanyAddress>
-  <Latitude>32.0747036</Latitude>
-  <Longitude>34.7919705</Longitude>
+  <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
+  <Latitude>32.0749</Latitude>
+  <Longitude>34.7923</Longitude>
   <MaxAirDistance>20</MaxAirDistance>
   <AvgCarSpeed>60</AvgCarSpeed>
   <AvgMotorcycleSpeed>80</AvgMotorcycleSpeed>

@@ -36,7 +36,7 @@
                           VerticalAlignment="Center" 
                           Width="150"/>
 
-                <TextBlock Text="Status Filter:" VerticalAlignment="Center" Margin="20,0,5,0" FontWeight="Bold"/>
+                <TextBlock Text="Filter activity" VerticalAlignment="Center" Margin="20,0,5,0" FontWeight="Bold" Width="81"/>
 
                 <CheckBox IsThreeState="True"
                           VerticalAlignment="Center"

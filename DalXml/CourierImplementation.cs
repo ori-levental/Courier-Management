@@ -4,6 +4,7 @@ using DO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices; // Added for MethodImpl
 using System.Xml.Linq;
 
 /// <summary>
@@ -51,6 +52,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Adds a new Courier to the XML file. Throws if ID exists.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Create(Courier item)
     {
         // load the list
@@ -71,6 +73,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Deletes a Courier by ID. Throws if not found.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Delete(int id)
     {
         // load the list
@@ -93,6 +96,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Removes all Couriers from the XML file.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void DeleteAll()
     {
         // load the list
@@ -106,6 +110,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Retrieves a Courier by ID, or null if not found.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public Courier? Read(int id)
     {
         XElement? courierElem =
@@ -116,6 +121,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Retrieves the first Courier matching the filter condition.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public Courier? Read(Func<Courier, bool> filter)
     {
         return XMLTools.LoadListFromXMLElement(Config.s_couriers_xml).Elements().Select(c => getCourier(c)).FirstOrDefault(filter);
@@ -124,6 +130,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Retrieves all Couriers, optionally filtered by a predicate.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public IEnumerable<Courier> ReadAll(Func<Courier, bool>? filter = null)
     {
         // load the list
@@ -135,6 +142,7 @@ internal class CourierImplementation : ICourier
     /// <summary>
     /// Updates an existing Courier. Throws if ID not found.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Update(Courier item)
     {
         // load the courier XML

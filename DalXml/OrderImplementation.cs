@@ -4,6 +4,7 @@ using DO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices; // Added for MethodImpl
 
 /// <summary>
 /// Implements the IOrder interface using XML serialization (XmlSerializer).
@@ -15,6 +16,7 @@ internal class OrderImplementation : IOrder
     /// Adds a new Order to the XML file, assigning the next sequential ID from Config.
     /// </summary>
     /// <param name="item">The order object to add (ID is ignored and assigned by DAL).</param>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Create(Order item)
     {
         List<Order> Orders = XMLTools.LoadListFromXMLSerializer<Order>(Config.s_orders_xml);
@@ -29,6 +31,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="id">The ID of the Order to delete.</param>
     /// <exception cref="DalDoesNotExistException">Thrown if the Order is not found.</exception>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Delete(int id)
     {
         List<Order> Orders = XMLTools.LoadListFromXMLSerializer<Order>(Config.s_orders_xml);
@@ -41,6 +44,7 @@ internal class OrderImplementation : IOrder
     /// <summary>
     /// Clears the entire list of Orders from the XML file.
     /// </summary>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void DeleteAll()
     {
         // Overwrites the XML file with a new, empty list
@@ -51,6 +55,7 @@ internal class OrderImplementation : IOrder
     /// Retrieves an Order by ID, or null if not found.
     /// </summary>
     /// <param name="id">The ID of the Order to find.</param>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public Order? Read(int id)
     {
         List<Order> Orders = XMLTools.LoadListFromXMLSerializer<Order>(Config.s_orders_xml);
@@ -61,6 +66,7 @@ internal class OrderImplementation : IOrder
     /// Retrieves the first Order matching the provided filter condition.
     /// </summary>
     /// <param name="filter">The predicate (condition) to apply.</param>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public Order? Read(Func<Order, bool> filter)
     {
         List<Order> Orders = XMLTools.LoadListFromXMLSerializer<Order>(Config.s_orders_xml);
@@ -72,6 +78,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="filter">Optional predicate to filter the list.</param>
     /// <returns>An IEnumerable containing the filtered or complete list.</returns>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public IEnumerable<Order> ReadAll(Func<Order, bool>? filter = null)
     {
         // Loads the entire list
@@ -89,6 +96,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="item">The updated Order object.</param>
     /// <exception cref="DalDoesNotExistException">Thrown if the Order is not found.</exception>
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public void Update(Order item)
     {
         List<Order> Orders = XMLTools.LoadListFromXMLSerializer<Order>(Config.s_orders_xml);

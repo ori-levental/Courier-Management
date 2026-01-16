@@ -2,6 +2,7 @@
 using DalApi;
 using DO;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 /// <summary>
 /// Implements the IOrder interface for managing Order data
@@ -16,6 +17,8 @@ internal class OrderImplementation : IOrder
     /// The ID on the passed 'item' is ignored.
     /// </summary>
     /// <param name="item">The order object to copy data from.</param>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Create(Order item)
     {
         // 'with' creates a shallow copy of 'item', 
@@ -31,6 +34,8 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="id">The ID of the order to delete.</param>
     /// <exception cref="Exception">Throws if an order with the ID is not found.</exception>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Delete(int id)
     {
         Order? temp = Read(id) ?? throw new DalDoesNotExistException($"Order with ID={id} does Not exists");
@@ -41,6 +46,8 @@ internal class OrderImplementation : IOrder
     /// <summary>
     /// Clears the entire list of orders from the data source.
     /// </summary>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void DeleteAll()
     {
         DataSource.Orders.Clear();
@@ -51,6 +58,8 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="id">The ID of the order to find.</param>
     /// <returns>The found order object, or null if not found.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public Order? Read(int id)
     {
         return DataSource.Orders.FirstOrDefault(T => T.Id == id);
@@ -60,6 +69,8 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="filter">A lambda expression (predicate) to filter the entities.</param>
     /// <returns>The first matching entity, or null if no entity is found.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public Order? Read(Func<Order, bool> filter)
     {
         return DataSource.Orders.FirstOrDefault(filter);
@@ -69,6 +80,8 @@ internal class OrderImplementation : IOrder
     /// Returns a copy of the entire list of orders.
     /// </summary>
     /// <returns>A new list containing all order objects.</returns>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public IEnumerable<Order> ReadAll(Func<Order, bool>? filter = null) //stage 2
     {
         // without filter - return the list
@@ -86,6 +99,8 @@ internal class OrderImplementation : IOrder
     /// </summary>
     /// <param name="item">The order object with updated information.</param>
     /// <exception cref="Exception">Throws if an order with the item's ID does not exist (from Delete).</exception>
+
+    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
     public void Update(Order item)
     {
         // Delete the old version of the item (throws if not found)
