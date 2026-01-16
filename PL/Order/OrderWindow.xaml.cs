@@ -96,12 +96,12 @@ namespace PL.Order
 
                 if (IsAddMode)
                 {
-                    s_bl.Order.AddOrder(managerId, CurrentOrder);
+                    s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
                     MessageBox.Show("Order added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    s_bl.Order.UpdateOrder(managerId, CurrentOrder);
+                    s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
                     MessageBox.Show("Order updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 

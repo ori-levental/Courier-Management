@@ -1,27 +1,51 @@
 ﻿using BO;
 using DalApi;
 using DO;
-using System.Collections; // Required for non-generic IEnumerable
-using System.Reflection;  // Required for Reflection
+using System.Collections;
+using System.Reflection;
 using System.Text;
 using System.Net.Http;
 using System.Text.Json;
 using System.Globalization;
+using System.Threading.Tasks;          // Required for async/await
+using System.Collections.Concurrent;   // Required for thread-safe caching
 
 namespace Helpers;
 
+/// <summary>
+/// Static helper class containing general utilities, calculations, and network services.
+/// </summary>
 internal static class Tools
 {
     private static IDal s_dal = Factory.Get;
 
-    // Static HttpClient to prevent socket exhaustion (resource waste)
+    // Static HttpClient to prevent socket exhaustion
     private static readonly HttpClient client = new HttpClient();
 
+    // Cache to store previously fetched coordinates to minimize network traffic.
+    // Key: Address String, Value: (Latitude, Longitude) or null if not found.
+    private static readonly ConcurrentDictionary<string, (double, double)?> _coordinateCache = new();
+
+    /// <summary>
+    /// Static constructor to initialize shared resources.
+    /// </summary>
+    static Tools()
+    {
+        // Set User-Agent globally once, as required by Nominatim API policies.
+        client.DefaultRequestHeaders.Add("User-Agent", "DeliverySystemApp");
+    }
+
     #region Calculations & Algorithms
+
     /// <summary>
     /// Calculates aerial distance with safety checks for 0 or null coordinates.
-    /// FIX: Prevents calculation errors when coordinates are missing.
+    /// Prevents calculation errors when coordinates are missing.
     /// </summary>
+    /// <param name="lat1">Source Latitude</param>
+    /// <param name="lon1">Source Longitude</param>
+    /// <param name="lat2">Target Latitude (optional, defaults to company config)</param>
+    /// <param name="lon2">Target Longitude (optional, defaults to company config)</param>
+    /// <returns>Distance in Kilometers</returns>
     internal static double CalculateAirDistance(double lat1, double lon1, double? lat2 = null, double? lon2 = null)
     {
         if (lat1 == 0 && lon1 == 0) return 0;
@@ -43,7 +67,7 @@ internal static class Tools
     }
 
     /// <summary>
-    /// Estimates arrival time.
+    /// Estimates arrival time based on shipping type speed.
     /// Handles null Distance to prevent NullReferenceException.
     /// </summary>
     internal static DateTime EstimatedArrivalTimeCalculate(DO.Delivery delivery)
@@ -67,9 +91,8 @@ internal static class Tools
     }
 
     /// <summary>
-    /// Calculates max arrival time.
-    /// Forces use of Config.MaxDeliveryTime (4 hours) instead of logic based on OrderType.
-    /// This fixes the bug where orders showed "16 days left" instead of hours.
+    /// Calculates max arrival time based on configuration.
+    /// Forces use of Config.MaxDeliveryTime instead of logic based on OrderType.
     /// </summary>
     internal static DateTime MaxArrivalTimeCalculate(DO.Order order)
     {
@@ -86,14 +109,12 @@ internal static class Tools
 
         // Logic Check: Has the order been finalized?
         // We consider an order "Closed" for SLA purposes ONLY if it was Provided or Refused by the customer.
-        // If it was Cancelled (e.g., courier cancelled), the order is still pending fulfillment, so the clock must keep running.
         bool isSuccessfullyClosed = delivery != null &&
                                     delivery.EndType != null &&
                                     (delivery.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
                                      delivery.EndType == DO.Enums.ShipmentCompletionStatus.Refused);
 
         // Scenario A: Order is successfully closed (Provided/Refused)
-        // We check the historical duration to see if it WAS on time.
         if (isSuccessfullyClosed && delivery!.EndOrderTime != null)
         {
             TimeSpan actualDuration = delivery.EndOrderTime.Value - order.StartOrderTime;
@@ -101,9 +122,7 @@ internal static class Tools
 
             return (actualDuration <= maxDuration) ? BO.ScheduleStatus.OnTime : BO.ScheduleStatus.Late;
         }
-
-        // Scenario B: Order is Open, Active (OnCare), or was Cancelled (needs re-delivery)
-        // We check the current clock against the deadline.
+        // Scenario B: Order is Open, Active (OnCare), or was Cancelled
         else
         {
             DateTime deadline = MaxArrivalTimeCalculate(order);
@@ -121,7 +140,7 @@ internal static class Tools
             // 3. Plenty of time left
             return BO.ScheduleStatus.OnTime;
         }
-    }   
+    }
     #endregion Calculations & Algorithms
 
     #region Validations
@@ -210,7 +229,6 @@ internal static class Tools
 
     /// <summary>
     /// Generic extension method to generate a string representation of any object's public properties.
-    /// Uses Reflection to iterate over properties and handles collections appropriately.
     /// </summary>
     public static string ToStringProperty<T>(this T obj)
     {
@@ -229,19 +247,16 @@ internal static class Tools
             {
                 var value = property.GetValue(obj, null);
 
-                // Case 1: Value is null
                 if (value == null)
                 {
                     result.AppendLine($"{property.Name}: null");
                     continue;
                 }
 
-                // Case 2: Value is a String (Treat as single value, not collection)
                 if (value is string strValue)
                 {
                     result.AppendLine($"{property.Name}: {strValue}");
                 }
-                // Case 3: Value is a Collection
                 else if (value is IEnumerable collection)
                 {
                     result.AppendLine($"{property.Name}:");
@@ -258,7 +273,6 @@ internal static class Tools
                         result.AppendLine("  <Empty>");
                     }
                 }
-                // Case 4: Standard property value (int, double, Enum, etc.)
                 else
                 {
                     result.AppendLine($"{property.Name}: {value}");
@@ -274,7 +288,7 @@ internal static class Tools
 
     internal static void CheckPasswordEntry(int id, string password)
     {
-        // 1. cheack if the manager log in
+        // 1. Check if the manager logged in
         if (id == s_dal.Config.ManagerId)
         {
             if (password != s_dal.Config.ManagerPassword)
@@ -283,33 +297,42 @@ internal static class Tools
             return;
         }
 
-        // 2. cheack if a courier log in
+        // 2. Check if a courier logged in
         DO.Courier? doCourier = s_dal.Courier.Read(id);
 
         if (doCourier == null || password != doCourier.Password)
             throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
     }
 
-    public static (double Latitude, double Longitude) GetCoordinates(string address)
+    /// <summary>
+    /// Async method to get coordinates from OpenStreetMap (Nominatim).
+    /// Uses caching to prevent redundant network requests.
+    /// </summary>
+    /// <param name="address">The address string to search for.</param>
+    /// <returns>A tuple of (Latitude, Longitude) or null if not found/error.</returns>
+    public static async Task<(double Latitude, double Longitude)?> GetCoordinatesAsync(string address)
     {
+        // 1. Check Cache first
+        if (_coordinateCache.TryGetValue(address, out var cachedResult))
+        {
+            return cachedResult;
+        }
+
         string url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(address)}&format=json&limit=1";
 
         try
         {
-            // Set User-Agent as required by Nominatim API policies
-            if (!client.DefaultRequestHeaders.Contains("User-Agent"))
+            // 2. Perform Async Network Request
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
             {
-                client.DefaultRequestHeaders.Add("User-Agent", "DeliverySystemApp");
+                // Network failed or bad request - cache as null and return
+                _coordinateCache[address] = null;
+                return null;
             }
 
-            // This runs the network request on a background thread.
-            var response = Task.Run(() => client.GetAsync(url)).Result;
-
-            // Check if the server returned a valid response (e.g., not 404 or 500)
-            if (!response.IsSuccessStatusCode)
-                throw new BO.BlInvalidDataException("Server error: Unable to fetch coordinates.");
-
-            var json = Task.Run(() => response.Content.ReadAsStringAsync()).Result;
+            var json = await response.Content.ReadAsStringAsync();
 
             using (JsonDocument doc = JsonDocument.Parse(json))
             {
@@ -317,7 +340,10 @@ internal static class Tools
 
                 // Check if the results array is empty (Address not found)
                 if (root.GetArrayLength() == 0)
-                    throw new BO.BlInvalidDataException("Address not found.");
+                {
+                    _coordinateCache[address] = null;
+                    return null;
+                }
 
                 double lat = double.Parse(
                     root[0].GetProperty("lat").GetString()!,
@@ -327,19 +353,18 @@ internal static class Tools
                     root[0].GetProperty("lon").GetString()!,
                     CultureInfo.InvariantCulture);
 
-                return (lat, lon);
+                var result = (lat, lon);
+
+                // 3. Save to Cache
+                _coordinateCache[address] = result;
+
+                return result;
             }
         }
-        catch (AggregateException ex)
+        catch
         {
-            // Unwrap the AggregateException to get the real network error message
-            string msg = ex.InnerException?.Message ?? ex.Message;
-            throw new BO.BlNetworkException($"Network error: {msg}");
-        }
-        catch (Exception ex)
-        {
-            // Catch any other errors (parsing, etc.) and throw a friendly message
-            throw new BO.BlGeneralException($"Error fetching coordinates: {ex.Message}");
+            // In case of any network/parsing exception, return null to allow BL to handle gracefully
+            return null;
         }
     }
 }

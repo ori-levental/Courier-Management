@@ -1,19 +1,20 @@
 ﻿using BlApi;
 using BO;
 using Helpers;
+using System.Threading.Tasks;
 
 namespace BlImplementation;
 
 internal class AdminImplementation : IAdmin
 {
-    public void ResetDB()
+    public async Task ResetDB()
     {
-        Helpers.AdminManager.ResetDB();
+        await Helpers.AdminManager.ResetDBAsync();
     }
 
-    public void InitializeDB()
+    public async Task InitializeDB()
     {
-        Helpers.AdminManager.InitializeDB();
+        await Helpers.AdminManager.InitializeDBAsync();
     }
 
     public DateTime GetClock()
@@ -33,9 +34,9 @@ internal class AdminImplementation : IAdmin
         return Helpers.AdminManager.GetConfig();
     }
 
-    public void SetConfig(BO.Config config)
+    public async Task SetConfig(BO.Config config)
     {
-        Helpers.AdminManager.SetConfig(config);
+        await Helpers.AdminManager.SetConfigAsync(config);
     }
 
     public bool CheackEnter(int id, string password)

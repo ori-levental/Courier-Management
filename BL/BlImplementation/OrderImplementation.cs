@@ -2,13 +2,15 @@
 using BlApi;
 using BO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+
 
 internal class OrderImplementation : IOrder
 {
     /// <summary>
     /// Adds a new order to the system after validation.
     /// </summary>
-    public void AddOrder(int requesterId, Order order)
+    public async Task AddOrderAsync(int requesterId, Order order)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
 
@@ -16,7 +18,7 @@ internal class OrderImplementation : IOrder
             throw new BO.BlNotNullableException("Cannot add null object");
 
         Helpers.OrderManager.CheckCorrectnessVariables(order);
-        Helpers.OrderManager.AddOrder(requesterId, order);
+        await Helpers.OrderManager.AddOrderAsync(requesterId, order);
     }
 
     /// <summary>
@@ -91,10 +93,10 @@ internal class OrderImplementation : IOrder
     /// <summary>
     /// Updates the details of an existing order.
     /// </summary>
-    public void UpdateOrder(int requesterId, BO.Order order)
+    public async Task UpdateOrderAsync(int requesterId, BO.Order order)
     {
         Helpers.Tools.AccessPermissionToManager(requesterId);
-        Helpers.OrderManager.UpdateOrder(order);
+        await Helpers.OrderManager.UpdateOrderAsync(order);
     }
 
     /// <summary>

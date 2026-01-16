@@ -1,15 +1,21 @@
 ﻿using BO;
 using DalApi;
 using DO;
+using System; // Required for Exception
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks; // Required for Async/Await
 
 namespace Helpers;
 
+/// <summary>
+/// Logic helper for Order operations (BL Layer).
+/// Handles conversions, calculations, and CRUD logic.
+/// </summary>
 internal static class OrderManager
 {
     private static IDal s_dal = Factory.Get;
-    internal static ObserverManager Observers = new(); //stage 5 
+    internal static ObserverManager Observers = new();
 
     #region Data Translation
 
@@ -156,12 +162,16 @@ internal static class OrderManager
             TotalProcessingTime = totalProcessing,
             ScheduleStatus = scheduleStatus
         };
-    }    
+    }
     #endregion Data Translation
 
     #region CRUD & Status Logic
 
-    internal static void AddOrder(int requesterId, BO.Order boOrder)
+    /// <summary>
+    /// Async method to add a new order.
+    /// Fetches coordinates from the network asynchronously.
+    /// </summary>
+    internal static async Task AddOrderAsync(int requesterId, BO.Order boOrder)
     {
         DO.Order doOrder = BOToDOOrder(boOrder);
 
@@ -173,24 +183,29 @@ internal static class OrderManager
         {
             try
             {
-                var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
-                doOrder = doOrder with { Latitude = lat, Longitude = lon };
+                // Using Async method
+                var coords = await Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
+
+                if (coords == null)
+                    throw new BO.BlNetworkException("Unable to fetch coordinates (Network Error or Address not found).");
+
+                doOrder = doOrder with { Latitude = coords.Value.Latitude, Longitude = coords.Value.Longitude };
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not BO.BlNetworkException)
             {
                 throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
             }
         }
 
-        // comany addres data
+        // Company address data
         double companyLat = s_dal.Config.Latitude ?? 0;
         double companyLon = s_dal.Config.Longitude ?? 0;
         double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
 
-        // calculate distance
+        // Calculate distance
         double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
 
-        // if is too far
+        // Check if too far
         if (maxDistance > 0 && distance > maxDistance)
             throw new BO.BlInvalidDataException($"Address is too far! Distance: {distance:F2}km, Max allowed: {maxDistance}km");
 
@@ -213,30 +228,39 @@ internal static class OrderManager
         return DOToBOOrder(order);
     }
 
-    internal static void UpdateOrder(BO.Order order)
+    /// <summary>
+    /// Async method to update an order.
+    /// Fetches coordinates from the network asynchronously if needed.
+    /// </summary>
+    internal static async Task UpdateOrderAsync(BO.Order order)
     {
         DO.Order doOrder = BOToDOOrder(order);
 
         // Automatically get coordinates if address changed and coords are 0
         try
         {
-            var (lat, lon) = Tools.GetCoordinates(doOrder.CustomerAddress);
-            doOrder = doOrder with { Latitude = lat, Longitude = lon };
+            // Using Async method
+            var coords = await Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
+
+            if (coords == null)
+                throw new BO.BlNetworkException("Unable to fetch coordinates (Network Error or Address not found).");
+
+            doOrder = doOrder with { Latitude = coords.Value.Latitude, Longitude = coords.Value.Longitude };
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not BO.BlNetworkException)
         {
             throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
         }
 
-        // comany addres data
+        // Company address data
         double companyLat = s_dal.Config.Latitude ?? 0;
         double companyLon = s_dal.Config.Longitude ?? 0;
         double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
 
-        // calculate distance
+        // Calculate distance
         double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
 
-        // if is too far
+        // Check if too far
         if (maxDistance > 0 && distance > maxDistance)
             throw new BO.BlInvalidDataException($"Address is too far! Distance: {distance:F2}km, Max allowed: {maxDistance}km");
 
@@ -307,11 +331,11 @@ internal static class OrderManager
     {
         // 1. Verify Order availability - only reject if ALREADY in progress or completed
         var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
-        
-        if (deliveries.Any(d => 
-            (d?.EndOrderTime == null && d?.CourierId != 0) || 
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||  
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled)) 
+
+        if (deliveries.Any(d =>
+            (d?.EndOrderTime == null && d?.CourierId != 0) ||
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
         {
             throw new BO.BlAlreadyExistsException("Order is already being handled, completed, or cancelled.");
         }

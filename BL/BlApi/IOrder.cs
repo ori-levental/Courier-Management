@@ -1,5 +1,6 @@
 ﻿using BO;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BlApi;
 
@@ -40,14 +41,14 @@ public interface IOrder : IObservable
     /// </summary>
     /// <param name="requesterId">The ID of the user performing the update.</param>
     /// <param name="order">The BO.Order object with updated data.</param>
-    void UpdateOrder(int requesterId, BO.Order order);
+    Task UpdateOrderAsync(int requesterId, BO.Order order);
 
     /// <summary>
     /// Adds a new order to the system.
     /// </summary>
     /// <param name="requesterId">The ID of the user adding the order.</param>
     /// <param name="order">The BO.Order object containing the new order data.</param>
-    void AddOrder(int requesterId, BO.Order order);
+    Task AddOrderAsync(int requesterId, BO.Order order);
 
     /// <summary>
     /// Marks a specific order as canceled.

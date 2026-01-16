@@ -2,62 +2,48 @@
 using BO;
 using DalApi;
 using System.Runtime.CompilerServices;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading.Tasks; // Required for Task
 
 namespace Helpers;
 
 /// <summary>
 /// Internal BL manager for all Application's Configuration Variables and Clock logic policies
 /// </summary>
-internal static class AdminManager //stage 4
+internal static class AdminManager
 {
     #region Stage 4-7
-    private static readonly DalApi.IDal s_dal = DalApi.Factory.Get; //stage 4
+    private static readonly DalApi.IDal s_dal = DalApi.Factory.Get;
 
     /// <summary>
     /// Property for providing current application's clock value for any BL class that may need it
     /// </summary>
-    internal static DateTime Now { get => s_dal.Config.Clock; } //stage 4
+    internal static DateTime Now { get => s_dal.Config.Clock; }
 
-    internal static event Action? ConfigUpdatedObservers; //stage 5 - for config update observers
-    internal static event Action? ClockUpdatedObservers; //stage 5 - for clock update observers
+    internal static event Action? ConfigUpdatedObservers;
+    internal static event Action? ClockUpdatedObservers;
 
-    private static Task? _periodicTask = null; //stage 7
+    private static Task? _periodicTask = null;
 
     /// <summary>
     /// Method to update application's clock from any BL class as may be required
     /// </summary>
     /// <param name="newClock">updated clock value</param>
-    internal static void UpdateClock(DateTime newClock) //stage 4-7
+    internal static void UpdateClock(DateTime newClock)
     {
-        var oldClock = s_dal.Config.Clock; //stage 4
-        s_dal.Config.Clock = newClock; //stage 4
+        var oldClock = s_dal.Config.Clock;
+        s_dal.Config.Clock = newClock;
 
         // --- Logic for Stage 4 Implementation ---
         // 1. Update Order Statuses (Simulate delivery progress)
+        // This remains synchronous as it performs calculations, not network requests
         Helpers.OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
 
         // 2. Deactivate Idle Couriers (Cleanup logic)
         Helpers.CourierManager.DeactivateIdleCouriers();
         // ----------------------------------------
 
-        //Add calls here to any logic method that should be called periodically,
-        //after each clock update
-        //for example, Periodic students' updates:
-        // - Go through all students to update properties that are affected by the clock update
-        // - (students become not active after 5 years etc.)
-
-        //TO_DO: //stage 4
-        //   StudentManager.PeriodicStudentsUpdates(oldClock, newClock); //stage 4. to be removed in stage 7 and replaced as below
-        //...
-
-        //TO_DO: //stage 7
-        //if (_periodicTask is null || _periodicTask.IsCompleted) //stage 7
-        //    _periodicTask = Task.Run(() => StudentManager.PeriodicStudentsUpdates(oldClock, newClock));
-        //...
-
-        //Calling all the observers of clock update
-        ClockUpdatedObservers?.Invoke(); //prepared for stage 5
+        // Calling all the observers of clock update
+        ClockUpdatedObservers?.Invoke();
     }
 
     /// <summary>
@@ -79,8 +65,8 @@ internal static class AdminManager //stage 4
     /// <summary>
     /// Method for providing current configuration variables values for any BL class that may need it
     /// </summary>
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
-    internal static BO.Config GetConfig() //stage 4
+    [MethodImpl(MethodImplOptions.Synchronized)] // Safe to keep here (Sync method)
+    internal static BO.Config GetConfig()
     {
         return new BO.Config()
         {
@@ -105,10 +91,10 @@ internal static class AdminManager //stage 4
     }
 
     /// <summary>
-    /// Method for setting current configuration variables values for any BL class that may need it
+    /// Async Method for setting current configuration.
+    /// MUST be Async because it calls Tools.GetCoordinatesAsync (Network Request).
     /// </summary>
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7
-    internal static void SetConfig(BO.Config configuration) //stage 4
+    internal static async Task SetConfigAsync(BO.Config configuration)
     {
         bool configChanged = false;
 
@@ -128,8 +114,8 @@ internal static class AdminManager //stage 4
             s_dal.Config.ManagerPassword = configuration.ManagerPassword;
             configChanged = true;
         }
-        
-        // Company Address - Get Coordinates Automatically
+
+        // --- Company Address - Get Coordinates Automatically (ASYNC) ---
         if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
         {
             // Automatically get coordinates from the new address
@@ -137,16 +123,26 @@ internal static class AdminManager //stage 4
             {
                 try
                 {
-                    var (lat, lon) = Helpers.Tools.GetCoordinates(configuration.CompanyAddress);
-                    s_dal.Config.Latitude = lat;
-                    s_dal.Config.Longitude = lon;
+                    // UPDATE: Using 'await' for the network request
+                    var coords = await Helpers.Tools.GetCoordinatesAsync(configuration.CompanyAddress);
+
+                    if (coords != null)
+                    {
+                        s_dal.Config.Latitude = coords.Value.Latitude;
+                        s_dal.Config.Longitude = coords.Value.Longitude;
+                    }
+                    else
+                    {
+                        // Handle failure (keep old or set to 0)
+                        s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
+                    }
                 }
                 catch (Exception ex)
                 {
                     throw new BO.BlInvalidDataException($"Could not get coordinates for company address: {ex.Message}");
                 }
             }
-            else               
+            else
                 s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
 
 
@@ -198,67 +194,71 @@ internal static class AdminManager //stage 4
             ConfigUpdatedObservers?.Invoke();
     }
 
-    internal static void ResetDB() //stage 4-7
+    internal static async Task ResetDBAsync()
     {
-        lock (BlMutex) //stage 7
+        // 1. Reset DAL (Synchronous operation, inside lock)
+        lock (BlMutex)
         {
-            s_dal.ResetDB(); //stage 4
-            AdminManager.UpdateClock(AdminManager.Now); //stage 5 - needed since we want the label on Pl to be updated
-            AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed to update PL 
-
-            // for observer
-            AdminManager.SetConfig(AdminManager.GetConfig());
-            Helpers.CourierManager.Observers.NotifyListUpdated();
-            Helpers.OrderManager.Observers.NotifyListUpdated();
-
+            s_dal.ResetDB();
+            AdminManager.UpdateClock(AdminManager.Now);
         }
+
+        // 2. Set Config (Async operation, MUST be outside lock)
+        // We cannot use 'await' inside a lock statement.
+        await AdminManager.SetConfigAsync(AdminManager.GetConfig());
+
+        // 3. Notify Observers
+        Helpers.CourierManager.Observers.NotifyListUpdated();
+        Helpers.OrderManager.Observers.NotifyListUpdated();
     }
 
-    internal static void InitializeDB() //stage 4-7
+    internal static async Task InitializeDBAsync()
     {
-        lock (BlMutex) //stage 7
+        // 1. Initialize DAL (Synchronous operation, inside lock)
+        lock (BlMutex)
         {
-            DalTest.Initialization.Do(); //stage 4
-            AdminManager.UpdateClock(AdminManager.Now);  //stage 5 - needed since we want the label on Pl to be updated            
-            AdminManager.SetConfig(AdminManager.GetConfig()); //stage 5 - needed for update the PL
-
-            // for observer
-            AdminManager.SetConfig(AdminManager.GetConfig());
-            Helpers.CourierManager.Observers.NotifyListUpdated();
-            Helpers.OrderManager.Observers.NotifyListUpdated();
+            DalTest.Initialization.Do();
+            AdminManager.UpdateClock(AdminManager.Now);
         }
+
+        // 2. Set Config (Async operation, MUST be outside lock)
+        await AdminManager.SetConfigAsync(AdminManager.GetConfig());
+
+        // 3. Notify Observers
+        Helpers.CourierManager.Observers.NotifyListUpdated();
+        Helpers.OrderManager.Observers.NotifyListUpdated();
     }
 
     #endregion Stage 4-7
 
     #region Stage 7 base
 
-    /// <summary>    
+    /// <summary>     
     /// Mutex to use from BL methods to get mutual exclusion while the simulator is running
     /// </summary>
-    internal static readonly object BlMutex = new(); // BlMutex = s_dal; // This field is actually the same as s_dal - it is defined for readability of locks
+    internal static readonly object BlMutex = new();
     /// <summary>
     /// The thread of the simulator
     /// </summary>
     private static volatile Thread? s_thread;
     /// <summary>
     /// The Interval for clock updating
-    /// in minutes by second (default value is 1, will be set on Start())    
+    /// in minutes by second (default value is 1, will be set on Start())     
     /// </summary>
     private static int s_interval = 1;
     /// <summary>
     /// The flag that signs whether simulator is running
-    /// 
+    /// </summary>
     private static volatile bool s_stop = false;
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
+    [MethodImpl(MethodImplOptions.Synchronized)]
     public static void ThrowOnSimulatorIsRunning()
     {
         if (s_thread is not null)
             throw new BO.BlNotNullableException("Cannot perform the operation since Simulator is running");
     }
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void Start(int interval)
     {
         if (s_thread is null)
@@ -270,7 +270,7 @@ internal static class AdminManager //stage 4
         }
     }
 
-    [MethodImpl(MethodImplOptions.Synchronized)] //stage 7                                                                
+    [MethodImpl(MethodImplOptions.Synchronized)]
     internal static void Stop()
     {
         if (s_thread is not null)
@@ -287,12 +287,6 @@ internal static class AdminManager //stage 4
         while (!s_stop)
         {
             UpdateClock(Now.AddMinutes(s_interval));
-
-            //TO_DO: //stage 7
-            //Add calls here to any logic simulation that was required in stage 7
-            //for example: course registration simulation
-
-            //etc...
 
             try
             {

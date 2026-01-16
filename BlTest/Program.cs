@@ -190,7 +190,7 @@ internal class Program
                             Description = GetString("Description"),
                             OrderType = GetEnum<BO.OrderType>("Order Type")
                         };
-                        s_bl.Order.AddOrder(reqId, newOrder);
+                        s_bl.Order.AddOrderAsync(reqId, newOrder);
                         Console.WriteLine("Added.");
                         break;
 
