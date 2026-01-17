@@ -7,12 +7,12 @@ namespace BlImplementation;
 
 internal class AdminImplementation : IAdmin
 {
-    public async Task ResetDB()
+    public async Task ResetDBAsync()
     {
         await Helpers.AdminManager.ResetDBAsync();
     }
 
-    public async Task InitializeDB()
+    public async Task InitializeDBAsync()
     {
         await Helpers.AdminManager.InitializeDBAsync();
     }
@@ -34,7 +34,7 @@ internal class AdminImplementation : IAdmin
         return Helpers.AdminManager.GetConfig();
     }
 
-    public async Task SetConfig(BO.Config config)
+    public async Task SetConfigAsync(BO.Config config)
     {
         await Helpers.AdminManager.SetConfigAsync(config);
     }

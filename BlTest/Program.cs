@@ -318,18 +318,18 @@ internal class Program
                         var conf = s_bl.Admin.GetConfig();
                         Console.WriteLine($"Current Range: {conf.MaxRange}");
                         conf.MaxRange = GetDouble("New Max Range");
-                        s_bl.Admin.SetConfig(conf);
+                        s_bl.Admin.SetConfigAsync(conf);
                         Console.WriteLine("Updated.");
                         break;
                     case 5:
                         if (GetString("Confirm Reset? (y/n)") == "y")
                         {
-                            s_bl.Admin.ResetDB();
+                            s_bl.Admin.ResetDBAsync();
                             Console.WriteLine("Database Reset.");
                         }
                         break;
                     case 6:
-                        s_bl.Admin.InitializeDB();
+                        s_bl.Admin.InitializeDBAsync();
                         Console.WriteLine("Init Done.");
                         break;
                 }

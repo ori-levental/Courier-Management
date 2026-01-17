@@ -322,6 +322,7 @@ internal static class Tools
 
         try
         {
+            await Task.Delay(5000); // השהיה של 5 שניות
             // 2. Perform Async Network Request
             var response = await client.GetAsync(url);
 

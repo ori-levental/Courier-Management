@@ -185,12 +185,15 @@ namespace PL
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
-                    CloseAllWindows();
-                    await Task.Run(() => s_bl.Admin.InitializeDB());
-                    await Task.Delay(1000);
-                    Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
 
-                    _isPasswordSyncing = true; 
+                    // Using await directly against the BL
+                    await s_bl.Admin.InitializeDBAsync();
+
+                    // Update window
+                    Configuration = s_bl.Admin.GetConfig();
+
+                    // Sync password to display
+                    _isPasswordSyncing = true;
                     pbManagerPass.Password = Configuration.ManagerPassword ?? "";
                     _isPasswordSyncing = false;
 
@@ -211,11 +214,14 @@ namespace PL
                 try
                 {
                     Mouse.OverrideCursor = Cursors.Wait;
-                    CloseAllWindows();
-                    await Task.Run(() => s_bl.Admin.ResetDB());
-                    await Task.Delay(1000);
-                    Configuration = s_bl.Admin.GetConfig(); // Refresh config after reset
 
+                    // Using await directly against the BL
+                    await s_bl.Admin.ResetDBAsync();
+
+                    // Update window
+                    Configuration = s_bl.Admin.GetConfig();
+
+                    // Sync password to display
                     _isPasswordSyncing = true;
                     pbManagerPass.Password = Configuration.ManagerPassword ?? "";
                     _isPasswordSyncing = false;
@@ -229,19 +235,32 @@ namespace PL
             }
         }
 
-        private void BtnSaveConfig_Click(object sender, RoutedEventArgs e)
+        private async void BtnSaveConfig_Click(object sender, RoutedEventArgs e)
         {
-            SafeExec(() =>
+            try
             {
-                // Ensure password is synced before saving
+                // 1. Update the password from the fields
                 if (txtVisibleManagerPass.Visibility == Visibility.Visible)
                     Configuration.ManagerPassword = txtVisibleManagerPass.Text;
                 else
                     Configuration.ManagerPassword = pbManagerPass.Password;
 
-                s_bl.Admin.SetConfig((BO.Config)Configuration);
+                // 2. User notification and waiting
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // Asynchronous read (checks network address)
+                await s_bl.Admin.SetConfigAsync((BO.Config)Configuration);
+
                 MessageBox.Show("Configuration updated successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
-            });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+            }
         }
 
         private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenCourierList);

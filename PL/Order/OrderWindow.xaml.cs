@@ -1,8 +1,9 @@
-﻿using System;
+﻿using BlApi;
+using BO;
+using System;
 using System.Collections.Generic;
 using System.Windows;
-using BlApi;
-using BO;
+using System.Windows.Input;
 
 namespace PL.Order
 {
@@ -88,31 +89,49 @@ namespace PL.Order
 
         // --- Event Handlers ---
 
-        private void BtnAction_Click(object sender, RoutedEventArgs e)
+        private async void BtnAction_Click(object sender, RoutedEventArgs e)
         {
             try
             {
+                // Basic sanity check before sending
+                if (CurrentOrder == null) return;
+
                 int managerId = s_bl.Admin.GetConfig().ManagerId;
+
+                // Blocking the interface to prevent double clicks
+                IsEnabled = false;
+                Mouse.OverrideCursor = Cursors.Wait;
 
                 if (IsAddMode)
                 {
-                    s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
-                    MessageBox.Show("Order added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // Waiting for a response from the BL (including checking the network address)
+                    await s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
+                    MessageBox.Show($"Order added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
-                    MessageBox.Show("Order updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    // Waiting for update
+                    await s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
+                    MessageBox.Show($"Order {CurrentOrder.Id} updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
                 Close();
+            }
+            catch (BO.BlNetworkException ex) // Catch specific network errors if you have created any
+            {
+                MessageBox.Show($"Network Error: {ex.Message}", "Communication Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Operation Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                // Release the interface anyway
+                IsEnabled = true;
+                Mouse.OverrideCursor = null;
+            }
         }
-
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to cancel this order?", "Confirm Cancel",

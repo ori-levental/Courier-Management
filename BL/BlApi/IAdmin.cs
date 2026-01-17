@@ -10,12 +10,12 @@ public interface IAdmin
     /// <summary>
     /// Resets the entire data layer (database) to an empty state.
     /// </summary>
-    public Task ResetDB();
+    public Task ResetDBAsync();
 
     /// <summary>
     /// Initializes the data layer (database) with testing data.
     /// </summary>
-    public Task InitializeDB();
+    public Task InitializeDBAsync();
 
     /// <summary>
     /// Retrieves the current system clock time.
@@ -39,7 +39,7 @@ public interface IAdmin
     /// Updates the general system configuration variables.
     /// </summary>
     /// <param name="config">The BO.Config object containing the updated settings.</param>
-    public Task SetConfig(BO.Config config);
+    public Task SetConfigAsync(BO.Config config);
 
     bool CheackEnter(int id, string password);
 
