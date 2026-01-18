@@ -74,7 +74,7 @@ public interface IOrder : IObservable
     /// <param name="requesterId">The ID of the user (must be the courier).</param>
     /// <param name="courierId">The ID of the courier assigning the order.</param>
     /// <param name="orderId">The ID of the order to be assigned.</param>
-    void OrderSelection(int requesterId, int courierId, int orderId);
+    Task OrderSelectionAsync(int requesterId, int courierId, int orderId);
 
     /// <summary>
     /// Retrieves a history list of closed deliveries for a specific courier.

@@ -432,40 +432,56 @@ internal static class OrderManager
 
     #region Courier Operations
 
-    internal static void OrderSelection(int courierId, int orderId)
+    internal static async Task OrderSelectionAsync(int courierId, int orderId)
     {
         // Stage 7: Block simulator
         Helpers.AdminManager.ThrowOnSimulatorIsRunning();
 
-        // Stage 7: Lock the whole transaction (Read + Create)
+        DO.Courier? courier;
+        DO.Order? order;
+
+        // Stage 1: Initial data fetch (fast read inside lock)
         lock (Helpers.AdminManager.BlMutex)
         {
-            // 1. Verify Order availability - only reject if ALREADY in progress or completed
+            courier = s_dal.Courier.Read(courierId) ?? throw new BO.BlDoesNotExistException("Courier not found");
+            order = s_dal.Order.Read(orderId) ?? throw new BO.BlDoesNotExistException("Order not found");
+
+            // Initial check if the order is available (to save network read if not)
+            var existingDeliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId);
+            if (existingDeliveries.Any(d => d?.EndOrderTime == null && d?.CourierId != 0))
+                throw new BO.BlAlreadyExistsException("Order is currently handled by another courier.");
+        }
+
+        // Step 2: Calculate actual distance (long network operation - no locking!)
+        // We send the courier's vehicle type to determine the route
+        double routeDistance = await Tools.GetRouteDistanceAsync(
+        order.Latitude, order.Longitude, // Origin (customer)
+        s_dal.Config.Latitude ?? 0, s_dal.Config.Longitude ?? 0, // Destination (company) - or vice versa depending on the logic
+        courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle // Vehicle type
+        );
+
+        // Step 3: Safeguard (Re-Lock)
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // Double Check Locking in case someone grabbed the order while we were waiting for the network
             var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
 
             if (deliveries.Any(d =>
-                (d?.EndOrderTime == null && d?.CourierId != 0) ||
-                d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
-                d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
+            (d?.EndOrderTime == null && d?.CourierId != 0) ||
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
+            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
             {
-                throw new BO.BlAlreadyExistsException("Order is already being handled, completed, or cancelled.");
+                throw new BO.BlAlreadyExistsException("Order was grabbed by someone else just now.");
             }
 
-            // 2. Validate Courier & Order existence
-            DO.Courier? courier = s_dal.Courier.Read(courierId) ?? throw new BO.BlDoesNotExistException("Courier not found");
-            DO.Order? order = s_dal.Order.Read(orderId) ?? throw new BO.BlDoesNotExistException("Order not found");
-
-            // 3. Calculate Distance
-            double dist = Tools.CalculateAirDistance(order.Latitude, order.Longitude);
-
-            // 4. Create Delivery
+            // Create the delivery with the actual distance we calculated
             DO.Delivery newDelivery = new()
             {
                 OrderId = orderId,
                 CourierId = courierId,
                 StartDeliveryTime = Helpers.AdminManager.Now,
                 DeliveryShippingType = courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle,
-                Distance = dist
+                Distance = routeDistance // <--- the distance from the API
             };
             s_dal.Delivery.Create(newDelivery);
         }
@@ -473,7 +489,6 @@ internal static class OrderManager
         Observers.NotifyListUpdated();
         Observers.NotifyItemUpdated(orderId);
     }
-
     internal static void CloseOrder(int courierId, int deliveryId, BO.ShipmentCompletionStatus status)
     {
         // Stage 7: Block simulator

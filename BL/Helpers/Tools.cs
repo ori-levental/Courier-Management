@@ -116,6 +116,56 @@ internal static class Tools
         }
     }
 
+    /// <summary>
+    /// Calculates the ACTUAL route distance using an external API (OSRM).
+    /// Grouping Logic:
+    /// - Car/Motorcycle -> 'driving' profile.
+    /// - Bicycle/Walk -> 'walking' profile (assuming same path as per requirements).
+    /// </summary>
+    public static async Task<double> GetRouteDistanceAsync(double startLat, double startLon, double endLat, double endLon, DO.Enums.ShippingType vehicleType)
+    {
+        // 1. Determine OSRM Profile based on requirements
+        string profile = vehicleType switch
+        {
+            // Group 1: Vehicles (Same route)
+            DO.Enums.ShippingType.Car => "driving",
+            DO.Enums.ShippingType.Motorcycle => "driving",
+
+            // Group 2: Pedestrians/Bikes (Same route)
+            // We use 'foot' as it covers both walking and often biking paths in city contexts
+            _ => "foot"
+        };
+
+        string url = $"http://router.project-osrm.org/route/v1/{profile}/{startLon},{startLat};{endLon},{endLat}?overview=false";
+
+        try
+        {
+            // 2. Perform Network Request
+            // Use existing static client
+            var response = await client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception(); // Force fallback
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            // 3. Parse JSON
+            using (JsonDocument doc = JsonDocument.Parse(json))
+            {
+                var routes = doc.RootElement.GetProperty("routes");
+                if (routes.GetArrayLength() == 0) return 0;
+
+                // OSRM returns distance in METERS. Convert to KM.
+                double distanceMeters = routes[0].GetProperty("distance").GetDouble();
+                return distanceMeters / 1000.0;
+            }
+        }
+        catch
+        {
+            // 4. Fallback: If network fails, return Air Distance
+            return CalculateAirDistance(startLat, startLon, endLat, endLon);
+        }
+    }
 
     /// <summary>
     /// Determines the current schedule status (OnTime, Late, or InRisk).

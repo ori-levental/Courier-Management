@@ -300,4 +300,24 @@
     <EndType>Provided</EndType>
     <EndOrderTime>2024-11-01T12:01:25.5</EndOrderTime>
   </Delivery>
+  <Delivery>
+    <Id>31</Id>
+    <OrderId>4</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>2.524577248624579</Distance>
+    <EndType>Provided</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>32</Id>
+    <OrderId>14</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>4.556686424991492</Distance>
+    <EndType>Refused</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
 </ArrayOfDelivery>

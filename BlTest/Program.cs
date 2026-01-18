@@ -200,7 +200,7 @@ internal class Program
                         break;
 
                     case 3: // Select
-                        s_bl.Order.OrderSelection(reqId, reqId, GetInt("Order ID"));
+                        s_bl.Order.OrderSelectionAsync(reqId, reqId, GetInt("Order ID"));
                         Console.WriteLine("Selected.");
                         break;
 

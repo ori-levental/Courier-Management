@@ -112,22 +112,30 @@ namespace PL.Order
 
         /// <summary>
         /// Assigns the selected order to the courier.
+        /// Updated for Async execution (Stage 7).
         /// </summary>
-        private void PickSelectedOrder()
+        private async void PickSelectedOrder()
         {
             var order = SelectedOrder;
             if (order == null) return;
 
-            SafeExec(() =>
+            try
             {
-                s_bl.Order.OrderSelection(CourierId, CourierId, order.OrderId);
+                // Change to Stage 7: Asynchronous call with await
+                // This will allow the screen to stay alive while the BL calculates a route to the server
+                await Task.Run(() => s_bl.Order.OrderSelectionAsync(CourierId, CourierId, order.OrderId));
+
                 MessageBox.Show($"Order {order.OrderId} has been assigned to you!", "Success",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Close the window after successful selection
                 this.DialogResult = true;
                 this.Close();
-            });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>

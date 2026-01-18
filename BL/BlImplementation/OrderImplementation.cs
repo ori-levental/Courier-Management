@@ -78,12 +78,12 @@ internal class OrderImplementation : IOrder
     /// <summary>
     /// Assigns a selected order to a courier.
     /// </summary>
-    public void OrderSelection(int requesterId, int courierId, int orderId)
+    public async Task OrderSelectionAsync(int requesterId, int courierId, int orderId)
     {
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
-        Helpers.OrderManager.OrderSelection(courierId, orderId);
+        Helpers.OrderManager.OrderSelectionAsync(courierId, orderId);
     }
 
     /// <summary>
