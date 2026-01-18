@@ -13,6 +13,7 @@ internal class CourierImplementation : ICourier
     /// </summary>
     public void AddCourier(int requesterId, Courier courier)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
 
         if (courier == null)
@@ -28,6 +29,7 @@ internal class CourierImplementation : ICourier
     /// </summary>
     public void DeleteCourier(int requesterId, int courierId)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
 
         if (Helpers.CourierManager.CheckIfOrderOpen(courierId))
@@ -77,6 +79,7 @@ internal class CourierImplementation : ICourier
     /// </summary>
     public void UpdateCourier(int requesterId, Courier courier)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         // Scenario 1: The Courier is updating themselves
         if (Helpers.CourierManager.AccessCourier(requesterId, courier.Id))
         {

@@ -42,7 +42,6 @@ namespace PL
             try
             {
                 // Start: Visual indication
-                // We do NOT set IsEnabled = false, so the window remains responsive (scroll/move).
                 Mouse.OverrideCursor = Cursors.Wait;
                 AddressStatus = loadingMessage;
                 AddressBorderBrush = Brushes.Orange;

@@ -9,11 +9,13 @@ internal class AdminImplementation : IAdmin
 {
     public async Task ResetDBAsync()
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         await Helpers.AdminManager.ResetDBAsync();
     }
 
     public async Task InitializeDBAsync()
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         await Helpers.AdminManager.InitializeDBAsync();
     }
 
@@ -24,6 +26,7 @@ internal class AdminImplementation : IAdmin
 
     public void ForwardClock(TimeUnit timeUnit)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         DateTime current = Helpers.AdminManager.Now;
 
         DateTime newTime = Helpers.AdminManager.ForwardClock(current, timeUnit);
@@ -36,6 +39,7 @@ internal class AdminImplementation : IAdmin
 
     public async Task SetConfigAsync(BO.Config config)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         await Helpers.AdminManager.SetConfigAsync(config);
     }
 

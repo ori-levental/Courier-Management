@@ -33,16 +33,19 @@ internal static class AdminManager
         var oldClock = s_dal.Config.Clock;
         s_dal.Config.Clock = newClock;
 
-        // --- Logic for Stage 4 Implementation ---
-        // 1. Update Order Statuses (Simulate delivery progress)
-        // This remains synchronous as it performs calculations, not network requests
-        Helpers.OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
+        // We wrap the heavy periodic updates in Task.Run to avoid blocking the Simulator thread.
+        // This runs on a separate thread from the ThreadPool.
+        _ = Task.Run(() =>
+        {
+            // 1. Update Order Statuses (Simulate delivery progress)
+            Helpers.OrderManager.PeriodicOrdersUpdate(oldClock, newClock);
 
-        // 2. Deactivate Idle Couriers (Cleanup logic)
-        Helpers.CourierManager.DeactivateIdleCouriers();
-        // ----------------------------------------
+            // 2. Deactivate Idle Couriers (Cleanup logic)
+            Helpers.CourierManager.DeactivateIdleCouriers();
+        });
 
-        // Calling all the observers of clock update
+        // Calling all the observers of clock update (UI)
+        // This remains on the simulator thread to trigger UI updates via Observer
         ClockUpdatedObservers?.Invoke();
     }
 

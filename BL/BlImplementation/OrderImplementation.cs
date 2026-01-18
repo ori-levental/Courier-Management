@@ -1,6 +1,7 @@
 ﻿namespace BlImplementation;
 using BlApi;
 using BO;
+using Helpers;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public async Task AddOrderAsync(int requesterId, Order order)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
 
         if (order == null)
@@ -26,6 +28,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void CancelOrder(int requesterId, int orderId)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.CancelOrder(orderId);
     }
@@ -35,6 +38,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void CloseOrder(int requesterId, int courierId, int deliveryId, ShipmentCompletionStatus status)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
@@ -46,6 +50,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filterBy, ClosedDeliveryInListEnum? sortBy)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
@@ -95,6 +100,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public async Task UpdateOrderAsync(int requesterId, BO.Order order)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
         await Helpers.OrderManager.UpdateOrderAsync(order);
     }
@@ -115,6 +121,7 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public void DeleteOrder(int requesterId, int orderId)
     {
+        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         Helpers.Tools.AccessPermissionToManager(requesterId);
         Helpers.OrderManager.DeleteOrder(orderId);
     }
