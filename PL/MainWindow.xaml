@@ -1,13 +1,12 @@
-﻿<Window x:Class="PL.MainWindow"
+﻿<local:NetworkAwareWindow x:Class="PL.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:PL"
+        xmlns:local="clr-namespace:PL" 
         mc:Ignorable="d"
         Title="MainWindow - Delivery System Management" Height="760" Width="1000"
         WindowState="Maximized"
-
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
     <Grid>
@@ -109,10 +108,29 @@
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Margin="5">
-                            <Label Content="Company Address:"/>
-                            <TextBox Text="{Binding Configuration.CompanyAddress, UpdateSourceTrigger=PropertyChanged}" Padding="3"/>
-                        </StackPanel>
+                        <TextBox Grid.Column="0" Margin="5"
+                                 Text="{Binding Configuration.CompanyAddress, UpdateSourceTrigger=PropertyChanged}" Padding="3"
+                                 
+                                 BorderBrush="{Binding AddressBorderBrush, RelativeSource={RelativeSource AncestorType=Window}}"
+                                 BorderThickness="2"
+                                 ToolTip="{Binding AddressStatus, RelativeSource={RelativeSource AncestorType=Window}}"
+                                 
+                                 ToolTipService.InitialShowDelay="0"
+                                 ToolTipService.ShowDuration="20000">
+
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <Trigger Property="ToolTip" Value="{x:Null}">
+                                            <Setter Property="ToolTipService.IsEnabled" Value="False"/>
+                                        </Trigger>
+                                        <Trigger Property="ToolTipService.IsEnabled" Value="True">
+                                            <Setter Property="Background" Value="#FFF8F8"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
 
                         <StackPanel Grid.Column="3" Margin="5">
                             <Label Content="Max Air Distance (km):"/>
@@ -123,7 +141,6 @@
 
                 <GroupBox Grid.Row="4" Header="Time Constraints" Margin="5" Padding="10">
                     <UniformGrid Columns="3" Rows="1">
-
                         <StackPanel Margin="5">
                             <Label Content="Max Delivery Time:"/>
                             <TextBox Padding="3" ToolTip="Format: Hours:Minutes:Seconds">
@@ -159,7 +176,6 @@
                                 </TextBox.Text>
                             </TextBox>
                         </StackPanel>
-
                     </UniformGrid>
                 </GroupBox>
 
@@ -218,4 +234,4 @@
         </Border>
 
     </Grid>
-</Window>
+</local:NetworkAwareWindow>

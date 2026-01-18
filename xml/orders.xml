@@ -56,28 +56,6 @@
     <StartOrderTime>2024-11-01T11:18:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>6</Id>
-    <Type>Business</Type>
-    <Description>Order for: Business</Description>
-    <CustomerAddress>Tel Aviv University</CustomerAddress>
-    <Latitude>32.1138</Latitude>
-    <Longitude>34.8048</Longitude>
-    <OrderingName>Aviv Katz-Asher</OrderingName>
-    <PhoneNumber>056-8728911</PhoneNumber>
-    <StartOrderTime>2024-11-01T06:30:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>7</Id>
-    <Type>Wholesale</Type>
-    <Description>Order for: Wholesale</Description>
-    <CustomerAddress>Ramat HaHayal, Tel Aviv</CustomerAddress>
-    <Latitude>32.1105</Latitude>
-    <Longitude>34.8407</Longitude>
-    <OrderingName>Noam Or</OrderingName>
-    <PhoneNumber>051-7245723</PhoneNumber>
-    <StartOrderTime>2024-11-01T09:31:00</StartOrderTime>
-  </Order>
-  <Order>
     <Id>8</Id>
     <Type>Business</Type>
     <Description>Order for: Business</Description>
@@ -100,17 +78,6 @@
     <StartOrderTime>2024-11-01T07:21:00</StartOrderTime>
   </Order>
   <Order>
-    <Id>10</Id>
-    <Type>Business</Type>
-    <Description>Order for: Business</Description>
-    <CustomerAddress>Petah Tikva Grand Mall (HaGadol)</CustomerAddress>
-    <Latitude>32.0872</Latitude>
-    <Longitude>34.869</Longitude>
-    <OrderingName>Hanna Peri</OrderingName>
-    <PhoneNumber>057-9251905</PhoneNumber>
-    <StartOrderTime>2024-11-01T07:48:00</StartOrderTime>
-  </Order>
-  <Order>
     <Id>11</Id>
     <Type>Business</Type>
     <Description>Order for: Business</Description>
@@ -120,17 +87,6 @@
     <OrderingName>Aviv Katz-Asher</OrderingName>
     <PhoneNumber>053-7050257</PhoneNumber>
     <StartOrderTime>2024-11-01T10:09:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>12</Id>
-    <Type>Business</Type>
-    <Description>Order for: Business</Description>
-    <CustomerAddress>Arena Mall, Herzliya</CustomerAddress>
-    <Latitude>32.1666</Latitude>
-    <Longitude>34.8016</Longitude>
-    <OrderingName>Yaffa Adar</OrderingName>
-    <PhoneNumber>055-3936417</PhoneNumber>
-    <StartOrderTime>2024-11-01T09:57:00</StartOrderTime>
   </Order>
   <Order>
     <Id>13</Id>
@@ -164,17 +120,6 @@
     <OrderingName>Yaffa Adar</OrderingName>
     <PhoneNumber>057-3278295</PhoneNumber>
     <StartOrderTime>2024-11-01T08:39:00</StartOrderTime>
-  </Order>
-  <Order>
-    <Id>16</Id>
-    <Type>Private</Type>
-    <Description>Order for: Private</Description>
-    <CustomerAddress>Rabin Square, Tel Aviv</CustomerAddress>
-    <Latitude>32.0809</Latitude>
-    <Longitude>34.781</Longitude>
-    <OrderingName>Hila Rotem Shoshani</OrderingName>
-    <PhoneNumber>050-1898310</PhoneNumber>
-    <StartOrderTime>2024-11-01T09:07:00</StartOrderTime>
   </Order>
   <Order>
     <Id>17</Id>
@@ -549,5 +494,60 @@
     <OrderingName>Yaffa Adar</OrderingName>
     <PhoneNumber>059-3864636</PhoneNumber>
     <StartOrderTime>2024-11-01T07:06:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>12</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>הקריה תל אביב</CustomerAddress>
+    <Latitude>32.0754944</Latitude>
+    <Longitude>34.7876139</Longitude>
+    <OrderingName>Yaffa Adar</OrderingName>
+    <PhoneNumber>055-3936417</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:57:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>16</Id>
+    <Type>Private</Type>
+    <Description>Order for: Private</Description>
+    <CustomerAddress>הקריה תל אביב</CustomerAddress>
+    <Latitude>32.0754944</Latitude>
+    <Longitude>34.7876139</Longitude>
+    <OrderingName>Hila Rotem Shoshani</OrderingName>
+    <PhoneNumber>050-1898310</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:07:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>7</Id>
+    <Type>Wholesale</Type>
+    <Description>Order for: Wholesale</Description>
+    <CustomerAddress>רכבת השלום</CustomerAddress>
+    <Latitude>32.073483</Latitude>
+    <Longitude>34.791645</Longitude>
+    <OrderingName>Noam Or</OrderingName>
+    <PhoneNumber>051-7245723</PhoneNumber>
+    <StartOrderTime>2024-11-01T09:31:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>10</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>הקריה תל אביב</CustomerAddress>
+    <Latitude>32.0754944</Latitude>
+    <Longitude>34.7876139</Longitude>
+    <OrderingName>Hanna Peri</OrderingName>
+    <PhoneNumber>057-9251905</PhoneNumber>
+    <StartOrderTime>2024-11-01T07:48:00</StartOrderTime>
+  </Order>
+  <Order>
+    <Id>6</Id>
+    <Type>Business</Type>
+    <Description>Order for: Business</Description>
+    <CustomerAddress>השלום תל אביב</CustomerAddress>
+    <Latitude>32.0593579</Latitude>
+    <Longitude>34.8081908</Longitude>
+    <OrderingName>Aviv Katz-Asher</OrderingName>
+    <PhoneNumber>056-8728911</PhoneNumber>
+    <StartOrderTime>2024-11-01T06:30:00</StartOrderTime>
   </Order>
 </ArrayOfOrder>

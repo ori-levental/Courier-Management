@@ -137,9 +137,9 @@ internal static class AdminManager
                         s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    throw new BO.BlInvalidDataException($"Could not get coordinates for company address: {ex.Message}");
+                    throw;
                 }
             }
             else

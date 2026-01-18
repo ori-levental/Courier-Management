@@ -184,15 +184,25 @@ internal static class OrderManager
             try
             {
                 // Using Async method
-                var coords = await Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
+                var coords = await Helpers.Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
 
+                // Defensive check (technically Tools throws instead of returning null, but safe to keep)
                 if (coords == null)
-                    throw new BO.BlNetworkException("Unable to fetch coordinates (Network Error or Address not found).");
+                    throw new BO.BlNetworkException("Unable to fetch coordinates (Unknown Error).");
 
                 doOrder = doOrder with { Latitude = coords.Value.Latitude, Longitude = coords.Value.Longitude };
             }
-            catch (Exception ex) when (ex is not BO.BlNetworkException)
+            catch (BO.BlNetworkException)
             {
+                throw; // Don't touch a network error! Let it reach the PL to display "Network Error"
+            }
+            catch (BO.BlInvalidDataException)
+            {
+                throw; // Don't touch an address error! Let it reach the PL to display "Address not found"
+            }
+            catch (Exception ex)
+            {
+                // Only unexpected system errors will be wrapped as data errors
                 throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
             }
         }
@@ -242,17 +252,28 @@ internal static class OrderManager
             // Using Async method
             var coords = await Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
 
+
+            // Defensive check (technically Tools throws instead of returning null, but safe to keep)
             if (coords == null)
-                throw new BO.BlNetworkException("Unable to fetch coordinates (Network Error or Address not found).");
+                throw new BO.BlNetworkException("Unable to fetch coordinates (Unknown Error).");
 
             doOrder = doOrder with { Latitude = coords.Value.Latitude, Longitude = coords.Value.Longitude };
         }
-        catch (Exception ex) when (ex is not BO.BlNetworkException)
+        catch (BO.BlNetworkException)
         {
+            throw; // Don't touch a network error! Let it reach the PL to display "Network Error"
+        }
+        catch (BO.BlInvalidDataException)
+        {
+            throw; // Don't touch an address error! Let it reach the PL to display "Address not found"
+        }
+        catch (Exception ex)
+        {
+            // Only unexpected system errors will be wrapped as data errors
             throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
         }
 
-        // Company address data
+    // Company address data
         double companyLat = s_dal.Config.Latitude ?? 0;
         double companyLon = s_dal.Config.Longitude ?? 0;
         double maxDistance = s_dal.Config.MaxAirDistance ?? 0;

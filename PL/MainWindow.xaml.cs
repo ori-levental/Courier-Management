@@ -26,7 +26,7 @@ namespace PL
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : NetworkAwareWindow
     {
         // Access to the Business Layer via Factory
         static readonly IBl s_bl = Factory.Get();
@@ -237,32 +237,21 @@ namespace PL
 
         private async void BtnSaveConfig_Click(object sender, RoutedEventArgs e)
         {
-            try
+            // Update local logic (password)
+            if (txtVisibleManagerPass.Visibility == Visibility.Visible)
+                Configuration.ManagerPassword = txtVisibleManagerPass.Text;
+            else
+                Configuration.ManagerPassword = pbManagerPass.Password;
+
+            // Using the generic function from the base class
+            await ExecuteNetworkActionAsync(async () =>
             {
-                // 1. Update the password from the fields
-                if (txtVisibleManagerPass.Visibility == Visibility.Visible)
-                    Configuration.ManagerPassword = txtVisibleManagerPass.Text;
-                else
-                    Configuration.ManagerPassword = pbManagerPass.Password;
-
-                // 2. User notification and waiting
-                Mouse.OverrideCursor = Cursors.Wait;
-
-                // Asynchronous read (checks network address)
+                // The specific logic of this window
                 await s_bl.Admin.SetConfigAsync((BO.Config)Configuration);
-
                 MessageBox.Show("Configuration updated successfully!", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error: {ex.Message}", "System Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                Mouse.OverrideCursor = null;
-            }
-        }
 
+            }, "Validating Company Address...", "Address Validated.");
+        }
         private void BtnShowList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenCourierList);
         private void BtnShowOrderList_Click(object sender, RoutedEventArgs e) => SafeExec(OpenOrderList);
 

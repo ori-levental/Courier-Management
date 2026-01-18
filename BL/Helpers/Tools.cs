@@ -312,7 +312,6 @@ internal static class Tools
     /// <returns>A tuple of (Latitude, Longitude) or null if not found/error.</returns>
     public static async Task<(double Latitude, double Longitude)?> GetCoordinatesAsync(string address)
     {
-        // 1. Check Cache first
         if (_coordinateCache.TryGetValue(address, out var cachedResult))
         {
             return cachedResult;
@@ -322,15 +321,12 @@ internal static class Tools
 
         try
         {
-            await Task.Delay(5000); // השהיה של 5 שניות
-            // 2. Perform Async Network Request
-            var response = await client.GetAsync(url);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var response = await client.GetAsync(url, cts.Token);
 
             if (!response.IsSuccessStatusCode)
             {
-                // Network failed or bad request - cache as null and return
-                _coordinateCache[address] = null;
-                return null;
+                throw new BO.BlNetworkException($"Server Error: {response.StatusCode}");
             }
 
             var json = await response.Content.ReadAsStringAsync();
@@ -339,33 +335,32 @@ internal static class Tools
             {
                 JsonElement root = doc.RootElement;
 
-                // Check if the results array is empty (Address not found)
+                // --- The only test that determines that the address is incorrect ---
                 if (root.GetArrayLength() == 0)
                 {
-                    _coordinateCache[address] = null;
-                    return null;
+                    // Only here we throw a data error!
+                    throw new BO.BlInvalidDataException($"Address not found: '{address}'");
                 }
+                // ---------------------------------------------
 
-                double lat = double.Parse(
-                    root[0].GetProperty("lat").GetString()!,
-                    CultureInfo.InvariantCulture);
-
-                double lon = double.Parse(
-                    root[0].GetProperty("lon").GetString()!,
-                    CultureInfo.InvariantCulture);
+                double lat = double.Parse(root[0].GetProperty("lat").GetString()!, CultureInfo.InvariantCulture);
+                double lon = double.Parse(root[0].GetProperty("lon").GetString()!, CultureInfo.InvariantCulture);
 
                 var result = (lat, lon);
-
-                // 3. Save to Cache
                 _coordinateCache[address] = result;
-
                 return result;
             }
         }
-        catch
+        // Catches the specific error we threw above (invalid address) and passes it on
+        catch (BO.BlInvalidDataException)
         {
-            // In case of any network/parsing exception, return null to allow BL to handle gracefully
-            return null;
+            throw;
+        }
+        // Any other error in the world (no internet, timeout, server error, parser) -> network error!
+        catch (Exception ex)
+        {
+            // Critical change: instead of BlInvalidDataException, we throw BlNetworkException
+            throw new BO.BlNetworkException($"Technical Failure: {ex.Message}", ex);
         }
     }
 }

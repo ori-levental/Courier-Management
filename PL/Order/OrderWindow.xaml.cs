@@ -10,7 +10,7 @@ namespace PL.Order
     /// <summary>
     /// Interaction logic for OrderWindow.xaml
     /// </summary>
-    public partial class OrderWindow : Window
+    public partial class OrderWindow : PL.NetworkAwareWindow
     {
         static readonly IBl s_bl = Factory.Get();
 
@@ -91,45 +91,24 @@ namespace PL.Order
 
         private async void BtnAction_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (CurrentOrder == null) return;
+            int managerId = s_bl.Admin.GetConfig().ManagerId;
+
+            // 1. Perform the network operation (without messages and without closing)
+            bool isSuccess = await ExecuteNetworkActionAsync(async () =>
             {
-                // Basic sanity check before sending
-                if (CurrentOrder == null) return;
-
-                int managerId = s_bl.Admin.GetConfig().ManagerId;
-
-                // Blocking the interface to prevent double clicks
-                IsEnabled = false;
-                Mouse.OverrideCursor = Cursors.Wait;
-
                 if (IsAddMode)
-                {
-                    // Waiting for a response from the BL (including checking the network address)
                     await s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
-                    MessageBox.Show($"Order added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
                 else
-                {
-                    // Waiting for update
                     await s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
-                    MessageBox.Show($"Order {CurrentOrder.Id} updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
 
+            }, "Calculating Coordinates...", "Order Processed Successfully");
+
+            // 2. Only if the operation was successful (the screen is already green at this point) - display a message and close
+            if (isSuccess)
+            {
+                MessageBox.Show(IsAddMode ? "Order added!" : "Order updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 Close();
-            }
-            catch (BO.BlNetworkException ex) // Catch specific network errors if you have created any
-            {
-                MessageBox.Show($"Network Error: {ex.Message}", "Communication Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Operation Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            finally
-            {
-                // Release the interface anyway
-                IsEnabled = true;
-                Mouse.OverrideCursor = null;
             }
         }
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
