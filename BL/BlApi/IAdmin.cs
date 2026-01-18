@@ -50,4 +50,17 @@ public interface IAdmin
     void AddClockObserver(Action clockObserver);
     void RemoveClockObserver(Action clockObserver);
     #endregion Stage 5
+
+    #region stage 7
+    /// <summary>
+    /// Starting a simulation walkthrough
+    /// </summary>
+    /// <param name="interval"></param>
+    void StartSimulator(int interval); //stage 7
+    /// <summary>
+    /// Stoping a simulation walkthrough
+    /// </summary>
+    void StopSimulator(); //stage 7
+
+    #endregion
 }

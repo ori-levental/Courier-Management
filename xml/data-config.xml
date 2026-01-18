@@ -4,13 +4,13 @@
   <NextDeliveryId>31</NextDeliveryId>
   <Clock>2024-11-01T12:03:00</Clock>
   <ManagerId>111111118</ManagerId>
-  <ManagerPassword>nxnsj544bh@!</ManagerPassword>
-  <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
-  <Latitude>32.0749</Latitude>
-  <Longitude>34.7923</Longitude>
+  <ManagerPassword>nxnsj544bh@@!</ManagerPassword>
+  <CompanyAddress>הקריה תל אביב</CompanyAddress>
+  <Latitude>32.0754944</Latitude>
+  <Longitude>34.7876139</Longitude>
   <MaxAirDistance>20</MaxAirDistance>
-  <AvgCarSpeed>60</AvgCarSpeed>
-  <AvgMotorcycleSpeed>80</AvgMotorcycleSpeed>
+  <AvgCarSpeed>70</AvgCarSpeed>
+  <AvgMotorcycleSpeed>90</AvgMotorcycleSpeed>
   <AvgBicycleSpeed>20</AvgBicycleSpeed>
   <AvgWalkSpeed>5</AvgWalkSpeed>
   <MaxDeliveryTime>04:00:00</MaxDeliveryTime>

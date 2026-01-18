@@ -7,8 +7,8 @@ using System.Text;
 using System.Net.Http;
 using System.Text.Json;
 using System.Globalization;
-using System.Threading.Tasks;          // Required for async/await
-using System.Collections.Concurrent;   // Required for thread-safe caching
+using System.Threading.Tasks;           // Required for async/await
+using System.Collections.Concurrent;    // Required for thread-safe caching
 
 namespace Helpers;
 
@@ -50,8 +50,15 @@ internal static class Tools
     {
         if (lat1 == 0 && lon1 == 0) return 0;
 
-        double targetLat = lat2 ?? s_dal.Config.Latitude ?? 0;
-        double targetLon = lon2 ?? s_dal.Config.Longitude ?? 0;
+        double targetLat;
+        double targetLon;
+
+        // Stage 7: Lock Config read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            targetLat = lat2 ?? s_dal.Config.Latitude ?? 0;
+            targetLon = lon2 ?? s_dal.Config.Longitude ?? 0;
+        }
 
         var r = 6371; // Earth radius in km
         var dLat = (targetLat - lat1) * (Math.PI / 180);
@@ -74,13 +81,19 @@ internal static class Tools
     {
         if (delivery == null) return DateTime.MinValue;
 
-        double speed = delivery.DeliveryShippingType switch
+        double speed;
+
+        // Stage 7: Lock Config read for speeds
+        lock (Helpers.AdminManager.BlMutex)
         {
-            DO.Enums.ShippingType.Walk => s_dal.Config.AvgWalkSpeed,
-            DO.Enums.ShippingType.Bicycle => s_dal.Config.AvgBicycleSpeed,
-            DO.Enums.ShippingType.Car => s_dal.Config.AvgCarSpeed,
-            _ => s_dal.Config.AvgMotorcycleSpeed
-        };
+            speed = delivery.DeliveryShippingType switch
+            {
+                DO.Enums.ShippingType.Walk => s_dal.Config.AvgWalkSpeed,
+                DO.Enums.ShippingType.Bicycle => s_dal.Config.AvgBicycleSpeed,
+                DO.Enums.ShippingType.Car => s_dal.Config.AvgCarSpeed,
+                _ => s_dal.Config.AvgMotorcycleSpeed
+            };
+        }
 
         if (speed <= 0) speed = 1;
 
@@ -96,7 +109,11 @@ internal static class Tools
     /// </summary>
     internal static DateTime MaxArrivalTimeCalculate(DO.Order order)
     {
-        return order.StartOrderTime + s_dal.Config.MaxDeliveryTime;
+        // Stage 7: Lock Config read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            return order.StartOrderTime + s_dal.Config.MaxDeliveryTime;
+        }
     }
 
 
@@ -105,7 +122,15 @@ internal static class Tools
     /// </summary>
     internal static BO.ScheduleStatus ScheduleStatusCalculate(DO.Order order, DO.Delivery? delivery)
     {
-        TimeSpan riskRange = s_dal.Config.RiskRange;
+        TimeSpan riskRange;
+        TimeSpan maxDeliveryTime;
+
+        // Stage 7: Lock Config reads
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            riskRange = s_dal.Config.RiskRange;
+            maxDeliveryTime = s_dal.Config.MaxDeliveryTime;
+        }
 
         // Logic Check: Has the order been finalized?
         // We consider an order "Closed" for SLA purposes ONLY if it was Provided or Refused by the customer.
@@ -118,13 +143,13 @@ internal static class Tools
         if (isSuccessfullyClosed && delivery!.EndOrderTime != null)
         {
             TimeSpan actualDuration = delivery.EndOrderTime.Value - order.StartOrderTime;
-            TimeSpan maxDuration = s_dal.Config.MaxDeliveryTime;
 
-            return (actualDuration <= maxDuration) ? BO.ScheduleStatus.OnTime : BO.ScheduleStatus.Late;
+            return (actualDuration <= maxDeliveryTime) ? BO.ScheduleStatus.OnTime : BO.ScheduleStatus.Late;
         }
         // Scenario B: Order is Open, Active (OnCare), or was Cancelled
         else
         {
+            // Note: MaxArrivalTimeCalculate has its own lock, so we are safe calling it here (Re-entrant lock)
             DateTime deadline = MaxArrivalTimeCalculate(order);
             DateTime now = Helpers.AdminManager.Now;
             TimeSpan timeRemaining = deadline - now;
@@ -181,8 +206,12 @@ internal static class Tools
 
     internal static void AccessPermissionToManager(int requesterId)
     {
-        if (requesterId != DalApi.Factory.Get.Config.ManagerId)
-            throw new BO.BlAccessPermission("ERROR: No access permission");
+        // Stage 7: Lock Config read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            if (requesterId != DalApi.Factory.Get.Config.ManagerId)
+                throw new BO.BlAccessPermission("ERROR: No access permission");
+        }
     }
 
     #endregion Validations
@@ -191,15 +220,24 @@ internal static class Tools
 
     internal static BO.OrderInProgress? GenerateOrderInProgress(int courierId)
     {
-        DO.Delivery? delivery = s_dal.Delivery
-            .ReadAll(d => d?.CourierId == courierId && d?.EndOrderTime == null)
-            .FirstOrDefault();
+        DO.Delivery? delivery;
+        DO.Order? order;
 
-        if (delivery == null) return null;
+        // Stage 7: Lock DAL reads
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            delivery = s_dal.Delivery
+                .ReadAll(d => d?.CourierId == courierId && d?.EndOrderTime == null)
+                .FirstOrDefault();
 
-        DO.Order? order = s_dal.Order.Read(delivery.OrderId);
+            if (delivery == null) return null;
+
+            order = s_dal.Order.Read(delivery.OrderId);
+        }
+
         if (order == null) return null;
 
+        // Note: These methods contain their own locks where necessary
         DateTime estimated = EstimatedArrivalTimeCalculate(delivery);
         DateTime maxTime = MaxArrivalTimeCalculate(order);
         DateTime clock = Helpers.AdminManager.Now;
@@ -288,20 +326,24 @@ internal static class Tools
 
     internal static void CheckPasswordEntry(int id, string password)
     {
-        // 1. Check if the manager logged in
-        if (id == s_dal.Config.ManagerId)
+        // Stage 7: Lock Config and Courier reads
+        lock (Helpers.AdminManager.BlMutex)
         {
-            if (password != s_dal.Config.ManagerPassword)
-                throw new BO.BlInvalidDataException("ERROR: Incorrect manager password");
+            // 1. Check if the manager logged in
+            if (id == s_dal.Config.ManagerId)
+            {
+                if (password != s_dal.Config.ManagerPassword)
+                    throw new BO.BlInvalidDataException("ERROR: Incorrect manager password");
 
-            return;
+                return;
+            }
+
+            // 2. Check if a courier logged in
+            DO.Courier? doCourier = s_dal.Courier.Read(id);
+
+            if (doCourier == null || password != doCourier.Password)
+                throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
         }
-
-        // 2. Check if a courier logged in
-        DO.Courier? doCourier = s_dal.Courier.Read(id);
-
-        if (doCourier == null || password != doCourier.Password)
-            throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
     }
 
     /// <summary>
@@ -312,6 +354,8 @@ internal static class Tools
     /// <returns>A tuple of (Latitude, Longitude) or null if not found/error.</returns>
     public static async Task<(double Latitude, double Longitude)?> GetCoordinatesAsync(string address)
     {
+        // NO LOCK NEEDED HERE - Uses Thread-Safe ConcurrentDictionary and HttpClient
+
         if (_coordinateCache.TryGetValue(address, out var cachedResult))
         {
             return cachedResult;
@@ -362,5 +406,13 @@ internal static class Tools
             // Critical change: instead of BlInvalidDataException, we throw BlNetworkException
             throw new BO.BlNetworkException($"Technical Failure: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>
+    /// Enforces password complexity and length policies.
+    /// </summary>
+    internal static void CheckPassword(string password)
+    {
+        CourierManager.CheckPassword(password);
     }
 }

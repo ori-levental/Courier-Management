@@ -100,101 +100,123 @@ internal static class AdminManager
     internal static async Task SetConfigAsync(BO.Config configuration)
     {
         bool configChanged = false;
-
-        // --- Basic Settings ---
-        if (s_dal.Config.MaxAirDistance != configuration.MaxRange)
+        try
         {
-            s_dal.Config.MaxAirDistance = configuration.MaxRange;
-            configChanged = true;
-        }
-        if (s_dal.Config.Clock != configuration.Clock)
-        {
-            s_dal.Config.Clock = configuration.Clock;
-            configChanged = true;
-        }
-        if (s_dal.Config.ManagerPassword != configuration.ManagerPassword)
-        {
-            s_dal.Config.ManagerPassword = configuration.ManagerPassword;
-            configChanged = true;
-        }
-
-        // --- Company Address - Get Coordinates Automatically (ASYNC) ---
-        if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
-        {
-            // Automatically get coordinates from the new address
-            if (!string.IsNullOrWhiteSpace(configuration.CompanyAddress))
+            // --- Basic Settings ---
+            if (s_dal.Config.MaxAirDistance != configuration.MaxRange)
             {
-                try
-                {
-                    // UPDATE: Using 'await' for the network request
-                    var coords = await Helpers.Tools.GetCoordinatesAsync(configuration.CompanyAddress);
-
-                    if (coords != null)
-                    {
-                        s_dal.Config.Latitude = coords.Value.Latitude;
-                        s_dal.Config.Longitude = coords.Value.Longitude;
-                    }
-                    else
-                    {
-                        // Handle failure (keep old or set to 0)
-                        s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
+                CheckDistance(configuration.MaxRange);
+                s_dal.Config.MaxAirDistance = configuration.MaxRange;
+                configChanged = true;
             }
-            else
-                s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
+            if (s_dal.Config.Clock != configuration.Clock)
+            {
+                CheckTimeCorrectnes(configuration.Clock);
+                s_dal.Config.Clock = configuration.Clock;
+                configChanged = true;
+            }
+            if (s_dal.Config.ManagerPassword != configuration.ManagerPassword)
+            {
+                Tools.CheckPassword(configuration.ManagerPassword);
+                s_dal.Config.ManagerPassword = configuration.ManagerPassword;
+                configChanged = true;
+            }
+            if (s_dal.Config.ManagerId != configuration.ManagerId)
+            {
+                Tools.CheckId(configuration.ManagerId);
+                s_dal.Config.ManagerId = configuration.ManagerId;
+                configChanged = true;
+            }
+
+            // --- Company Address - Get Coordinates Automatically (ASYNC) ---
+            if (s_dal.Config.CompanyAddress != configuration.CompanyAddress)
+            {
+                // Automatically get coordinates from the new address
+                if (!string.IsNullOrWhiteSpace(configuration.CompanyAddress))
+                {
+                    try
+                    {
+                        // UPDATE: Using 'await' for the network request
+                        var coords = await Helpers.Tools.GetCoordinatesAsync(configuration.CompanyAddress);
+
+                        if (coords != null)
+                        {
+                            s_dal.Config.Latitude = coords.Value.Latitude;
+                            s_dal.Config.Longitude = coords.Value.Longitude;
+                        }
+                        else
+                        {
+                            // Handle failure (keep old or set to 0)
+                            s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+                }
+                else
+                    s_dal.Config.Longitude = s_dal.Config.Latitude = 0;
 
 
-            s_dal.Config.CompanyAddress = configuration.CompanyAddress;
-            configChanged = true;
-        }
+                s_dal.Config.CompanyAddress = configuration.CompanyAddress;
+                configChanged = true;
+            }
 
-        // --- Speeds ---
-        if (s_dal.Config.AvgCarSpeed != configuration.AvgCarSpeed)
-        {
-            s_dal.Config.AvgCarSpeed = configuration.AvgCarSpeed;
-            configChanged = true;
-        }
-        if (s_dal.Config.AvgMotorcycleSpeed != configuration.AvgMotorcycleSpeed)
-        {
-            s_dal.Config.AvgMotorcycleSpeed = configuration.AvgMotorcycleSpeed;
-            configChanged = true;
-        }
-        if (s_dal.Config.AvgBicycleSpeed != configuration.AvgBicycleSpeed)
-        {
-            s_dal.Config.AvgBicycleSpeed = configuration.AvgBicycleSpeed;
-            configChanged = true;
-        }
-        if (s_dal.Config.AvgWalkSpeed != configuration.AvgWalkSpeed)
-        {
-            s_dal.Config.AvgWalkSpeed = configuration.AvgWalkSpeed;
-            configChanged = true;
-        }
+            // --- Speeds ---
+            if (s_dal.Config.AvgCarSpeed != configuration.AvgCarSpeed)
+            {
+                CheckSpeed(configuration.AvgCarSpeed);
+                s_dal.Config.AvgCarSpeed = configuration.AvgCarSpeed;
+                configChanged = true;
+            }
+            if (s_dal.Config.AvgMotorcycleSpeed != configuration.AvgMotorcycleSpeed)
+            {
+                CheckSpeed(configuration.AvgMotorcycleSpeed);
+                s_dal.Config.AvgMotorcycleSpeed = configuration.AvgMotorcycleSpeed;
+                configChanged = true;
+            }
+            if (s_dal.Config.AvgBicycleSpeed != configuration.AvgBicycleSpeed)
+            {
+                CheckSpeed(configuration.AvgBicycleSpeed);
+                s_dal.Config.AvgBicycleSpeed = configuration.AvgBicycleSpeed;
+                configChanged = true;
+            }
+            if (s_dal.Config.AvgWalkSpeed != configuration.AvgWalkSpeed)
+            {
+                CheckSpeed(configuration.AvgWalkSpeed);
+                s_dal.Config.AvgWalkSpeed = configuration.AvgWalkSpeed;
+                configChanged = true;
+            }
 
-        // --- Times (SLA) ---
-        if (s_dal.Config.MaxDeliveryTime != configuration.MaxDeliveryTime)
-        {
-            s_dal.Config.MaxDeliveryTime = configuration.MaxDeliveryTime;
-            configChanged = true;
-        }
-        if (s_dal.Config.RiskRange != configuration.RiskRange)
-        {
-            s_dal.Config.RiskRange = configuration.RiskRange;
-            configChanged = true;
-        }
-        if (s_dal.Config.CourierInactivityTime != configuration.CourierInactivityTime)
-        {
-            s_dal.Config.CourierInactivityTime = configuration.CourierInactivityTime;
-            configChanged = true;
-        }
+            // --- Times (SLA) ---
+            if (s_dal.Config.MaxDeliveryTime != configuration.MaxDeliveryTime)
+            {
+                CheckTimeCorrectnes(configuration.MaxDeliveryTime);
+                s_dal.Config.MaxDeliveryTime = configuration.MaxDeliveryTime;
+                configChanged = true;
+            }
+            if (s_dal.Config.RiskRange != configuration.RiskRange)
+            {
+                CheckTimeCorrectnes(configuration.RiskRange);
+                s_dal.Config.RiskRange = configuration.RiskRange;
+                configChanged = true;
+            }
+            if (s_dal.Config.CourierInactivityTime != configuration.CourierInactivityTime)
+            {
+                CheckTimeCorrectnes(configuration.CourierInactivityTime);
+                s_dal.Config.CourierInactivityTime = configuration.CourierInactivityTime;
+                configChanged = true;
+            }
 
-        // Calling all the observers of configuration update
-        if (configChanged)
-            ConfigUpdatedObservers?.Invoke();
+            // Calling all the observers of configuration update
+            if (configChanged)
+                ConfigUpdatedObservers?.Invoke();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
     }
 
     internal static async Task ResetDBAsync()
@@ -230,6 +252,29 @@ internal static class AdminManager
         // 3. Notify Observers
         Helpers.CourierManager.Observers.NotifyListUpdated();
         Helpers.OrderManager.Observers.NotifyListUpdated();
+    }
+
+    private static void CheckSpeed(double speed)
+    {
+        if (speed <= 0)
+            throw new BlInvalidDataException("Speed cannot be negativ or zero");
+    }
+    private static void CheckDistance(double? distance)
+    {
+        if (distance <= 0)
+            throw new BlInvalidDataException("Distance cannot be negativ or zero");
+    }
+    private static void CheckTimeCorrectnes(TimeSpan time)
+    {
+        if (time <= TimeSpan.Zero)
+            throw new BO.BlInvalidDataException("Max time cannot be negative or zero");
+    }
+    private static void CheckTimeCorrectnes(DateTime time)
+    {
+        if (time < DateTime.MinValue)
+            throw new BO.BlInvalidDataException($"min time cannot be lower than {DateTime.MinValue}");
+        else if (time > DateTime.MaxValue)
+            throw new BO.BlInvalidDataException($"min time cannot be lower than {DateTime.MaxValue}");
     }
 
     #endregion Stage 4-7

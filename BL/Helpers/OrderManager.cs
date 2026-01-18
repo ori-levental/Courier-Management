@@ -17,6 +17,9 @@ internal static class OrderManager
     private static IDal s_dal = Factory.Get;
     internal static ObserverManager Observers = new();
 
+    // Stage 7: Mutex to prevent overlapping periodic updates
+    private static readonly Helpers.AsyncMutex s_periodicMutex = new();
+
     #region Data Translation
 
     private static DO.Order BOToDOOrder(BO.Order BoOrder)
@@ -41,8 +44,15 @@ internal static class OrderManager
     /// </summary>
     private static BO.Order DOToBOOrder(DO.Order doOrder)
     {
-        // 1. Retrieve all deliveries for this order
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
+        IEnumerable<DO.Delivery?> deliveries;
+        string? courierName;
+
+        // Stage 7: Lock read from DB
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // 1. Retrieve all deliveries for this order
+            deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id).ToList();
+        }
 
         // Identify the latest one for status calculation
         var latestDelivery = deliveries.MaxBy(d => d?.StartDeliveryTime);
@@ -64,7 +74,10 @@ internal static class OrderManager
         // 4. Build Delivery History List
         List<BO.DeliveryPerOrderInList> history = deliveries.Select(d =>
         {
-            string courierName = s_dal.Courier.Read(d!.CourierId)?.FullName ?? "Unknown";
+            lock (Helpers.AdminManager.BlMutex)
+            {
+                courierName = s_dal.Courier.Read(d!.CourierId)?.FullName ?? "Unknown";
+            }
 
             return new BO.DeliveryPerOrderInList
             {
@@ -107,8 +120,17 @@ internal static class OrderManager
 
     private static BO.OrderInList DOToOrderInList(DO.Order doOrder)
     {
-        // 1. Retrieve the delivery history
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
+        IEnumerable<DO.Delivery?> deliveries;
+        DateTime currentClock;
+
+        // Stage 7: Lock read operations
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // 1. Retrieve the delivery history
+            deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id).ToList();
+            currentClock = s_dal.Config.Clock;
+        }
+
         var delivery = deliveries.MaxBy(d => d?.StartDeliveryTime);
 
         // 2. Determine Status
@@ -122,7 +144,6 @@ internal static class OrderManager
         }
 
         // 3. Time Logic
-        DateTime currentClock = s_dal.Config.Clock;
         DateTime maxArrivalTime = Helpers.Tools.MaxArrivalTimeCalculate(doOrder);
 
         bool isClosed = status == ShipmentCompletionStatus.Provided ||
@@ -173,6 +194,9 @@ internal static class OrderManager
     /// </summary>
     internal static async Task AddOrderAsync(int requesterId, BO.Order boOrder)
     {
+        // Stage 7: Block simulator
+        Helpers.AdminManager.ThrowOnSimulatorIsRunning();
+
         DO.Order doOrder = BOToDOOrder(boOrder);
 
         // Set StartOrderTime to current simulated clock
@@ -183,7 +207,7 @@ internal static class OrderManager
         {
             try
             {
-                // Using Async method
+                // Using Async method - NO LOCK HERE (Network call)
                 var coords = await Helpers.Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
 
                 // Defensive check (technically Tools throws instead of returning null, but safe to keep)
@@ -207,10 +231,18 @@ internal static class OrderManager
             }
         }
 
-        // Company address data
-        double companyLat = s_dal.Config.Latitude ?? 0;
-        double companyLon = s_dal.Config.Longitude ?? 0;
-        double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+        double companyLat = 0;
+        double companyLon = 0;
+        double maxDistance = 0;
+
+        // Stage 7: Lock config read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // Company address data
+            companyLat = s_dal.Config.Latitude ?? 0;
+            companyLon = s_dal.Config.Longitude ?? 0;
+            maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+        }
 
         // Calculate distance
         double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
@@ -222,7 +254,13 @@ internal static class OrderManager
 
         try
         {
-            s_dal.Order.Create(doOrder);
+            // Stage 7: Lock DB write
+            lock (Helpers.AdminManager.BlMutex)
+            {
+                s_dal.Order.Create(doOrder);
+            }
+
+            // Notify outside lock
             Observers.NotifyListUpdated();
         }
         catch (DO.DalAlreadyExistsException ex)
@@ -233,7 +271,14 @@ internal static class OrderManager
 
     internal static BO.Order GetOrderDetails(int orderId)
     {
-        DO.Order? order = s_dal.Order.Read(orderId);
+        DO.Order? order;
+
+        // Stage 7: Lock DB read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            order = s_dal.Order.Read(orderId);
+        }
+
         if (order == null) throw new BO.BlDoesNotExistException($"Order {orderId} not found");
         return DOToBOOrder(order);
     }
@@ -244,12 +289,15 @@ internal static class OrderManager
     /// </summary>
     internal static async Task UpdateOrderAsync(BO.Order order)
     {
+        // Stage 7: Block simulator
+        Helpers.AdminManager.ThrowOnSimulatorIsRunning();
+
         DO.Order doOrder = BOToDOOrder(order);
 
         // Automatically get coordinates if address changed and coords are 0
         try
         {
-            // Using Async method
+            // Using Async method - NO LOCK HERE
             var coords = await Tools.GetCoordinatesAsync(doOrder.CustomerAddress);
 
 
@@ -273,10 +321,18 @@ internal static class OrderManager
             throw new BO.BlInvalidDataException($"Could not get coordinates for address: {ex.Message}");
         }
 
-    // Company address data
-        double companyLat = s_dal.Config.Latitude ?? 0;
-        double companyLon = s_dal.Config.Longitude ?? 0;
-        double maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+        double companyLat = 0;
+        double companyLon = 0;
+        double maxDistance = 0;
+
+        // Stage 7: Lock Config read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // Company address data
+            companyLat = s_dal.Config.Latitude ?? 0;
+            companyLon = s_dal.Config.Longitude ?? 0;
+            maxDistance = s_dal.Config.MaxAirDistance ?? 0;
+        }
 
         // Calculate distance
         double distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude, companyLat, companyLon);
@@ -288,7 +344,13 @@ internal static class OrderManager
 
         try
         {
-            s_dal.Order.Update(doOrder);
+            // Stage 7: Lock DB Update
+            lock (Helpers.AdminManager.BlMutex)
+            {
+                s_dal.Order.Update(doOrder);
+            }
+
+            // Notify outside lock
             Observers.NotifyListUpdated();
             Observers.NotifyItemUpdated(order.Id);
         }
@@ -300,7 +362,17 @@ internal static class OrderManager
 
     internal static void CancelOrder(int orderId)
     {
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId);
+        // Stage 7: Block simulator
+        Helpers.AdminManager.ThrowOnSimulatorIsRunning();
+
+        IEnumerable<DO.Delivery?> deliveries;
+
+        // Stage 7: Lock DB Read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
+        }
+
         var delivery = deliveries.MaxBy(d => d?.StartDeliveryTime);
 
         // Case 1: Order is Open -> Create Mock Cancelled Delivery
@@ -315,7 +387,13 @@ internal static class OrderManager
                 EndType = DO.Enums.ShipmentCompletionStatus.Cancelled,
                 Distance = 0
             };
-            s_dal.Delivery.Create(mockDelivery);
+
+            // Stage 7: Lock DB Create
+            lock (Helpers.AdminManager.BlMutex)
+            {
+                s_dal.Delivery.Create(mockDelivery);
+            }
+
             Observers.NotifyListUpdated();
             Observers.NotifyItemUpdated(orderId);
             return;
@@ -334,7 +412,13 @@ internal static class OrderManager
             EndType = DO.Enums.ShipmentCompletionStatus.Cancelled,
             EndOrderTime = Helpers.AdminManager.Now
         };
-        s_dal.Delivery.Update(updatedDelivery);
+
+        // Stage 7: Lock DB Update
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            s_dal.Delivery.Update(updatedDelivery);
+        }
+
         Observers.NotifyListUpdated();
         Observers.NotifyItemUpdated(orderId);
     }
@@ -350,34 +434,41 @@ internal static class OrderManager
 
     internal static void OrderSelection(int courierId, int orderId)
     {
-        // 1. Verify Order availability - only reject if ALREADY in progress or completed
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
+        // Stage 7: Block simulator
+        Helpers.AdminManager.ThrowOnSimulatorIsRunning();
 
-        if (deliveries.Any(d =>
-            (d?.EndOrderTime == null && d?.CourierId != 0) ||
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
-            d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
+        // Stage 7: Lock the whole transaction (Read + Create)
+        lock (Helpers.AdminManager.BlMutex)
         {
-            throw new BO.BlAlreadyExistsException("Order is already being handled, completed, or cancelled.");
+            // 1. Verify Order availability - only reject if ALREADY in progress or completed
+            var deliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == orderId).ToList();
+
+            if (deliveries.Any(d =>
+                (d?.EndOrderTime == null && d?.CourierId != 0) ||
+                d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
+                d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled))
+            {
+                throw new BO.BlAlreadyExistsException("Order is already being handled, completed, or cancelled.");
+            }
+
+            // 2. Validate Courier & Order existence
+            DO.Courier? courier = s_dal.Courier.Read(courierId) ?? throw new BO.BlDoesNotExistException("Courier not found");
+            DO.Order? order = s_dal.Order.Read(orderId) ?? throw new BO.BlDoesNotExistException("Order not found");
+
+            // 3. Calculate Distance
+            double dist = Tools.CalculateAirDistance(order.Latitude, order.Longitude);
+
+            // 4. Create Delivery
+            DO.Delivery newDelivery = new()
+            {
+                OrderId = orderId,
+                CourierId = courierId,
+                StartDeliveryTime = Helpers.AdminManager.Now,
+                DeliveryShippingType = courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle,
+                Distance = dist
+            };
+            s_dal.Delivery.Create(newDelivery);
         }
-
-        // 2. Validate Courier & Order existence
-        DO.Courier? courier = s_dal.Courier.Read(courierId) ?? throw new BO.BlDoesNotExistException("Courier not found");
-        DO.Order? order = s_dal.Order.Read(orderId) ?? throw new BO.BlDoesNotExistException("Order not found");
-
-        // 3. Calculate Distance
-        double dist = Tools.CalculateAirDistance(order.Latitude, order.Longitude);
-
-        // 4. Create Delivery
-        DO.Delivery newDelivery = new()
-        {
-            OrderId = orderId,
-            CourierId = courierId,
-            StartDeliveryTime = Helpers.AdminManager.Now,
-            DeliveryShippingType = courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle,
-            Distance = dist
-        };
-        s_dal.Delivery.Create(newDelivery);
 
         Observers.NotifyListUpdated();
         Observers.NotifyItemUpdated(orderId);
@@ -385,20 +476,31 @@ internal static class OrderManager
 
     internal static void CloseOrder(int courierId, int deliveryId, BO.ShipmentCompletionStatus status)
     {
-        DO.Delivery? delivery = s_dal.Delivery.Read(deliveryId) ?? throw new BO.BlDoesNotExistException("Delivery not found");
-        if (delivery.CourierId != courierId) throw new BO.BlAccessPermission("Courier ID mismatch");
+        // Stage 7: Block simulator
+        Helpers.AdminManager.ThrowOnSimulatorIsRunning();
 
-        if (delivery.EndType == DO.Enums.ShipmentCompletionStatus.Provided)
-            throw new BO.BlCannotClose("ERROR: already provided");
+        int orderId = 0;
 
-        DO.Delivery updatedDelivery = delivery with
+        // Stage 7: Lock transaction (Read + Update)
+        lock (Helpers.AdminManager.BlMutex)
         {
-            EndType = (DO.Enums.ShipmentCompletionStatus)status,
-            EndOrderTime = Helpers.AdminManager.Now
-        };
-        s_dal.Delivery.Update(updatedDelivery);
+            DO.Delivery? delivery = s_dal.Delivery.Read(deliveryId) ?? throw new BO.BlDoesNotExistException("Delivery not found");
+            if (delivery.CourierId != courierId) throw new BO.BlAccessPermission("Courier ID mismatch");
+
+            if (delivery.EndType == DO.Enums.ShipmentCompletionStatus.Provided)
+                throw new BO.BlCannotClose("ERROR: already provided");
+
+            DO.Delivery updatedDelivery = delivery with
+            {
+                EndType = (DO.Enums.ShipmentCompletionStatus)status,
+                EndOrderTime = Helpers.AdminManager.Now
+            };
+            s_dal.Delivery.Update(updatedDelivery);
+            orderId = delivery.OrderId;
+        }
+
         Observers.NotifyListUpdated();
-        Observers.NotifyItemUpdated(delivery.OrderId);
+        Observers.NotifyItemUpdated(orderId);
     }
 
     #endregion Courier Operations
@@ -407,8 +509,17 @@ internal static class OrderManager
 
     internal static IEnumerable<BO.OrderInList> ListOfOrder(OrderInListEnum? filterBy, object? filterValue, OrderInListEnum? sortBy)
     {
-        // 1. Retrieve all orders from DAL and convert them to BO.OrderInList
-        var query = s_dal.Order.ReadAll().Select(o => DOToOrderInList(o!));
+        IEnumerable<BO.OrderInList> query;
+
+        // Stage 7: Lock DB read
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // 1. Retrieve all orders from DAL and convert them to BO.OrderInList
+            // Materialize to list INSIDE lock
+            query = s_dal.Order.ReadAll()
+                .Select(o => DOToOrderInList(o!))
+                .ToList();
+        }
 
         // 2. Apply Filtering logic if parameters are provided
         if (filterBy != null && filterValue != null)
@@ -460,82 +571,88 @@ internal static class OrderManager
     }
     internal static IEnumerable<BO.OpenOrderInList> GetOpenOrdersForCourier(int courierId, OrderType? filterBy, OpenOrderInListEnum? sortBy)
     {
-        // 1. Validate Courier
-        DO.Courier? courier = s_dal.Courier.Read(courierId);
-        if (courier == null) throw new BO.BlDoesNotExistException("Courier not found");
+        List<BO.OpenOrderInList> result;
 
-        double maxDist = courier.DistanceToDelivery ?? double.MaxValue;
-        var allOrders = s_dal.Order.ReadAll();
+        // Stage 7: Lock transaction
+        lock (Helpers.AdminManager.BlMutex)
+        {
+            // 1. Validate Courier
+            DO.Courier? courier = s_dal.Courier.Read(courierId);
+            if (courier == null) throw new BO.BlDoesNotExistException("Courier not found");
 
-        // 2. Generate list using LINQ
-        List<BO.OpenOrderInList> result = allOrders
-            .Where(doOrder => doOrder != null)
-            // Filter out orders that are currently active, provided, or cancelled
-            .Where(doOrder =>
-            {
-                var orderDeliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
+            double maxDist = courier.DistanceToDelivery ?? double.MaxValue;
+            var allOrders = s_dal.Order.ReadAll();
 
-                bool isActive = orderDeliveries.Any(d => d?.EndOrderTime == null);
-                bool isClosed = orderDeliveries.Any(d =>
-                    d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
-                    d?.EndType == DO.Enums.ShipmentCompletionStatus.Refused);
-
-                // Keep only if NOT active and NOT closed
-                return !isActive && !isClosed;
-            })
-            // Project to anonymous object to calculate distance once
-            .Select(doOrder => new
-            {
-                Order = doOrder,
-                // Use safe distance calculation from Tools
-                Distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude)
-            })
-            // Filter by maximum distance allowed for the courier
-            .Where(item => item.Distance <= maxDist)
-            // Calculate times and map to final Business Object
-            .Select(item =>
-            {
-                // A. Calculate Deadline & Time Remaining
-                DateTime maxTime = Tools.MaxArrivalTimeCalculate(item.Order);
-                TimeSpan timeLeft = maxTime - Helpers.AdminManager.Now;
-
-                // Clamp negative time to zero
-                if (timeLeft < TimeSpan.Zero) timeLeft = TimeSpan.Zero;
-
-                // B. Create a dummy delivery object to reuse existing calculation logic.
-                // We use the COURIER'S vehicle type to calculate the correct speed.
-                var dummyDelivery = new DO.Delivery
+            // 2. Generate list using LINQ
+            result = allOrders
+                .Where(doOrder => doOrder != null)
+                // Filter out orders that are currently active, provided, or cancelled
+                .Where(doOrder =>
                 {
-                    OrderId = item.Order.Id,
-                    CourierId = 0, // Not relevant for speed calc
-                    StartDeliveryTime = Helpers.AdminManager.Now,
-                    DeliveryShippingType = courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle,
-                    Distance = item.Distance,
-                    EndOrderTime = null,
-                    EndType = null
-                };
+                    var orderDeliveries = s_dal.Delivery.ReadAll(d => d?.OrderId == doOrder.Id);
 
-                // C. Calculate Estimated Travel Time using the centralized Tools method
-                // (This avoids duplicating the switch-case speed logic here)
-                DateTime estimatedArrival = Tools.EstimatedArrivalTimeCalculate(dummyDelivery);
-                TimeSpan travelTime = estimatedArrival - dummyDelivery.StartDeliveryTime;
+                    bool isActive = orderDeliveries.Any(d => d?.EndOrderTime == null);
+                    bool isClosed = orderDeliveries.Any(d =>
+                        d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
+                        d?.EndType == DO.Enums.ShipmentCompletionStatus.Refused);
 
-                // D. Build the result object
-                return new BO.OpenOrderInList
+                    // Keep only if NOT active and NOT closed
+                    return !isActive && !isClosed;
+                })
+                // Project to anonymous object to calculate distance once
+                .Select(doOrder => new
                 {
-                    OrderId = item.Order.Id,
-                    OrderType = (OrderType)item.Order.Type,
-                    FullAddress = item.Order.CustomerAddress,
-                    AirDistance = item.Distance,
-                    IsHeavy = false,
-                    MaxArrivalTime = maxTime,
-                    TimeRemaining = timeLeft,           // Clamped value
-                    ActualTimeEstimation = travelTime,  // Calculated via Tools
-                    ScheduleStatus = Tools.ScheduleStatusCalculate(item.Order, dummyDelivery),
-                    ActualDistance = item.Distance,
-                };
-            })
-            .ToList();
+                    Order = doOrder,
+                    // Use safe distance calculation from Tools
+                    Distance = Tools.CalculateAirDistance(doOrder.Latitude, doOrder.Longitude)
+                })
+                // Filter by maximum distance allowed for the courier
+                .Where(item => item.Distance <= maxDist)
+                // Calculate times and map to final Business Object
+                .Select(item =>
+                {
+                    // A. Calculate Deadline & Time Remaining
+                    DateTime maxTime = Tools.MaxArrivalTimeCalculate(item.Order);
+                    TimeSpan timeLeft = maxTime - Helpers.AdminManager.Now;
+
+                    // Clamp negative time to zero
+                    if (timeLeft < TimeSpan.Zero) timeLeft = TimeSpan.Zero;
+
+                    // B. Create a dummy delivery object to reuse existing calculation logic.
+                    // We use the COURIER'S vehicle type to calculate the correct speed.
+                    var dummyDelivery = new DO.Delivery
+                    {
+                        OrderId = item.Order.Id,
+                        CourierId = 0, // Not relevant for speed calc
+                        StartDeliveryTime = Helpers.AdminManager.Now,
+                        DeliveryShippingType = courier.DeliveryType ?? DO.Enums.ShippingType.Motorcycle,
+                        Distance = item.Distance,
+                        EndOrderTime = null,
+                        EndType = null
+                    };
+
+                    // C. Calculate Estimated Travel Time using the centralized Tools method
+                    // (This avoids duplicating the switch-case speed logic here)
+                    DateTime estimatedArrival = Tools.EstimatedArrivalTimeCalculate(dummyDelivery);
+                    TimeSpan travelTime = estimatedArrival - dummyDelivery.StartDeliveryTime;
+
+                    // D. Build the result object
+                    return new BO.OpenOrderInList
+                    {
+                        OrderId = item.Order.Id,
+                        OrderType = (OrderType)item.Order.Type,
+                        FullAddress = item.Order.CustomerAddress,
+                        AirDistance = item.Distance,
+                        IsHeavy = false,
+                        MaxArrivalTime = maxTime,
+                        TimeRemaining = timeLeft,           // Clamped value
+                        ActualTimeEstimation = travelTime,  // Calculated via Tools
+                        ScheduleStatus = Tools.ScheduleStatusCalculate(item.Order, dummyDelivery),
+                        ActualDistance = item.Distance,
+                    };
+                })
+                .ToList();
+        }
 
         // 3. Apply optional Filter and Sort on the resulting list
         var query = result.AsEnumerable();
@@ -565,19 +682,25 @@ internal static class OrderManager
     }
     internal static IEnumerable<BO.ClosedDeliveryInList> GetClosedOrdersForCourier(int courierId, ClosedDeliveryInListEnum? filterBy, object? filterValue, ClosedDeliveryInListEnum? sortBy)
     {
-        var deliveries = s_dal.Delivery.ReadAll(d => d?.CourierId == courierId && d?.EndOrderTime != null);
-        var list = deliveries.Select(d => new BO.ClosedDeliveryInList
+        IEnumerable<BO.ClosedDeliveryInList> list;
+
+        // Stage 7: Lock DB read
+        lock (Helpers.AdminManager.BlMutex)
         {
-            DeliveryId = d!.Id,
-            OrderId = d.OrderId,
-            ShippingType = (ShippingType)d.DeliveryShippingType,
-            DeliveryEndType = (ShipmentCompletionStatus?)d.EndType,
-            DeliveryEndTime = d.EndOrderTime,
-            FullAddress = s_dal.Order.Read(d.OrderId)?.CustomerAddress ?? "",
-            ActualDistanceKm = d.Distance,
-            TotalProcessingTime = (d.EndOrderTime ?? DateTime.MinValue) - d.StartDeliveryTime,
-            OrderType = (OrderType)(s_dal.Order.Read(d.OrderId)?.Type ?? DO.Enums.OrderType.Business)
-        });
+            var deliveries = s_dal.Delivery.ReadAll(d => d?.CourierId == courierId && d?.EndOrderTime != null);
+            list = deliveries.Select(d => new BO.ClosedDeliveryInList
+            {
+                DeliveryId = d!.Id,
+                OrderId = d.OrderId,
+                ShippingType = (ShippingType)d.DeliveryShippingType,
+                DeliveryEndType = (ShipmentCompletionStatus?)d.EndType,
+                DeliveryEndTime = d.EndOrderTime,
+                FullAddress = s_dal.Order.Read(d.OrderId)?.CustomerAddress ?? "",
+                ActualDistanceKm = d.Distance,
+                TotalProcessingTime = (d.EndOrderTime ?? DateTime.MinValue) - d.StartDeliveryTime,
+                OrderType = (OrderType)(s_dal.Order.Read(d.OrderId)?.Type ?? DO.Enums.OrderType.Business)
+            }).ToList();
+        }
 
         if (filterBy != null && filterValue != null)
         {
@@ -602,37 +725,41 @@ internal static class OrderManager
 
     internal static int[] SumAmountOfOrders()
     {
-        var orderStatusValues = Enum.GetValues(typeof(ShipmentCompletionStatus)).Cast<ShipmentCompletionStatus>().ToArray();
-        var scheduleStatusValues = Enum.GetValues(typeof(ScheduleStatus)).Cast<ScheduleStatus>().ToArray();
-        int orderStatusCount = orderStatusValues.Length;
-        int scheduleStatusCount = scheduleStatusValues.Length;
-        int[] result = new int[orderStatusCount * scheduleStatusCount];
-
-        IEnumerable<DO.Order> orders = Factory.Get.Order.ReadAll();
-        IEnumerable<DO.Delivery> deliveries = Factory.Get.Delivery.ReadAll();
-        TimeSpan onTimeThreshold = TimeSpan.FromMinutes(30);
-
-        var indexed = from o in orders
-                      let latestDelivery = deliveries
-                          .Where(d => d.OrderId == o.Id)
-                          .OrderByDescending(d => d.StartDeliveryTime)
-                          .FirstOrDefault()
-                      let orderStatus = latestDelivery == null
-                          ? ShipmentCompletionStatus.Open
-                          : (latestDelivery.EndType.HasValue ? (ShipmentCompletionStatus)latestDelivery.EndType.Value : ShipmentCompletionStatus.Open)
-                      let scheduleStatus = ComputeScheduleStatus(latestDelivery, onTimeThreshold)
-                      let index = ((int)orderStatus * scheduleStatusCount) + (int)scheduleStatus
-                      select index;
-
-        var groups = indexed.GroupBy(i => i).Select(g => new { Index = g.Key, Count = g.Count() });
-
-        foreach (var g in groups)
+        // Stage 7: Lock the entire calculation to prevent data inconsistency during computation
+        lock (Helpers.AdminManager.BlMutex)
         {
-            if (g.Index >= 0 && g.Index < result.Length)
-                result[g.Index] = g.Count;
-        }
+            var orderStatusValues = Enum.GetValues(typeof(ShipmentCompletionStatus)).Cast<ShipmentCompletionStatus>().ToArray();
+            var scheduleStatusValues = Enum.GetValues(typeof(ScheduleStatus)).Cast<ScheduleStatus>().ToArray();
+            int orderStatusCount = orderStatusValues.Length;
+            int scheduleStatusCount = scheduleStatusValues.Length;
+            int[] result = new int[orderStatusCount * scheduleStatusCount];
 
-        return result;
+            IEnumerable<DO.Order> orders = Factory.Get.Order.ReadAll();
+            IEnumerable<DO.Delivery> deliveries = Factory.Get.Delivery.ReadAll();
+            TimeSpan onTimeThreshold = TimeSpan.FromMinutes(30);
+
+            var indexed = from o in orders
+                          let latestDelivery = deliveries
+                              .Where(d => d.OrderId == o.Id)
+                              .OrderByDescending(d => d.StartDeliveryTime)
+                              .FirstOrDefault()
+                          let orderStatus = latestDelivery == null
+                              ? ShipmentCompletionStatus.Open
+                              : (latestDelivery.EndType.HasValue ? (ShipmentCompletionStatus)latestDelivery.EndType.Value : ShipmentCompletionStatus.Open)
+                          let scheduleStatus = ComputeScheduleStatus(latestDelivery, onTimeThreshold)
+                          let index = ((int)orderStatus * scheduleStatusCount) + (int)scheduleStatus
+                          select index;
+
+            var groups = indexed.GroupBy(i => i).Select(g => new { Index = g.Key, Count = g.Count() });
+
+            foreach (var g in groups)
+            {
+                if (g.Index >= 0 && g.Index < result.Length)
+                    result[g.Index] = g.Count;
+            }
+
+            return result;
+        }
     }
 
     static ScheduleStatus ComputeScheduleStatus(DO.Delivery? delivery, TimeSpan onTimeThreshold)
@@ -663,54 +790,82 @@ internal static class OrderManager
     /// </summary>
     internal static void PeriodicOrdersUpdate(DateTime oldClock, DateTime newClock)
     {
-        var activeDeliveries = s_dal.Delivery.ReadAll(d => d?.EndOrderTime == null && d?.CourierId != 0);
+        // 1. Check if previous run is still in progress (Prevents overlap)
+        if (s_periodicMutex.CheckAndSetInProgress())
+            return;
 
-        activeDeliveries
-            // 1. Filter out null deliveries and join with Order data
-            .Where(d => d != null)
-            .Select(d => new { Delivery = d!, Order = s_dal.Order.Read(d!.OrderId) })
+        try
+        {
+            List<int> ordersToNotify = new List<int>();
 
-            // 2. Filter out missing orders
-            .Where(item => item.Order != null)
+            // Temporary list to hold data for calculation (Delivery + Order details)
+            // We use a Tuple or Anonymous type to hold copies of the data
+            var itemsToProcess = new List<(DO.Delivery Delivery, DO.Order Order)>();
 
-            // 3. Calculate physics and estimated arrival time
-            .Select(item =>
+            // 2. READ PHASE (Locked): Fetch active deliveries and their orders
+            lock (Helpers.AdminManager.BlMutex)
             {
-                double dist = item.Delivery.Distance ?? Tools.CalculateAirDistance(item.Order!.Latitude, item.Order.Longitude);
+                var activeDeliveries = s_dal.Delivery.ReadAll(d => d?.EndOrderTime == null && d?.CourierId != 0);
 
-                double speed = item.Delivery.DeliveryShippingType switch
-                {
-                    DO.Enums.ShippingType.Car => s_dal.Config.AvgCarSpeed,
-                    DO.Enums.ShippingType.Motorcycle => s_dal.Config.AvgMotorcycleSpeed,
-                    DO.Enums.ShippingType.Bicycle => s_dal.Config.AvgBicycleSpeed,
-                    _ => s_dal.Config.AvgWalkSpeed
-                };
-                if (speed <= 0) speed = 1;
+                // Materialize to list immediately inside lock to avoid lazy evaluation issues
+                itemsToProcess = activeDeliveries
+                    .Where(d => d != null)
+                    .Select(d => (Delivery: d!, Order: s_dal.Order.Read(d!.OrderId)))
+                    .Where(item => item.Order != null) // Filter out corrupt data
+                    .Select(item => (item.Delivery, item.Order!))
+                    .ToList();
+            }
 
-                double hoursNeeded = dist / speed;
-                DateTime estimatedArrival = item.Delivery.StartDeliveryTime.AddHours(hoursNeeded);
-
-                return new { item.Delivery, EstimatedArrival = estimatedArrival };
-            })
-
-            // 4. Filter only deliveries that have reached their destination by the new clock time
-            .Where(item => newClock >= item.EstimatedArrival)
-
-            // 5. Execute side-effects (Update DAL)
-            .ToList()
-            .ForEach(item =>
+            // 3. CALCULATION PHASE (Unlocked): Loop through items
+            // This runs without the main BlMutex, allowing other UI threads to read data
+            foreach (var item in itemsToProcess)
             {
-                s_dal.Delivery.Update(item.Delivery with
+                // Calculate estimated arrival (Tools methods handle Config locks internally)
+                // Note: We use Tools.EstimatedArrivalTimeCalculate which handles speed logic and distance
+
+                // Recalculate distance if missing (Tools handles Config lock)
+                if (item.Delivery.Distance == null)
                 {
-                    EndOrderTime = item.EstimatedArrival,
-                    EndType = DO.Enums.ShipmentCompletionStatus.Provided
-                });
+                    // This is just for logic, we don't save back unless updated
+                }
 
-                // Notify specific order update so single-item windows refresh
-                Observers.NotifyItemUpdated(item.Delivery.OrderId);
-            });
+                DateTime estimatedArrival = Tools.EstimatedArrivalTimeCalculate(item.Delivery);
 
-        Observers.NotifyListUpdated(); // Observer for list
+                // Check if delivery is completed by the new clock time
+                if (newClock >= estimatedArrival)
+                {
+                    // 4. UPDATE PHASE (Locked): Update specific delivery
+                    lock (Helpers.AdminManager.BlMutex)
+                    {
+                        // Re-read or just update? Update is safe if ID matches.
+                        s_dal.Delivery.Update(item.Delivery with
+                        {
+                            EndOrderTime = estimatedArrival,
+                            EndType = DO.Enums.ShipmentCompletionStatus.Provided
+                        });
+                    }
+
+                    // Collect ID for notification (outside lock)
+                    ordersToNotify.Add(item.Order.Id);
+                }
+            }
+
+            // 5. NOTIFY PHASE (Unlocked): Send notifications
+            foreach (var id in ordersToNotify)
+            {
+                Observers.NotifyItemUpdated(id);
+            }
+
+            if (ordersToNotify.Any())
+            {
+                Observers.NotifyListUpdated();
+            }
+        }
+        finally
+        {
+            // 6. Release the AsyncMutex
+            s_periodicMutex.UnsetInProgress();
+        }
     }
 
 }
