@@ -22,6 +22,11 @@ internal static class CourierManager
     /// </summary>
     private static readonly Helpers.AsyncMutex s_periodicMutex = new();
 
+    /// <summary>
+    /// Mutex used to prevent overlapping executions of the simulation task by the simulator.
+    /// </summary>
+    private static readonly Helpers.AsyncMutex s_simulationMutex = new(); //stage 7
+
 
     #region Data Translation
 
@@ -517,6 +522,173 @@ internal static class CourierManager
         finally
         {
             s_periodicMutex.UnsetInProgress();
+        }
+    }
+
+    internal static async Task SimulateCourierActivityAsync()//stage 7
+    {
+        // 1. Prevent overlapping runs
+        if (s_simulationMutex.CheckAndSetInProgress())
+            return;
+
+        try
+        {
+            Random random = new Random();
+            List<(DO.Courier Courier, int OrderId)> selectionsToProcess = new();
+            List<(int CourierId, int DeliveryId, DO.Enums.ShipmentCompletionStatus Status)> orderCompletions = new();
+
+            // 2. READ PHASE (Locked): Fetch all active couriers and check their orders
+            lock (Helpers.AdminManager.BlMutex)
+            {
+                // Fetch all active couriers
+                var activeCouriers = s_dal.Courier.ReadAll(c => c?.Active == true)
+                    .Where(c => c != null)
+                    .ToList();
+
+                foreach (var courier in activeCouriers)
+                {
+                    if (courier == null) continue;
+
+                    // Check if courier has an active delivery (order in care)
+                    var activeDelivery = s_dal.Delivery
+                        .ReadAll(d => d?.CourierId == courier.Id && d?.EndOrderTime == null)
+                        .FirstOrDefault();
+
+                    // BRANCH 1: Courier HAS an active delivery
+                    if (activeDelivery != null)
+                    {
+                        var order = s_dal.Order.Read(activeDelivery.OrderId);
+                        if (order != null)
+                        {
+                            // Calculate time elapsed since delivery started
+                            DateTime now = Helpers.AdminManager.Now;
+                            TimeSpan elapsedTime = now - activeDelivery.StartDeliveryTime;
+
+                            // Calculate "sufficient time" based on distance + random factor
+                            // Base time: estimated arrival time from delivery start
+                            DateTime estimatedArrival = Helpers.Tools.EstimatedArrivalTimeCalculate(activeDelivery);
+                            TimeSpan timeRequired = estimatedArrival - activeDelivery.StartDeliveryTime;
+
+                            // Add random variance (±20% of the required time)
+                            double randomFactor = random.NextDouble() * 0.4 - 0.2; // -0.2 to +0.2
+                            TimeSpan adjustedTimeRequired = TimeSpan.FromMilliseconds(
+                                timeRequired.TotalMilliseconds * (1 + randomFactor)
+                            );
+
+                            // Decision 1: Has sufficient time elapsed?
+                            if (elapsedTime >= adjustedTimeRequired)
+                            {
+                                // Close the order with one of several outcomes
+                                DO.Enums.ShipmentCompletionStatus completionStatus = random.Next(0, 100) switch
+                                {
+                                    < 85 => DO.Enums.ShipmentCompletionStatus.Provided,  // 85% success
+                                    < 95 => DO.Enums.ShipmentCompletionStatus.Refused,   // 10% refused
+                                    _ => DO.Enums.ShipmentCompletionStatus.NotFound      // 5% not found
+                                };
+
+                                orderCompletions.Add((courier.Id, activeDelivery.Id, completionStatus));
+                            }
+                            else
+                            {
+                                // Decision 2: Not enough time - cancel with 10% probability
+                                if (random.NextDouble() < 0.1)
+                                {
+                                    orderCompletions.Add((courier.Id, activeDelivery.Id, DO.Enums.ShipmentCompletionStatus.Cancelled));
+                                }
+                            }
+                        }
+                    }
+                    // BRANCH 2: Courier DOESN'T have an active delivery
+                    else
+                    {
+                        // Stage 1: Check if courier is available (15% probability)
+                        if (random.NextDouble() < 0.15)
+                        {
+                            // Courier is available - get open orders for this courier
+                            var openOrders = Helpers.OrderManager.GetOpenOrdersForCourier(courier.Id, null, null)
+                                .ToList();
+
+                            // If there are open orders available
+                            if (openOrders.Count > 0)
+                            {
+                                // Stage 2: Decide whether to pick an order (50% probability)
+                                if (random.NextDouble() < 0.5)
+                                {
+                                    // Random selection from available orders
+                                    int selectedIndex = random.Next(0, openOrders.Count);
+                                    int selectedOrderId = openOrders[selectedIndex].OrderId;
+
+                                    selectionsToProcess.Add((courier, selectedOrderId));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. PROCESSING PHASE (Unlocked): Assign new orders and complete existing ones
+            // This runs without the main BlMutex, allowing other threads to read data
+
+            // 3A. Complete active orders (Locked per operation)
+            foreach (var (courierId, deliveryId, completionStatus) in orderCompletions)
+            {
+                try
+                {
+                    lock (Helpers.AdminManager.BlMutex)
+                    {
+                        var delivery = s_dal.Delivery.Read(deliveryId);
+                        if (delivery != null && delivery.EndOrderTime == null)
+                        {
+                            s_dal.Delivery.Update(delivery with
+                            {
+                                EndOrderTime = Helpers.AdminManager.Now,
+                                EndType = completionStatus
+                            });
+                        }
+                    }
+
+                    // Notify outside lock
+                    lock (Helpers.AdminManager.BlMutex)
+                    {
+                        var orderId = s_dal.Delivery.Read(deliveryId)?.OrderId;
+                        if (orderId.HasValue)
+                        {
+                            Observers.NotifyItemUpdated(courierId);
+                            Helpers.OrderManager.Observers.NotifyItemUpdated(orderId.Value);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle silently - simulated activity can fail
+                }
+            }
+
+            // 3B. Assign new orders to couriers
+            foreach (var (courier, orderId) in selectionsToProcess)
+            {
+                try
+                {
+                    // Call the order selection logic asynchronously
+                    // This will handle network calls for distance calculation, etc.
+                    await Helpers.OrderManager.OrderSelectionAsync(courier.Id, orderId);
+                }
+                catch (Exception ex)
+                {
+                   
+                }
+            }
+
+            // 4. Notify observers (Final bulk notification)
+            if (orderCompletions.Count > 0 || selectionsToProcess.Count > 0)
+            {
+                Observers.NotifyListUpdated();
+                Helpers.OrderManager.Observers.NotifyListUpdated();
+            }
+        }
+        finally
+        {
+            s_simulationMutex.UnsetInProgress();
         }
     }
     #endregion Periodic Maintenance

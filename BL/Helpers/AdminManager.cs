@@ -42,6 +42,7 @@ internal static class AdminManager
 
             // 2. Deactivate Idle Couriers (Cleanup logic)
             Helpers.CourierManager.DeactivateIdleCouriers();
+
         });
 
         // Calling all the observers of clock update (UI)
@@ -335,7 +336,7 @@ internal static class AdminManager
         while (!s_stop)
         {
             UpdateClock(Now.AddMinutes(s_interval));
-
+            _ = Task.Run(() => CourierManager.SimulateCourierActivityAsync());
             try
             {
                 Thread.Sleep(1000); // 1 second
