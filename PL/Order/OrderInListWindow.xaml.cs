@@ -16,7 +16,7 @@ namespace PL.Order
         // --- Properties ---
 
         public IEnumerable<BO.OrderInListEnum> SortOptions { get; set; }
-        public IEnumerable<BO.ShipmentCompletionStatus> StatusOptions { get; set; }
+        public IEnumerable<BO.OrderStatus> StatusOptions { get; set; }
 
         // NOTE: OrderList is now bound to an IEnumerable, but we will assign a ListCollectionView to it
         public System.Collections.IEnumerable OrderList
@@ -59,7 +59,7 @@ namespace PL.Order
         public OrderListWindow()
         {
             SortOptions = Enum.GetValues(typeof(BO.OrderInListEnum)).Cast<BO.OrderInListEnum>();
-            StatusOptions = Enum.GetValues(typeof(BO.ShipmentCompletionStatus)).Cast<BO.ShipmentCompletionStatus>();
+            StatusOptions = Enum.GetValues(typeof(BO.OrderStatus)).Cast<BO.OrderStatus>();
 
             InitializeComponent();
             this.Loaded += Window_Loaded;

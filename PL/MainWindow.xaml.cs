@@ -152,11 +152,11 @@ namespace PL
 
                 var stats = new OrderStats
                 {
-                    OpenCount = orders.Count(o => o.OrderStatus == BO.ShipmentCompletionStatus.Open),
-                    OnCareCount = orders.Count(o => o.OrderStatus == BO.ShipmentCompletionStatus.OnCare),
-                    ProvidedCount = orders.Count(o => o.OrderStatus == BO.ShipmentCompletionStatus.Provided),
-                    RefusedCount = orders.Count(o => o.OrderStatus == BO.ShipmentCompletionStatus.Refused),
-                    CancelledCount = orders.Count(o => o.OrderStatus == BO.ShipmentCompletionStatus.Cancelled)
+                    OpenCount = orders.Count(o => o.OrderStatus == BO.OrderStatus.Open),
+                    OnCareCount = orders.Count(o => o.OrderStatus == BO.OrderStatus.OnCare),
+                    ProvidedCount = orders.Count(o => o.OrderStatus == BO.OrderStatus.Provided),
+                    RefusedCount = orders.Count(o => o.OrderStatus == BO.OrderStatus.Refused),
+                    CancelledCount = orders.Count(o => o.OrderStatus == BO.OrderStatus.Cancelled)
                 };
 
                 OrderStatistics = stats;

@@ -122,7 +122,7 @@ internal static class Tools
     /// - Car/Motorcycle -> 'driving' profile.
     /// - Bicycle/Walk -> 'walking' profile (assuming same path as per requirements).
     /// </summary>
-    public static async Task<double> GetRouteDistanceAsync(double startLat, double startLon, double endLat, double endLon, DO.Enums.ShippingType vehicleType)
+    public static async Task<double?> GetRouteDistanceAsync(double startLat, double startLon, double endLat, double endLon, DO.Enums.ShippingType vehicleType)
     {
         // 1. Determine OSRM Profile based on requirements
         string profile = vehicleType switch
@@ -163,7 +163,7 @@ internal static class Tools
         catch
         {
             // 4. Fallback: If network fails, return Air Distance
-            return CalculateAirDistance(startLat, startLon, endLat, endLon);
+            return null;
         }
     }
 

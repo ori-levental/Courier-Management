@@ -60,7 +60,7 @@ namespace PL.Order
                 StartOrderTime = s_bl.Admin.GetClock(),
                 OrderType = BO.OrderType.Private,
                 DeliveryHistory = new List<DeliveryPerOrderInList>(),
-                OrderStatus = ShipmentCompletionStatus.Open,
+                OrderStatus = OrderStatus.Open,
                 MaxArrivalTime = s_bl.Admin.GetClock() + s_bl.Admin.GetConfig().MaxDeliveryTime,
                 TimeRemaining = s_bl.Admin.GetConfig().MaxDeliveryTime
             };

@@ -6,13 +6,21 @@ public enum ShippingType
     Bicycle,
     Walk
 }
-public enum ShipmentCompletionStatus
+public enum OrderStatus
 {
     Provided,
     Refused,
     Cancelled,
     Open,
     OnCare
+}
+public enum ShipmentCompletionStatus // delivery
+{
+    Provided,
+    Refused,
+    Cancelled,
+    NotFound,
+    Failed
 }
 public enum ScheduleStatus
 {

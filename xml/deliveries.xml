@@ -320,4 +320,74 @@
     <EndType>Refused</EndType>
     <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
   </Delivery>
+  <Delivery>
+    <Id>33</Id>
+    <OrderId>18</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>9.4307</Distance>
+    <EndType>NotFound</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>34</Id>
+    <OrderId>18</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>9.4307</Distance>
+    <EndType>NotFound</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>35</Id>
+    <OrderId>18</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>9.4307</Distance>
+    <EndType>Provided</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>36</Id>
+    <OrderId>22</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>9.4307</Distance>
+    <EndType>Provided</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>37</Id>
+    <OrderId>48</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance xsi:nil="true" />
+    <EndType>Failed</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>38</Id>
+    <OrderId>48</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance xsi:nil="true" />
+    <EndType>Failed</EndType>
+    <EndOrderTime>2024-11-01T12:03:00</EndOrderTime>
+  </Delivery>
+  <Delivery>
+    <Id>39</Id>
+    <OrderId>48</OrderId>
+    <CourierId>327703039</CourierId>
+    <DeliveryShippingType>Bicycle</DeliveryShippingType>
+    <StartDeliveryTime>2024-11-01T12:03:00</StartDeliveryTime>
+    <Distance>2.6709</Distance>
+    <EndType xsi:nil="true" />
+    <EndOrderTime xsi:nil="true" />
+  </Delivery>
 </ArrayOfDelivery>

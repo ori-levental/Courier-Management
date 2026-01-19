@@ -254,18 +254,10 @@
                                 <Setter Property="Visibility" Value="Visible"/>
                             </MultiDataTrigger>
 
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding IsAddMode}" Value="False"/>
-                                    <Condition Binding="{Binding CurrentOrder.OrderStatus}" Value="NotFound"/>
-                                </MultiDataTrigger.Conditions>
-                                <Setter Property="Visibility" Value="Visible"/>
-                            </MultiDataTrigger>
                         </Style.Triggers>
                     </Style>
                 </Button.Style>
             </Button>
         </StackPanel>
     </Grid>
-
 </root:NetworkAwareWindow>

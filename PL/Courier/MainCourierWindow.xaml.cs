@@ -95,6 +95,7 @@ namespace PL.Courier
             {
                 BO.ShipmentCompletionStatus.Provided,
                 BO.ShipmentCompletionStatus.Refused,
+                BO.ShipmentCompletionStatus.NotFound,
             };
 
             // Set default selection

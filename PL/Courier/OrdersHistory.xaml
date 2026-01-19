@@ -15,7 +15,6 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header Section -->
         <StackPanel Grid.Row="0" Background="#2196F3" Margin="0">
             <StackPanel.Resources>
                 <Style TargetType="TextBlock">
@@ -30,7 +29,6 @@
             </Border>
         </StackPanel>
 
-        <!-- Filter Section -->
         <Border Grid.Row="1" Background="White" Padding="20" BorderBrush="#CCCCCC" BorderThickness="0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -39,7 +37,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- DeliveryEndType Filter -->
                 <StackPanel Grid.Column="0" Margin="0,0,20,0">
                     <TextBlock Text="Filter by Completion Status:" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <ComboBox Name="CmbEndType"
@@ -51,10 +48,11 @@
                         <ComboBoxItem>Provided</ComboBoxItem>
                         <ComboBoxItem>Cancelled</ComboBoxItem>
                         <ComboBoxItem>Refused</ComboBoxItem>
+                        <ComboBoxItem>Failed</ComboBoxItem>
+                        <ComboBoxItem>NotFound</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
 
-                <!-- OrderType Filter -->
                 <StackPanel Grid.Column="1" Margin="0,0,20,0">
                     <TextBlock Text="Filter by Order Type:" FontWeight="SemiBold" Margin="0,0,0,5"/>
                     <ComboBox Name="CmbOrderType"
@@ -63,13 +61,13 @@
                               Padding="10"
                               Foreground="#333">
                         <ComboBoxItem>All</ComboBoxItem>
-                        <ComboBoxItem>Express</ComboBoxItem>
-                        <ComboBoxItem>Standard</ComboBoxItem>
-                        <ComboBoxItem>Scheduled</ComboBoxItem>
+                        <ComboBoxItem>Private</ComboBoxItem>
+                        <ComboBoxItem>Business</ComboBoxItem>
+                        <ComboBoxItem>Wholesale</ComboBoxItem>
+                        <ComboBoxItem>PublicSector</ComboBoxItem>
                     </ComboBox>
                 </StackPanel>
-
-                <!-- Action Buttons -->
+                
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,0">
                     <Button Click="BtnClearFilters_Click" Padding="15,10" Margin="0,0,10,0" 
                             Background="#FF9800" Foreground="White" FontWeight="SemiBold"
@@ -81,7 +79,6 @@
             </Grid>
         </Border>
 
-        <!-- Orders List -->
         <ListView Grid.Row="2" ItemsSource="{Binding ClosedOrdersList}" 
                   Background="White" Margin="0,1,0,0"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
@@ -101,7 +98,6 @@
             </ListView.View>
         </ListView>
 
-        <!-- Statistics Section -->
         <Border Grid.Row="3" Background="#F9F9F9" Padding="20" BorderBrush="#CCCCCC" BorderThickness="0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -111,25 +107,21 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Total Deliveries -->
                 <StackPanel Grid.Column="0" Margin="0,0,20,0">
                     <TextBlock Text="Total Deliveries" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,5"/>
                     <TextBlock Text="{Binding TotalDeliveries}" FontSize="28" FontWeight="Bold" Foreground="#2196F3"/>
                 </StackPanel>
 
-                <!-- Successful Deliveries -->
                 <StackPanel Grid.Column="1" Margin="0,0,20,0">
                     <TextBlock Text="Successful" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,5"/>
                     <TextBlock Text="{Binding SuccessfulDeliveries}" FontSize="28" FontWeight="Bold" Foreground="#4CAF50"/>
                 </StackPanel>
 
-                <!-- Cancelled Deliveries -->
                 <StackPanel Grid.Column="2" Margin="0,0,20,0">
                     <TextBlock Text="Cancelled" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,5"/>
                     <TextBlock Text="{Binding CancelledDeliveries}" FontSize="28" FontWeight="Bold" Foreground="#F44336"/>
                 </StackPanel>
 
-                <!-- Average Processing Time -->
                 <StackPanel Grid.Column="3">
                     <TextBlock Text="Avg Processing Time" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,5"/>
                     <TextBlock Text="{Binding AverageProcessingTime}" FontSize="24" FontWeight="Bold" Foreground="#FF9800"/>
@@ -137,7 +129,6 @@
             </Grid>
         </Border>
 
-        <!-- Footer Section with Close Button -->
         <Border Grid.Row="4" Background="#F5F5F5" BorderBrush="#CCCCCC" BorderThickness="0,1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,0,0">
                 <Button Click="BtnClose_Click" Padding="20,10" 

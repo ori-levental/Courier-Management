@@ -85,7 +85,7 @@ public class Order
     /// <summary>
     /// The current processing or completion status of the order.
     /// </summary>
-    public ShipmentCompletionStatus OrderStatus { get; init; }
+    public OrderStatus OrderStatus { get; init; }
 
     /// <summary>
     /// Indicates if the order is on time, at risk, or late relative to the deadline.
