@@ -4,14 +4,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data; // Required for ListCollectionView
+using System.Windows.Data;
 using BlApi;
+using PL.Helpers;
 
 namespace PL.Order
 {
     public partial class OrderListWindow : Window
     {
         static readonly IBl s_bl = Factory.Get();
+
+        #region Stage 7 - Observer Mutex
+        private readonly ObserverMutex _orderListMutex = new(); //stage 7
+        #endregion
 
         // --- Properties ---
 
@@ -107,6 +112,12 @@ namespace PL.Order
                         s_bl.Order.CancelOrder(managerId, order.OrderId);
                         queryOrderList();
                     }
+                    catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+                    {
+                        // Stage 7: Operation blocked by simulator
+                        MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                            "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -157,7 +168,23 @@ namespace PL.Order
             }
         }
 
-        private void orderListObserver() => this.Dispatcher.Invoke(() => { queryOrderList(); });
+        private void orderListObserver()
+        {
+            #region Stage 7 (for multithreading)
+            if (_orderListMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
+            {
+                // The actual work to be done on the UI thread
+                queryOrderList();
+
+                // After completing the work, check if a restart was requested
+                if (await _orderListMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderListObserver();
+            });
+            #endregion Stage 7 (for multithreading)
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {

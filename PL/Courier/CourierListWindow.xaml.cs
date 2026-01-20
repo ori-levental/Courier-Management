@@ -1,10 +1,11 @@
 ﻿using BO;
 using System;
 using System.Collections.Generic;
-using System.Linq; // Required for .Cast<T>()
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using BlApi;
+using PL.Helpers;
 
 namespace PL.Courier
 {
@@ -16,6 +17,10 @@ namespace PL.Courier
         #region BL Access
         // Access point to the Business Logic layer
         static readonly IBl s_bl = Factory.Get();
+        #endregion
+
+        #region Stage 7 - Observer Mutex
+        private readonly ObserverMutex _courierListMutex = new(); //stage 7
         #endregion
 
         #region Properties
@@ -148,6 +153,7 @@ namespace PL.Courier
 
         /// <summary>
         /// Deletes a courier after confirmation.
+        /// Stage 7: Handles simulator blocking of CRUD operations.
         /// </summary>
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
@@ -169,9 +175,15 @@ namespace PL.Courier
                         // 4. Refresh List
                         queryCourierList();
                     }
+                    catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+                    {
+                        // Stage 7: Operation blocked by simulator
+                        MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                            "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Error: {ex.Message}");
+                        MessageBox.Show($"Error: {ex.Message}", "Deletion Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -204,14 +216,25 @@ namespace PL.Courier
 
         /// <summary>
         /// Observer method triggered by BL when data changes.
+        /// Implements Stage 7 multithreading support with ObserverMutex.
         /// </summary>
-        private void courierListObserver() =>
-            // CRITICAL: BL events run on a background thread.
-            // We must use the Dispatcher to update the UI thread safely.
-            this.Dispatcher.Invoke(() =>
+        private void courierListObserver()
+        {
+            #region Stage 7 (for multithreading)
+            if (_courierListMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
                 queryCourierList();
+
+                // After completing the work, check if a restart was requested
+                if (await _courierListMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    courierListObserver();
             });
+            #endregion Stage 7 (for multithreading)
+        }
 
         #endregion
 
@@ -234,8 +257,6 @@ namespace PL.Courier
         /// </summary>
         private void Window_Closed(object? sender, EventArgs e) => s_bl.Courier.RemoveObserver(courierListObserver);
         // Unregister the observer to prevent memory leaks and errors
-
-
 
         #endregion
     }

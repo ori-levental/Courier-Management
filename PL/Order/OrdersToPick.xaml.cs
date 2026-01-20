@@ -1,5 +1,6 @@
 ﻿using BlApi;
 using BO;
+using PL.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -17,6 +18,10 @@ namespace PL.Order
     {
         #region BL Access
         static readonly IBl s_bl = Factory.Get();
+        #endregion
+
+        #region Stage 7 - Observer Mutex
+        private readonly ObserverMutex _orderListMutex = new(); //stage 7
         #endregion
 
         #region Properties
@@ -132,6 +137,12 @@ namespace PL.Order
                 this.DialogResult = true;
                 this.Close();
             }
+            catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+            {
+                // Stage 7: Operation blocked by simulator
+                MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                    "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -196,7 +207,27 @@ namespace PL.Order
 
         private void UpdateIsOrderSelected() => IsOrderSelected = SelectedOrder != null;
 
-        private void orderListObserver() => this.Dispatcher.Invoke(LoadOrderList);
+        /// <summary>
+        /// Observer method triggered by BL when order list changes.
+        /// Implements Stage 7 multithreading support with ObserverMutex.
+        /// </summary>
+        private void orderListObserver()
+        {
+            #region Stage 7 (for multithreading)
+            if (_orderListMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
+            {
+                // The actual work to be done on the UI thread
+                LoadOrderList();
+
+                // After completing the work, check if a restart was requested
+                if (await _orderListMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderListObserver();
+            });
+            #endregion Stage 7 (for multithreading)
+        }
 
         #endregion
 
@@ -208,9 +239,9 @@ namespace PL.Order
             LoadOrderList();
             s_bl.Order.AddObserver(orderListObserver);
         }
-        private void Window_Closed(object? sender, EventArgs e)=>
-            s_bl.Order.RemoveObserver(orderListObserver);
 
+        private void Window_Closed(object? sender, EventArgs e) =>
+            s_bl.Order.RemoveObserver(orderListObserver);
 
         #endregion
 

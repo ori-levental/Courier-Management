@@ -30,11 +30,11 @@
                 </StackPanel>
 
                 <WrapPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button Content="+ Min" Click="BtnAddMinute_Click" Margin="3" Padding="10,5"/>
-                    <Button Content="+ Hour" Click="BtnAddHour_Click" Margin="3" Padding="10,5"/>
-                    <Button Content="+ Day" Click="BtnAddDay_Click" Margin="3" Padding="10,5"/>
-                    <Button Content="+ Month" Click="BtnAddMonth_Click" Margin="3" Padding="10,5"/>
-                    <Button Content="+ Year" Click="BtnAddYear_Click" Margin="3" Padding="10,5"/>
+                    <Button x:Name="BtnAddMinute" Content="+ Min" Click="BtnAddMinute_Click" Margin="3" Padding="10,5"/>
+                    <Button x:Name="BtnAddHour" Content="+ Hour" Click="BtnAddHour_Click" Margin="3" Padding="10,5"/>
+                    <Button x:Name="BtnAddDay" Content="+ Day" Click="BtnAddDay_Click" Margin="3" Padding="10,5"/>
+                    <Button x:Name="BtnAddMonth" Content="+ Month" Click="BtnAddMonth_Click" Margin="3" Padding="10,5"/>
+                    <Button x:Name="BtnAddYear" Content="+ Year" Click="BtnAddYear_Click" Margin="3" Padding="10,5"/>
                 </WrapPanel>
             </Grid>
         </Border>
@@ -42,6 +42,7 @@
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <Grid Margin="20">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -78,7 +79,44 @@
 
                 <Label Grid.Row="1" Content="System Configuration" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,15,0,15"/>
 
-                <GroupBox Grid.Row="2" Header="Average Speeds (km/h)" Margin="5" Padding="10">
+                <!-- Stage 7: Simulator Control -->
+                <GroupBox Grid.Row="2" Header="Simulator Control" Margin="5" Padding="10" BorderBrush="DarkGreen" Background="#F0FFF0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Content="Clock Interval (minutes):" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        
+                        <TextBox x:Name="TxbInterval" Grid.Column="1" Text="{Binding Interval, UpdateSourceTrigger=PropertyChanged}" 
+                                 Padding="5" Height="32" VerticalContentAlignment="Center" FontSize="14"
+                                 ToolTip="Set the interval in minutes for each simulator step"/>
+                        
+                        <!-- Toggle Button: Changes content and color based on IsSimulatorRunning -->
+                        <Button x:Name="BtnToggleSimulator" Grid.Column="2" Click="BtnToggleSimulator_Click" 
+                                Width="150" Height="32" Margin="15,0,0,0" FontWeight="Bold"
+                                ToolTip="Toggle simulator start/stop">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Background" Value="#90EE90"/>
+                                    <Setter Property="Content" Value="Start Simulator"/>
+                                    <Style.Triggers>
+                                        <!-- When IsSimulatorRunning is True -->
+                                        <DataTrigger Binding="{Binding IsSimulatorRunning}" Value="True">
+                                            <Setter Property="Background" Value="#FFB6C1"/>
+                                            <Setter Property="Content" Value="Stop Simulator"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Grid.Row="3" Header="Average Speeds (km/h)" Margin="5" Padding="10">
                     <UniformGrid Columns="4" Rows="1">
                         <StackPanel Margin="5">
                             <Label Content="Car Speed:"/>
@@ -99,7 +137,7 @@
                     </UniformGrid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="3" Header="Location &amp; Distance Limits" Margin="5" Padding="10">
+                <GroupBox Grid.Row="4" Header="Location &amp; Distance Limits" Margin="5" Padding="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
@@ -110,14 +148,11 @@
 
                         <TextBox Grid.Column="0" Margin="5"
                                  Text="{Binding Configuration.CompanyAddress, UpdateSourceTrigger=PropertyChanged}" Padding="3"
-                                 
                                  BorderBrush="{Binding AddressBorderBrush, RelativeSource={RelativeSource AncestorType=Window}}"
                                  BorderThickness="2"
                                  ToolTip="{Binding AddressStatus, RelativeSource={RelativeSource AncestorType=Window}}"
-                                 
                                  ToolTipService.InitialShowDelay="0"
                                  ToolTipService.ShowDuration="20000">
-
                             <TextBox.Style>
                                 <Style TargetType="TextBox">
                                     <Style.Triggers>
@@ -139,7 +174,7 @@
                     </Grid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="4" Header="Time Constraints" Margin="5" Padding="10">
+                <GroupBox Grid.Row="5" Header="Time Constraints" Margin="5" Padding="10">
                     <UniformGrid Columns="3" Rows="1">
                         <StackPanel Margin="5">
                             <Label Content="Max Delivery Time:"/>
@@ -179,7 +214,7 @@
                     </UniformGrid>
                 </GroupBox>
 
-                <GroupBox Grid.Row="5" Header="Manager Credentials" Margin="5" Padding="10" BorderBrush="Purple">
+                <GroupBox Grid.Row="6" Header="Manager Credentials" Margin="5" Padding="10" BorderBrush="Purple">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -215,16 +250,18 @@
                     </Grid>
                 </GroupBox>
 
-                <Button Grid.Row="6" Content="Update Configuration" Click="BtnSaveConfig_Click" 
+                <Button x:Name="BtnSaveConfig" Grid.Row="7" Content="Update Configuration" Click="BtnSaveConfig_Click" 
                         HorizontalAlignment="Center" Width="200" Height="35" Margin="0,20,0,0" FontWeight="Bold"/>
             </Grid>
         </ScrollViewer>
 
         <Border Grid.Row="2" Background="#EEEEEE" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Initialize DB" Click="BtnInitDB_Click" Width="130" Height="40" Margin="15" Background="#90EE90" FontWeight="SemiBold"/>
+                <Button x:Name="BtnInitDB" Content="Initialize DB" Click="BtnInitDB_Click" Width="130" Height="40" Margin="15" 
+                        Background="#90EE90" FontWeight="SemiBold"/>
 
-                <Button Content="Reset DB" Click="BtnResetDB_Click" Width="130" Height="40" Margin="15" Background="#FFB6C1" FontWeight="SemiBold"/>
+                <Button x:Name="BtnResetDB" Content="Reset DB" Click="BtnResetDB_Click" Width="130" Height="40" Margin="15" 
+                        Background="#FFB6C1" FontWeight="SemiBold"/>
 
                 <Button Content="Manage Couriers" Click="BtnShowList_Click" 
                         Width="180" Height="40" Margin="50,15,15,15" FontWeight="Bold" BorderThickness="2" HorizontalAlignment="Center" Background="#FFBEC6FF"/>
@@ -234,4 +271,5 @@
         </Border>
 
     </Grid>
+
 </local:NetworkAwareWindow>

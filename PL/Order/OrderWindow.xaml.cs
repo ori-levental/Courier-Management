@@ -1,5 +1,6 @@
 ﻿using BlApi;
 using BO;
+using PL.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -13,6 +14,10 @@ namespace PL.Order
     public partial class OrderWindow : PL.NetworkAwareWindow
     {
         static readonly IBl s_bl = Factory.Get();
+
+        #region Stage 7 - Observer Mutex
+        private readonly ObserverMutex _orderMutex = new(); //stage 7
+        #endregion
 
         // --- Dependency Properties ---
 
@@ -95,22 +100,38 @@ namespace PL.Order
             int managerId = s_bl.Admin.GetConfig().ManagerId;
 
             // 1. Perform the network operation (without messages and without closing)
-            bool isSuccess = await ExecuteNetworkActionAsync(async () =>
+            try
             {
-                if (IsAddMode)
-                    await s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
-                else
-                    await s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
+                bool isSuccess = await ExecuteNetworkActionAsync(async () =>
+                {
+                    try
+                    {
+                        if (IsAddMode)
+                            await s_bl.Order.AddOrderAsync(managerId, CurrentOrder);
+                        else
+                            await s_bl.Order.UpdateOrderAsync(managerId, CurrentOrder);
+                    }
+                    catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+                    {
+                        // Stage 7: Operation blocked by simulator
+                        throw new Exception("Operation not allowed while simulator is running.\nPlease stop the simulator first.");
+                    }
 
-            }, "Calculating Coordinates...", "Order Processed Successfully");
+                }, "Calculating Coordinates...", "Order Processed Successfully");
 
-            // 2. Only if the operation was successful (the screen is already green at this point) - display a message and close
-            if (isSuccess)
+                // 2. Only if the operation was successful (the screen is already green at this point) - display a message and close
+                if (isSuccess)
+                {
+                    MessageBox.Show(IsAddMode ? "Order added!" : "Order updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Close();
+                }
+            }
+            catch (Exception ex)
             {
-                MessageBox.Show(IsAddMode ? "Order added!" : "Order updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                Close();
+                MessageBox.Show($"Error: {ex.Message}", "Operation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             if (MessageBox.Show("Are you sure you want to cancel this order?", "Confirm Cancel",
@@ -124,17 +145,34 @@ namespace PL.Order
                     MessageBox.Show("Order cancelled successfully.");
                     Close();
                 }
+                catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+                {
+                    // Stage 7: Operation blocked by simulator
+                    MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                        "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error: {ex.Message}");
+                    MessageBox.Show($"Error: {ex.Message}", "Cancellation Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
+        // --- Observer Logic ---
+
+        /// <summary>
+        /// Observer callback invoked by the Business Layer for Order updates.
+        /// Refreshes order details when changes are detected in the system.
+        /// </summary>
         private void orderRefresher()
         {
-            Dispatcher.Invoke(() =>
+            #region Stage 7 (for multithreading)
+            if (_orderMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
                 try
                 {
                     // If we are in insert mode, there is nothing to refresh
@@ -153,7 +191,12 @@ namespace PL.Order
                     // If the order was deleted or an error occurred, we will close the window
                     Close();
                 }
+
+                // After completing the work, check if a restart was requested
+                if (await _orderMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderRefresher();
             });
+            #endregion Stage 7 (for multithreading)
         }
     }
 }

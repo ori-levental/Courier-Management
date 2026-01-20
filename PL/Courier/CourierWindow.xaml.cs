@@ -2,6 +2,7 @@
 using System.Windows;
 using BlApi;
 using BO;
+using PL.Helpers;
 
 namespace PL.Courier
 {
@@ -12,6 +13,10 @@ namespace PL.Courier
     {
         // Access to BL
         static readonly IBl s_bl = Factory.Get();
+
+        #region Stage 7 - Observer Mutex
+        private readonly ObserverMutex _courierMutex = new(); //stage 7
+        #endregion
 
         // --- Dependency Properties ---
 
@@ -116,6 +121,12 @@ namespace PL.Courier
                 // Close the window after success
                 Close();
             }
+            catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+            {
+                // Stage 7: Operation blocked by simulator
+                MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                    "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Operation Failed: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -141,6 +152,12 @@ namespace PL.Courier
                     MessageBox.Show("Courier deleted successfully.");
                     Close(); // Close window after deletion
                 }
+                catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
+                {
+                    // Stage 7: Operation blocked by simulator
+                    MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                        "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Error: {ex.Message}", "Deletion Failed", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -148,17 +165,22 @@ namespace PL.Courier
             }
         }
 
-        // --- Observer Logic (להוסיף את החלק הזה) ---
+        // --- Observer Logic ---
 
         /// <summary>
         /// A method that is called automatically when there is any change in the system (Observer)
         /// </summary>
         private void courierObserver()
         {
-            if (IsAddMode) return; // Nothing to update if we are creating a new messenger that does not yet exist
+            #region Stage 7 (for multithreading)
+            if (_courierMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
 
-            Dispatcher.Invoke(() =>
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
+                if (IsAddMode) return; // Nothing to update if we are creating a new messenger that does not yet exist
+
                 try
                 {
                     int managerId = s_bl.Admin.GetConfig().ManagerId;
@@ -170,7 +192,12 @@ namespace PL.Courier
                     // If the messenger has been deleted by someone else in the meantime - we will close the window
                     Close();
                 }
+
+                // After completing the work, check if a restart was requested
+                if (await _courierMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    courierObserver();
             });
+            #endregion Stage 7 (for multithreading)
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

@@ -2,6 +2,7 @@
 using BO;
 using PL.Courier;
 using PL.Order;
+using PL.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,6 +34,12 @@ namespace PL
 
         // Flag to prevent infinite loops during password sync
         private bool _isPasswordSyncing = false;
+
+        #region Stage 7 - Observer Mutexes
+        private readonly ObserverMutex _clockMutex = new(); //stage 7
+        private readonly ObserverMutex _configMutex = new(); //stage 7
+        private readonly ObserverMutex _orderMutex = new(); //stage 7
+        #endregion
 
         public MainWindow()
         {
@@ -72,23 +79,66 @@ namespace PL
         public static readonly DependencyProperty OrderStatisticsProperty =
             DependencyProperty.Register("OrderStatistics", typeof(OrderStats), typeof(MainWindow));
 
+        // 4. Dependency Property for Simulator Interval (Stage 7)
+        /// <summary>
+        /// Defines the interval (in minutes) at which the clock advances during simulator operation.
+        /// Allows the manager to control the speed of simulation progression.
+        /// </summary>
+        public int Interval
+        {
+            get { return (int)GetValue(IntervalProperty); }
+            set { SetValue(IntervalProperty, value); }
+        }
+        public static readonly DependencyProperty IntervalProperty =
+            DependencyProperty.Register("Interval", typeof(int), typeof(MainWindow), 
+                new PropertyMetadata(1)); // Default: 1 minute per simulation step
+
+        // 5. Dependency Property for Simulator Running State (Stage 7 - NEW)
+        /// <summary>
+        /// Flag indicating whether the simulator is currently running.
+        /// Used to control UI state and button behavior.
+        /// </summary>
+        public bool IsSimulatorRunning
+        {
+            get { return (bool)GetValue(IsSimulatorRunningProperty); }
+            set { SetValue(IsSimulatorRunningProperty, value); }
+        }
+        public static readonly DependencyProperty IsSimulatorRunningProperty =
+            DependencyProperty.Register("IsSimulatorRunning", typeof(bool), typeof(MainWindow), 
+                new PropertyMetadata(false)); // Default: Not running
+
         #endregion
 
         #region Observers
 
         private void clockObserver()
         {
-            this.Dispatcher.Invoke(() =>
+            #region Stage 7 (for multithreading)
+            if (_clockMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
                 CurrentTime = s_bl.Admin.GetClock();
                 UpdateOrderStats();
+
+                // After completing the work, check if a restart was requested
+                if (await _clockMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    clockObserver();
             });
+            #endregion Stage 7 (for multithreading)
         }
 
         private void configObserver()
         {
-            this.Dispatcher.Invoke(() =>
+            #region Stage 7 (for multithreading)
+            if (_configMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
                 var newConfig = s_bl.Admin.GetConfig();
                 Configuration = newConfig;
 
@@ -99,15 +149,30 @@ namespace PL
                     pbManagerPass.Password = newConfig.ManagerPassword;
                     _isPasswordSyncing = false;
                 }
+
+                // After completing the work, check if a restart was requested
+                if (await _configMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    configObserver();
             });
+            #endregion Stage 7 (for multithreading)
         }
 
         private void orderObserver()
         {
-            this.Dispatcher.Invoke(() =>
+            #region Stage 7 (for multithreading)
+            if (_orderMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
+                // The actual work to be done on the UI thread
                 UpdateOrderStats();
+
+                // After completing the work, check if a restart was requested
+                if (await _orderMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderObserver();
             });
+            #endregion Stage 7 (for multithreading)
         }
 
         #endregion
@@ -129,6 +194,22 @@ namespace PL
                 _isPasswordSyncing = false;
             }
 
+            // Initialize Interval to default value
+            Interval = 1;
+
+            // Initialize simulator state as not running
+            IsSimulatorRunning = false;
+            
+            // Ensure buttons are enabled on startup
+            TxbInterval.IsEnabled = true;
+            BtnAddMinute.IsEnabled = true;
+            BtnAddHour.IsEnabled = true;
+            BtnAddDay.IsEnabled = true;
+            BtnAddMonth.IsEnabled = true;
+            BtnAddYear.IsEnabled = true;
+            BtnInitDB.IsEnabled = true;
+            BtnResetDB.IsEnabled = true;
+
             UpdateOrderStats();
 
             // Subscribe to BL updates
@@ -139,6 +220,21 @@ namespace PL
 
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
+            // Stage 7: Stop simulator before closing if it's running
+            if (IsSimulatorRunning)
+            {
+                try
+                {
+                    s_bl.Admin.StopSimulator();
+                    IsSimulatorRunning = false;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error stopping simulator during close: {ex.Message}", "Error", 
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+
             s_bl.Admin.RemoveClockObserver(clockObserver);
             s_bl.Admin.RemoveConfigObserver(configObserver);
             s_bl.Order.RemoveObserver(orderObserver);
@@ -176,6 +272,94 @@ namespace PL
         private void BtnAddDay_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Day));
         private void BtnAddMonth_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Month));
         private void BtnAddYear_Click(object sender, RoutedEventArgs e) => SafeExec(() => s_bl.Admin.ForwardClock(TimeUnit.Year));
+
+        /// <summary>
+        /// Toggles the simulator state: starts if stopped, stops if running.
+        /// Stage 7: Manages simulator lifecycle and UI state synchronization.
+        /// </summary>
+        private void BtnToggleSimulator_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!IsSimulatorRunning)
+                {
+                    // --- START SIMULATOR ---
+                    
+                    // Validate Interval value
+                    if (Interval <= 0)
+                    {
+                        MessageBox.Show("Interval must be a positive number (minutes).", "Invalid Interval", 
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Start the simulator
+                    s_bl.Admin.StartSimulator(Interval);
+                    
+                    // Update UI state AFTER successful start
+                    IsSimulatorRunning = true;
+                    
+                    // Disable interval input while running
+                    TxbInterval.IsEnabled = false;
+                    
+                    // Disable time manipulation buttons
+                    BtnAddMinute.IsEnabled = false;
+                    BtnAddHour.IsEnabled = false;
+                    BtnAddDay.IsEnabled = false;
+                    BtnAddMonth.IsEnabled = false;
+                    BtnAddYear.IsEnabled = false;
+                    
+                    // Disable DB management buttons
+                    BtnInitDB.IsEnabled = false;
+                    BtnResetDB.IsEnabled = false;
+
+                    MessageBox.Show($"Simulator started with interval: {Interval} minute(s).", "Simulator Started", 
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    // --- STOP SIMULATOR ---
+                    
+                    s_bl.Admin.StopSimulator();
+                    
+                    // Update UI state AFTER successful stop
+                    IsSimulatorRunning = false;
+                    
+                    // Re-enable interval input
+                    TxbInterval.IsEnabled = true;
+                    
+                    // Re-enable time manipulation buttons
+                    BtnAddMinute.IsEnabled = true;
+                    BtnAddHour.IsEnabled = true;
+                    BtnAddDay.IsEnabled = true;
+                    BtnAddMonth.IsEnabled = true;
+                    BtnAddYear.IsEnabled = true;
+                    
+                    // Re-enable DB management buttons
+                    BtnInitDB.IsEnabled = true;
+                    BtnResetDB.IsEnabled = true;
+
+                    MessageBox.Show("Simulator stopped.", "Simulator Stopped", 
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error toggling simulator: {ex.Message}", "Error", 
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                // Reset state on error
+                IsSimulatorRunning = false;
+                TxbInterval.IsEnabled = true;
+                BtnAddMinute.IsEnabled = true;
+                BtnAddHour.IsEnabled = true;
+                BtnAddDay.IsEnabled = true;
+                BtnAddMonth.IsEnabled = true;
+                BtnAddYear.IsEnabled = true;
+                BtnInitDB.IsEnabled = true;
+                BtnResetDB.IsEnabled = true;
+            }
+        }
 
         private async void BtnInitDB_Click(object sender, RoutedEventArgs e)
         {

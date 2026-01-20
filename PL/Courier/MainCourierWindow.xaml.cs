@@ -1,6 +1,7 @@
 ﻿using BlApi;
 using BO;
 using PL.Order;
+using PL.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -20,6 +21,11 @@ namespace PL.Courier
 
         // Helper for password syncing to prevent infinite loops
         private bool _isPasswordSyncing = false;
+
+        #region Stage 7 - Observer Mutexes
+        private readonly ObserverMutex _courierMutex = new(); //stage 7
+        private readonly ObserverMutex _orderMutex = new(); //stage 7
+        #endregion
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -75,10 +81,46 @@ namespace PL.Courier
         #region Observer Implementation
 
         /// <summary>
-        /// Observer callback invoked by the Business Layer.
-        /// Executes UI refresh on the Dispatcher thread to avoid Cross-Thread Exceptions.
+        /// Observer callback invoked by the Business Layer for Courier updates.
         /// </summary>
-        private void courierObserver() => this.Dispatcher.Invoke(RefreshData);
+        private void courierObserver()
+        {
+            #region Stage 7 (for multithreading)
+            if (_courierMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
+            {
+                // The actual work to be done on the UI thread
+                RefreshData();
+
+                // After completing the work, check if a restart was requested
+                if (await _courierMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    courierObserver();
+            });
+            #endregion Stage 7 (for multithreading)
+        }
+
+        /// <summary>
+        /// Observer callback invoked by the Business Layer for Order updates.
+        /// </summary>
+        private void orderObserver()
+        {
+            #region Stage 7 (for multithreading)
+            if (_orderMutex.CheckAndSetLoadInProgressOrRestartRequired())
+                return;
+
+            Dispatcher.BeginInvoke(async () =>
+            {
+                // The actual work to be done on the UI thread
+                RefreshData();
+
+                // After completing the work, check if a restart was requested
+                if (await _orderMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderObserver();
+            });
+            #endregion Stage 7 (for multithreading)
+        }
 
         #endregion
 
@@ -110,13 +152,13 @@ namespace PL.Courier
         {
             RefreshData();
             // Listen to Order changes (status updates) and Courier changes (details)
-            s_bl.Order.AddObserver(courierObserver);
+            s_bl.Order.AddObserver(orderObserver);
             s_bl.Courier.AddObserver(courierObserver);
         }
 
         private void Window_Closed(object? sender, EventArgs e)
         {
-            s_bl.Order.RemoveObserver(courierObserver);
+            s_bl.Order.RemoveObserver(orderObserver);
             s_bl.Courier.RemoveObserver(courierObserver);
         }
 
