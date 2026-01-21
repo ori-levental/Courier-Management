@@ -134,7 +134,6 @@ namespace PL.Order
                 MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Close the window after successful selection
-                this.DialogResult = true;
                 this.Close();
             }
             catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))

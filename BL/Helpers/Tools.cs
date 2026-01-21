@@ -2,13 +2,14 @@
 using DalApi;
 using DO;
 using System.Collections;
+using System.Collections.Concurrent;    // Required for thread-safe caching
+using System.Globalization;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Net.Http;
 using System.Text.Json;
-using System.Globalization;
 using System.Threading.Tasks;           // Required for async/await
-using System.Collections.Concurrent;    // Required for thread-safe caching
+using System.Security.Cryptography;
 
 namespace Helpers;
 
@@ -382,7 +383,7 @@ internal static class Tools
             // 1. Check if the manager logged in
             if (id == s_dal.Config.ManagerId)
             {
-                if (password != s_dal.Config.ManagerPassword)
+                if (password != Tools.Decrypt(s_dal.Config.ManagerPassword))
                     throw new BO.BlInvalidDataException("ERROR: Incorrect manager password");
 
                 return;
@@ -391,7 +392,7 @@ internal static class Tools
             // 2. Check if a courier logged in
             DO.Courier? doCourier = s_dal.Courier.Read(id);
 
-            if (doCourier == null || password != doCourier.Password)
+            if (doCourier == null || password != Tools.Decrypt(doCourier.Password))
                 throw new BO.BlInvalidDataException("ERROR: Incorrect user ID or password");
         }
     }
@@ -465,4 +466,84 @@ internal static class Tools
     {
         CourierManager.CheckPassword(password);
     }
+
+    #region Password Encryption (AES)
+
+    // 32-character string for AES-256 key (Hardcoded for project consistency)
+    private static readonly string _keyString = "E546C8DF278CD5931069B522E695D4F2";
+
+    /// <summary>
+    /// Encrypts a plain text password using AES encryption.
+    /// </summary>
+    public static string Encrypt(string plainText)
+    {
+        if (string.IsNullOrEmpty(plainText)) return plainText;
+
+        // Use a fixed IV (zero-filled) for simplicity in this project context
+        byte[] iv = new byte[16];
+        byte[] array;
+
+        using (Aes aes = Aes.Create())
+        {
+            aes.Key = Encoding.UTF8.GetBytes(_keyString);
+            aes.IV = iv;
+
+            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+                {
+                    using (StreamWriter streamWriter = new StreamWriter(cryptoStream))
+                    {
+                        streamWriter.Write(plainText);
+                    }
+                    array = memoryStream.ToArray();
+                }
+            }
+        }
+
+        return Convert.ToBase64String(array);
+    }
+
+    /// <summary>
+    /// Decrypts an AES encrypted string back to plain text.
+    /// </summary>
+    public static string Decrypt(string cipherText)
+    {
+        if (string.IsNullOrEmpty(cipherText)) return cipherText;
+
+        try
+        {
+            // Use the same fixed IV as encryption
+            byte[] iv = new byte[16];
+            byte[] buffer = Convert.FromBase64String(cipherText);
+
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = Encoding.UTF8.GetBytes(_keyString);
+                aes.IV = iv;
+
+                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                using (MemoryStream memoryStream = new MemoryStream(buffer))
+                {
+                    using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+                    {
+                        using (StreamReader streamReader = new StreamReader(cryptoStream))
+                        {
+                            return streamReader.ReadToEnd();
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Fallback: If decryption fails (e.g. non-encrypted legacy data), return original string
+            return cipherText;
+        }
+    }
+
+    #endregion
 }

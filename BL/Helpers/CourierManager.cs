@@ -45,7 +45,7 @@ internal static class CourierManager
             FullName = boCourier.FullName,
             Email = boCourier.Email,
             PhoneNumber = boCourier.PhoneNumber,
-            Password = boCourier.Password,
+            Password = boCourier.Password, // Value is passed as-is here; encryption happens before calling this or inside CRUD
             Active = boCourier.IsActive,
             DistanceToDelivery = boCourier.DistanceToDelivery,
             DeliveryType = (DO.Enums.ShippingType)boCourier.DeliveryType!,
@@ -68,7 +68,10 @@ internal static class CourierManager
             FullName = doCourier.FullName,
             Email = doCourier.Email,
             PhoneNumber = doCourier.PhoneNumber,
-            Password = doCourier.Password,
+
+            // Decrypt password after retrieving from DB so it is readable in BO layer
+            Password = Helpers.Tools.Decrypt(doCourier.Password),
+
             IsActive = doCourier.Active,
             DistanceToDelivery = doCourier.DistanceToDelivery,
             DeliveryType = (BO.ShippingType?)doCourier.DeliveryType,
@@ -234,6 +237,9 @@ internal static class CourierManager
         // Stage 7: Blocking simulator
         Helpers.AdminManager.ThrowOnSimulatorIsRunning();
 
+        // Encrypt password before creating Data Object for storage
+        boCourier.Password = Helpers.Tools.Encrypt(boCourier.Password);
+
         DO.Courier doCourier = BOToDOCourier(boCourier);
         try
         {
@@ -263,6 +269,9 @@ internal static class CourierManager
     {
         // Stage 7: Blocking simulator
         Helpers.AdminManager.ThrowOnSimulatorIsRunning();
+
+        // Encrypt password before creating Data Object for storage
+        boCourier.Password = Helpers.Tools.Encrypt(boCourier.Password);
 
         DO.Courier doCourier = BOToDOCourier(boCourier);
         try

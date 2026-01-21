@@ -143,7 +143,7 @@ public static class Initialization
     {
         s_dal!.Config!.Clock = new DateTime(2024, 11, 1, 12, 0, 0);
         s_dal!.Config!.ManagerId = 111111118;
-        s_dal!.Config!.ManagerPassword = "nxnsj544bh@!";
+        s_dal!.Config!.ManagerPassword = "nxNsj544bh@?";
         s_dal!.Config!.CompanyAddress = "Menachem Begin 132, Tel Aviv";
         s_dal!.Config!.Latitude = s_hqLat;
         s_dal!.Config!.Longitude = s_hqLon;

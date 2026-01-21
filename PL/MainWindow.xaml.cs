@@ -249,8 +249,17 @@ namespace PL
         {
             if (MessageBox.Show("Initialize DB?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
+ 
                 try
                 {
+                    // close all the windows
+                    foreach (Window window in Application.Current.Windows)
+                    {
+                        if (window != this)
+                        {
+                            window.Close();
+                        }
+                    }
                     Mouse.OverrideCursor = Cursors.Wait;
                     await s_bl.Admin.InitializeDBAsync();
                     Configuration = s_bl.Admin.GetConfig();
@@ -270,6 +279,14 @@ namespace PL
             {
                 try
                 {
+                    // close all the windows
+                    foreach (Window window in Application.Current.Windows)
+                    {
+                        if (window != this)
+                        {
+                            window.Close();
+                        }
+                    }
                     Mouse.OverrideCursor = Cursors.Wait;
                     await s_bl.Admin.ResetDBAsync();
                     Configuration = s_bl.Admin.GetConfig();

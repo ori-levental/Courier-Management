@@ -378,7 +378,7 @@ namespace PL.Courier
             public ShipmentCompletionStatus? DeliveryEndType => _delivery.DeliveryEndType;
             public string DeliveryEndTypeDisplay => _delivery.DeliveryEndType?.ToString() ?? "Unknown";
             public DateTime? DeliveryEndTime => _delivery.DeliveryEndTime;
-            public string DeliveryEndTimeDisplay => _delivery.DeliveryEndTime?.ToString("yyyy-MM-dd HH:mm:ss") ?? "N/A";
+            public string DeliveryEndTimeDisplay => _delivery.DeliveryEndTime?.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) ?? "N/A";
             public string FullAddress => _delivery.FullAddress;
             public double ActualDistanceKm => _delivery.ActualDistanceKm ?? 0.0;
             public string ActualDistanceDisplay => $"{(_delivery.ActualDistanceKm ?? 0.0):F2} km";

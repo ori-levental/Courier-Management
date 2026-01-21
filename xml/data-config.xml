@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <config>
   <NextOrderId>51</NextOrderId>
-  <NextDeliveryId>57</NextDeliveryId>
-  <Clock>2024-11-02T05:04:00</Clock>
+  <NextDeliveryId>31</NextDeliveryId>
+  <Clock>2024-11-01T12:00:00</Clock>
   <ManagerId>111111118</ManagerId>
-  <ManagerPassword>nxnsj544bh@!</ManagerPassword>
+  <ManagerPassword>nxNsj544bh@?</ManagerPassword>
   <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
   <Latitude>32.0749</Latitude>
   <Longitude>34.7923</Longitude>

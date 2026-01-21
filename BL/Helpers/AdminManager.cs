@@ -78,7 +78,7 @@ internal static class AdminManager
             MaxRange = s_dal.Config.MaxAirDistance,
             Clock = s_dal.Config.Clock,
             CompanyAddress = s_dal.Config.CompanyAddress,
-            ManagerPassword = s_dal.Config.ManagerPassword,
+            ManagerPassword = Tools.Decrypt(s_dal.Config.ManagerPassword),
             ManagerId = s_dal.Config.ManagerId,
 
             // Speeds
@@ -116,10 +116,10 @@ internal static class AdminManager
                 s_dal.Config.Clock = configuration.Clock;
                 configChanged = true;
             }
-            if (s_dal.Config.ManagerPassword != configuration.ManagerPassword)
+            if (Tools.Decrypt(s_dal.Config.ManagerPassword) != configuration.ManagerPassword)
             {
                 Tools.CheckPassword(configuration.ManagerPassword);
-                s_dal.Config.ManagerPassword = configuration.ManagerPassword;
+                s_dal.Config.ManagerPassword = Tools.Encrypt(configuration.ManagerPassword);
                 configChanged = true;
             }
             if (s_dal.Config.ManagerId != configuration.ManagerId)
@@ -240,12 +240,15 @@ internal static class AdminManager
 
     internal static async Task InitializeDBAsync()
     {
-        // 1. Initialize DAL (Synchronous operation, inside lock)
-        lock (BlMutex)
+        await Task.Run(() =>
         {
-            DalTest.Initialization.Do();
-            AdminManager.UpdateClock(AdminManager.Now);
-        }
+            // 1. Initialize DAL (Synchronous operation, inside lock)
+            lock (BlMutex)
+            {
+                DalTest.Initialization.Do();
+                AdminManager.UpdateClock(AdminManager.Now);
+            }
+        });
 
         // 2. Set Config (Async operation, MUST be outside lock)
         await AdminManager.SetConfigAsync(AdminManager.GetConfig());
@@ -347,9 +350,13 @@ internal static class AdminManager
 
     public static bool CheackEnter(int id, string password)
     {
-        if (id == s_dal.Config.ManagerId && password == s_dal.Config.ManagerPassword)
-            return true;
-        return false;
+        // Stage 7: Lock database read to prevent collision with simulator
+        lock (BlMutex)
+        {
+            if (id == s_dal.Config.ManagerId && password == Tools.Decrypt(s_dal.Config.ManagerPassword))
+                return true;
+            return false;
+        }
     }
 
     #endregion Stage 7 base
