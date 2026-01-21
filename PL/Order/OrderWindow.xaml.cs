@@ -16,7 +16,8 @@ namespace PL.Order
         static readonly IBl s_bl = Factory.Get();
 
         #region Stage 7 - Observer Mutex
-        private readonly ObserverMutex _orderMutex = new(); //stage 7
+        // Mutex to prevent UI thread saturation during simulation
+        private readonly ObserverMutex _orderMutex = new();
         #endregion
 
         // --- Dependency Properties ---
@@ -82,6 +83,8 @@ namespace PL.Order
             {
                 int managerId = s_bl.Admin.GetConfig().ManagerId;
                 CurrentOrder = s_bl.Order.OrderDetails(managerId, orderId);
+
+                // Register observer only for existing orders
                 this.Loaded += (s, e) => s_bl.Order.AddObserver(orderRefresher);
                 this.Closed += (s, e) => s_bl.Order.RemoveObserver(orderRefresher);
             }
@@ -99,7 +102,7 @@ namespace PL.Order
             if (CurrentOrder == null) return;
             int managerId = s_bl.Admin.GetConfig().ManagerId;
 
-            // 1. Perform the network operation (without messages and without closing)
+            // 1. Perform the network operation (using base class helper)
             try
             {
                 bool isSuccess = await ExecuteNetworkActionAsync(async () =>
@@ -119,7 +122,7 @@ namespace PL.Order
 
                 }, "Calculating Coordinates...", "Order Processed Successfully");
 
-                // 2. Only if the operation was successful (the screen is already green at this point) - display a message and close
+                // 2. Only if the operation was successful - display a message and close
                 if (isSuccess)
                 {
                     MessageBox.Show(IsAddMode ? "Order added!" : "Order updated!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -148,7 +151,7 @@ namespace PL.Order
                 catch (BO.BlNotNullableException ex) when (ex.Message.Contains("Simulator is running"))
                 {
                     // Stage 7: Operation blocked by simulator
-                    MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.", 
+                    MessageBox.Show("Operation not allowed while simulator is running.\nPlease stop the simulator first.",
                         "Simulator Active", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -167,6 +170,7 @@ namespace PL.Order
         private void orderRefresher()
         {
             #region Stage 7 (for multithreading)
+            // Check if we are already updating to prevent flooding
             if (_orderMutex.CheckAndSetLoadInProgressOrRestartRequired())
                 return;
 
@@ -183,7 +187,7 @@ namespace PL.Order
                     // Re-fetch the order from the BL
                     var updatedOrder = s_bl.Order.OrderDetails(managerId, CurrentOrder.Id);
 
-                    // Update the displayed object (this will automatically update the screen thanks to the Binding)
+                    // Update the displayed object (this will automatically update the screen thanks to Binding)
                     CurrentOrder = updatedOrder;
                 }
                 catch
@@ -192,7 +196,7 @@ namespace PL.Order
                     Close();
                 }
 
-                // After completing the work, check if a restart was requested
+                // After completing the work, check if a restart was requested (throttling mechanism)
                 if (await _orderMutex.UnsetLoadInProgressAndCheckRestartRequested())
                     orderRefresher();
             });

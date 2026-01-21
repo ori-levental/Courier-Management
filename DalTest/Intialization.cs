@@ -148,10 +148,10 @@ public static class Initialization
         s_dal!.Config!.Latitude = s_hqLat;
         s_dal!.Config!.Longitude = s_hqLon;
         s_dal!.Config!.MaxAirDistance = 20.0;
-        s_dal!.Config!.AvgCarSpeed = 60;
-        s_dal!.Config!.AvgMotorcycleSpeed = 80;
-        s_dal!.Config!.AvgBicycleSpeed = 20;
-        s_dal!.Config!.AvgWalkSpeed = 5;
+        s_dal!.Config!.AvgCarSpeed = 40;
+        s_dal!.Config!.AvgMotorcycleSpeed = 45;
+        s_dal!.Config!.AvgBicycleSpeed = 8;
+        s_dal!.Config!.AvgWalkSpeed = 4;
         s_dal!.Config!.MaxDeliveryTime = TimeSpan.FromHours(4);
         s_dal!.Config!.RiskRange = TimeSpan.FromMinutes(30);
         s_dal!.Config!.CourierInactivityTime = TimeSpan.FromDays(180);

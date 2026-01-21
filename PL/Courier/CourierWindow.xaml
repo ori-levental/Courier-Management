@@ -8,6 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Courier Details" Height="550" Width="800"
+        Icon="/Images/logistics-delievry.png"
         WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
@@ -193,7 +194,8 @@
 
             <Button Content="{Binding ButtonContent}" 
                     Click="BtnAction_Click"
-                    FontWeight="Bold" FontSize="16" Height="40" Width="200" Margin="10"/>
+                    FontWeight="Bold" FontSize="16" Height="40" Width="200" Margin="10"
+                    IsDefault="True"/>
 
             <Button Content="Delete Courier" 
                     Click="BtnDelete_Click"

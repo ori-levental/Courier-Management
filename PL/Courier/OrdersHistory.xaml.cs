@@ -1,9 +1,11 @@
 ﻿using BlApi;
 using BO;
+using PL.Helpers; // Ensure you have this using for ObserverMutex
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace PL.Courier
@@ -17,6 +19,9 @@ namespace PL.Courier
         #region BL Access
         static readonly IBl s_bl = Factory.Get();
         #endregion
+
+        // Added Mutex to prevent UI thread saturation during simulator updates
+        private readonly ObserverMutex _historyMutex = new();
 
         #region Properties
 
@@ -103,7 +108,7 @@ namespace PL.Courier
         private static void PropertyChanged_SelectedFilter(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var window = (OrdersHistory)d;
-            
+
             // Only apply filters if _allClosedOrders has been populated
             if (window._allClosedOrders.Count > 0)
             {
@@ -127,7 +132,7 @@ namespace PL.Courier
             InitializeComponent();
 
             CourierId = courierId;
-            
+
             // Set the DataContext so bindings work properly
             this.DataContext = this;
 
@@ -140,10 +145,6 @@ namespace PL.Courier
 
         #region UI Event Handlers
 
-        /// <summary>
-        /// Refresh the list of closed orders.
-        /// </summary>
-        private void BtnRefresh_Click(object sender, RoutedEventArgs e) => SafeExec(() => LoadClosedOrders());
 
         /// <summary>
         /// Clear filters and reload with all closed orders.
@@ -154,7 +155,7 @@ namespace PL.Courier
             SelectedOrderType = null;
             CmbEndType.SelectedIndex = 0;
             CmbOrderType.SelectedIndex = 0;
-            SafeExec(() => LoadClosedOrders());
+            SafeExec(async () => await LoadClosedOrdersAsync());
         }
 
         /// <summary>
@@ -167,15 +168,20 @@ namespace PL.Courier
         #region Internal Logic
 
         /// <summary>
-        /// Load the list of closed orders for this courier.
+        /// Load the list of closed orders for this courier asynchronously.
         /// </summary>
-        private void LoadClosedOrders()
+        private async Task LoadClosedOrdersAsync()
         {
             try
             {
-                // Get all closed orders for this courier without filters
-                _allClosedOrders = s_bl.Order.CloseOrderByCourier(CourierId, CourierId, null, ClosedDeliveryInListEnum.DeliveryEndTime).ToList();
-                
+                // Run the heavy BL fetch operation on a background thread
+                var fetchedOrders = await Task.Run(() =>
+                    s_bl.Order.CloseOrderByCourier(CourierId, CourierId, null, ClosedDeliveryInListEnum.DeliveryEndTime).ToList()
+                );
+
+                // Update UI on the main thread
+                _allClosedOrders = fetchedOrders;
+
                 // Apply filters and sort
                 ApplyFiltersAndSort();
 
@@ -203,15 +209,13 @@ namespace PL.Courier
             var filtered = _allClosedOrders.AsEnumerable();
 
             // Get the selected filter values from ComboBox
-            // SelectedItem from ComboBoxItem will be the ComboBoxItem object itself
-            // We need to get the Content property or use SelectedValuePath
             string? endTypeFilter = SelectedEndType;
             string? orderTypeFilter = SelectedOrderType;
 
             // Apply DeliveryEndType filter
             if (!string.IsNullOrEmpty(endTypeFilter) && endTypeFilter != "All")
             {
-                filtered = filtered.Where(o => 
+                filtered = filtered.Where(o =>
                 {
                     if (o.DeliveryEndType.HasValue)
                     {
@@ -225,7 +229,7 @@ namespace PL.Courier
             // Apply OrderType filter
             if (!string.IsNullOrEmpty(orderTypeFilter) && orderTypeFilter != "All")
             {
-                filtered = filtered.Where(o => 
+                filtered = filtered.Where(o =>
                 {
                     string enumValue = o.OrderType.ToString();
                     return enumValue == orderTypeFilter;
@@ -282,13 +286,18 @@ namespace PL.Courier
 
         /// <summary>
         /// Observer method triggered by BL when order list changes.
+        /// Uses Mutex to throttle updates and prevent UI freezing.
         /// </summary>
         private void orderListObserver()
         {
-            // BL events run on a background thread - use Dispatcher to update UI safely
-            this.Dispatcher.Invoke(() =>
+            if (_historyMutex.CheckAndSetLoadInProgressOrRestartRequired()) return;
+
+            Dispatcher.BeginInvoke(async () =>
             {
-                LoadClosedOrders();
+                await LoadClosedOrdersAsync();
+
+                if (await _historyMutex.UnsetLoadInProgressAndCheckRestartRequested())
+                    orderListObserver();
             });
         }
 
@@ -299,13 +308,13 @@ namespace PL.Courier
         /// <summary>
         /// Called when the window is fully loaded.
         /// </summary>
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
             // 1. Load courier information
             LoadCourierInfo();
 
-            // 2. Load closed orders
-            LoadClosedOrders();
+            // 2. Load closed orders asynchronously
+            await LoadClosedOrdersAsync();
 
             // 3. Register for updates (Observer Pattern)
             s_bl.Order.AddObserver(orderListObserver);
@@ -316,7 +325,7 @@ namespace PL.Courier
         /// </summary>
         private void Window_Closed(object? sender, EventArgs e)
         {
-            // Unregister the observer to prevent memory leaks
+            // Unregister the observer to prevent memory leaks and background processing
             s_bl.Order.RemoveObserver(orderListObserver);
         }
 
@@ -334,13 +343,13 @@ namespace PL.Courier
         #region Helpers
 
         /// <summary>
-        /// Executes an action within a try-catch block to handle BL exceptions globally.
+        /// Executes an async action within a try-catch block to handle exceptions globally.
         /// </summary>
-        private void SafeExec(Action action)
+        private async void SafeExec(Func<Task> action)
         {
             try
             {
-                action();
+                await action();
             }
             catch (Exception ex)
             {
@@ -378,11 +387,8 @@ namespace PL.Courier
             {
                 get
                 {
-                    // אם עבר יותר מיום אחד (TotalDays >= 1)
                     if (_delivery.TotalProcessingTime.TotalDays >= 1)
                         return "Over one day";
-
-                    // אחרת, הצג רגיל
                     return _delivery.TotalProcessingTime.ToString(@"hh\:mm\:ss");
                 }
             }

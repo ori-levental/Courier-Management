@@ -200,7 +200,7 @@ namespace PL.Courier
         private void BtnPickOrder_Click(object sender, RoutedEventArgs e)
         {
             // The observer will automatically update the main window once an order is assigned in the child window.
-            new OrdersToPick(_courierId).ShowDialog();
+            new OrdersToPick(_courierId).Show();
         }
 
         private void BtnFinishOrder_Click(object sender, RoutedEventArgs e)
@@ -226,7 +226,7 @@ namespace PL.Courier
         private void BtnHistory_Click(object sender, RoutedEventArgs e)
         {
             OrdersHistory historyWindow = new OrdersHistory(_courierId);
-            historyWindow.ShowDialog();
+            historyWindow.Show();
         }
 
         private void BtnUpdate_Click(object sender, RoutedEventArgs e)

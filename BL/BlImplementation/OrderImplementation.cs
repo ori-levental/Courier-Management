@@ -50,7 +50,6 @@ internal class OrderImplementation : IOrder
     /// </summary>
     public IEnumerable<ClosedDeliveryInList> CloseOrderByCourier(int requesterId, int courierId, OrderType? filterBy, ClosedDeliveryInListEnum? sortBy)
     {
-        AdminManager.ThrowOnSimulatorIsRunning();  //stage 7
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
@@ -83,7 +82,7 @@ internal class OrderImplementation : IOrder
         if (requesterId != courierId)
             throw new BO.BlAccessPermission("Requester must be the Courier.");
 
-        Helpers.OrderManager.OrderSelectionAsync(courierId, orderId);
+         Helpers.OrderManager.OrderSelectionAsync(courierId, orderId);
     }
 
     /// <summary>

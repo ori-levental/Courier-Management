@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <config>
   <NextOrderId>51</NextOrderId>
-  <NextDeliveryId>40</NextDeliveryId>
-  <Clock>2024-11-01T12:03:00</Clock>
+  <NextDeliveryId>57</NextDeliveryId>
+  <Clock>2024-11-02T05:04:00</Clock>
   <ManagerId>111111118</ManagerId>
-  <ManagerPassword>nxnsj544bh@@!</ManagerPassword>
-  <CompanyAddress>הקריה תל אביב</CompanyAddress>
-  <Latitude>32.0754944</Latitude>
-  <Longitude>34.7876139</Longitude>
+  <ManagerPassword>nxnsj544bh@!</ManagerPassword>
+  <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
+  <Latitude>32.0749</Latitude>
+  <Longitude>34.7923</Longitude>
   <MaxAirDistance>20</MaxAirDistance>
-  <AvgCarSpeed>70</AvgCarSpeed>
-  <AvgMotorcycleSpeed>90</AvgMotorcycleSpeed>
-  <AvgBicycleSpeed>20</AvgBicycleSpeed>
-  <AvgWalkSpeed>5</AvgWalkSpeed>
+  <AvgCarSpeed>40</AvgCarSpeed>
+  <AvgMotorcycleSpeed>45</AvgMotorcycleSpeed>
+  <AvgBicycleSpeed>8</AvgBicycleSpeed>
+  <AvgWalkSpeed>4</AvgWalkSpeed>
   <MaxDeliveryTime>04:00:00</MaxDeliveryTime>
   <RiskRange>00:30:00</RiskRange>
   <CourierInactivityTime>180.00:00:00</CourierInactivityTime>

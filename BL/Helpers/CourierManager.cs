@@ -1,4 +1,5 @@
-﻿using BO;
+﻿using BlImplementation;
+using BO;
 using DalApi;
 using System.Net.Mail;
 
@@ -525,7 +526,7 @@ internal static class CourierManager
         }
     }
 
-    internal static async Task SimulateCourierActivityAsync()//stage 7
+    internal static async Task SimulateCourierActivityAsync() // stage 7
     {
         // 1. Prevent overlapping runs
         if (s_simulationMutex.CheckAndSetInProgress())
@@ -537,101 +538,121 @@ internal static class CourierManager
             List<(DO.Courier Courier, int OrderId)> selectionsToProcess = new();
             List<(int CourierId, int DeliveryId, DO.Enums.ShipmentCompletionStatus Status)> orderCompletions = new();
 
-            // 2. READ PHASE (Locked): Fetch all active couriers and check their orders
+            // Fetch system config to get vehicle speeds
+            BO.Config sysConfig = AdminManager.GetConfig();
+
+            // 2. READ PHASE (Locked): Fetch all active couriers
+            List<DO.Courier> activeCouriers;
             lock (Helpers.AdminManager.BlMutex)
             {
-                // Fetch all active couriers
-                var activeCouriers = s_dal.Courier.ReadAll(c => c?.Active == true)
+                activeCouriers = s_dal.Courier.ReadAll(c => c?.Active == true)
                     .Where(c => c != null)
                     .ToList();
+            }
 
-                foreach (var courier in activeCouriers)
+            foreach (var courier in activeCouriers)
+            {
+                DO.Delivery? activeDelivery = null;
+
+                // Check if courier has an active delivery (order in care)
+                lock (Helpers.AdminManager.BlMutex)
                 {
-                    if (courier == null) continue;
-
-                    // Check if courier has an active delivery (order in care)
-                    var activeDelivery = s_dal.Delivery
+                    activeDelivery = s_dal.Delivery
                         .ReadAll(d => d?.CourierId == courier.Id && d?.EndOrderTime == null)
                         .FirstOrDefault();
+                }
 
-                    // BRANCH 1: Courier HAS an active delivery
-                    if (activeDelivery != null)
+                // BRANCH 1: Courier HAS an active delivery (DELIVERING)
+                if (activeDelivery != null)
+                {
+                    // Validation: If real distance is missing, fail the order (no fallback)
+                    if (!activeDelivery.Distance.HasValue || activeDelivery.Distance <= 0)
                     {
-                        var order = s_dal.Order.Read(activeDelivery.OrderId);
-                        if (order != null)
+                        orderCompletions.Add((courier.Id, activeDelivery.Id, DO.Enums.ShipmentCompletionStatus.Cancelled));
+                        continue;
+                    }
+
+                    DO.Order? order;
+                    lock (Helpers.AdminManager.BlMutex)
+                    {
+                        order = s_dal.Order.Read(activeDelivery.OrderId);
+                    }
+
+                    if (order != null)
+                    {
+                        DateTime now = Helpers.AdminManager.Now;
+                        TimeSpan elapsedTime = now - activeDelivery.StartDeliveryTime;
+
+                        // 1. Use the existing helper to calculate optimal ETA
+                        // This uses real distance and config speeds internally
+                        DateTime estimatedArrival = Helpers.Tools.EstimatedArrivalTimeCalculate(activeDelivery);
+                        TimeSpan baseTimeRequired = estimatedArrival - activeDelivery.StartDeliveryTime;
+
+                        // 2. Add Operation Time (Parking, Elevator, Handover) - 2 to 10 minutes random
+                        // This adds realistic delay beyond pure travel time
+                        TimeSpan operationTime = TimeSpan.FromMinutes(random.Next(2, 10));
+
+                        // 3. Add Variance (+/- 10% to speed/traffic conditions)
+                        double speedVariance = 1 + (random.NextDouble() * 0.2 - 0.1);
+
+                        TimeSpan totalTimeRequired = TimeSpan.FromTicks((long)((baseTimeRequired.Ticks * speedVariance) + operationTime.Ticks));
+
+                        // Decision 1: Has sufficient time elapsed?
+                        if (elapsedTime >= totalTimeRequired)
                         {
-                            // Calculate time elapsed since delivery started
-                            DateTime now = Helpers.AdminManager.Now;
-                            TimeSpan elapsedTime = now - activeDelivery.StartDeliveryTime;
-
-                            // Calculate "sufficient time" based on distance + random factor
-                            // Base time: estimated arrival time from delivery start
-                            DateTime estimatedArrival = Helpers.Tools.EstimatedArrivalTimeCalculate(activeDelivery);
-                            TimeSpan timeRequired = estimatedArrival - activeDelivery.StartDeliveryTime;
-
-                            // Add random variance (±20% of the required time)
-                            double randomFactor = random.NextDouble() * 0.4 - 0.2; // -0.2 to +0.2
-                            TimeSpan adjustedTimeRequired = TimeSpan.FromMilliseconds(
-                                timeRequired.TotalMilliseconds * (1 + randomFactor)
-                            );
-
-                            // Decision 1: Has sufficient time elapsed?
-                            if (elapsedTime >= adjustedTimeRequired)
+                            // Close the order with one of several outcomes
+                            DO.Enums.ShipmentCompletionStatus completionStatus = random.Next(0, 100) switch
                             {
-                                // Close the order with one of several outcomes
-                                DO.Enums.ShipmentCompletionStatus completionStatus = random.Next(0, 100) switch
-                                {
-                                    < 85 => DO.Enums.ShipmentCompletionStatus.Provided,  // 85% success
-                                    < 95 => DO.Enums.ShipmentCompletionStatus.Refused,   // 10% refused
-                                    _ => DO.Enums.ShipmentCompletionStatus.NotFound      // 5% not found
-                                };
+                                < 85 => DO.Enums.ShipmentCompletionStatus.Provided,  // 85% success
+                                < 95 => DO.Enums.ShipmentCompletionStatus.Refused,   // 10% refused
+                                _ => DO.Enums.ShipmentCompletionStatus.NotFound      // 5% not found
+                            };
 
-                                orderCompletions.Add((courier.Id, activeDelivery.Id, completionStatus));
-                            }
-                            else
+                            orderCompletions.Add((courier.Id, activeDelivery.Id, completionStatus));
+                        }
+                        else
+                        {
+                            // Decision 2: Not enough time - cancel with 5% probability (Manager intervention)
+                            if (random.NextDouble() < 0.05)
                             {
-                                // Decision 2: Not enough time - cancel with 10% probability
-                                if (random.NextDouble() < 0.1)
-                                {
-                                    orderCompletions.Add((courier.Id, activeDelivery.Id, DO.Enums.ShipmentCompletionStatus.Cancelled));
-                                }
+                                orderCompletions.Add((courier.Id, activeDelivery.Id, DO.Enums.ShipmentCompletionStatus.Cancelled));
                             }
                         }
                     }
-                    // BRANCH 2: Courier DOESN'T have an active delivery
-                    else
+                }
+                // BRANCH 2: Courier DOESN'T have an active delivery (PICKING)
+                else
+                {
+                    // Stage 1: Check if courier is available (Probability check disabled for visibility)
+                    // if (random.NextDouble() < 0.15)
                     {
-                        // Stage 1: Check if courier is available (15% probability)
-                        if (random.NextDouble() < 0.15)
+                        // Courier is available - get open orders for this courier
+                        var openOrders = Helpers.OrderManager.GetOpenOrdersForCourier(courier.Id, null, null)
+                            .ToList();
+
+                        // If there are open orders available
+                        if (openOrders.Count > 0)
                         {
-                            // Courier is available - get open orders for this courier
-                            var openOrders = Helpers.OrderManager.GetOpenOrdersForCourier(courier.Id, null, null)
-                                .ToList();
-
-                            // If there are open orders available
-                            if (openOrders.Count > 0)
+                            // Stage 2: Decide whether to pick an order (Probability check disabled for visibility)
+                            // if (random.NextDouble() < 0.5)
                             {
-                                // Stage 2: Decide whether to pick an order (50% probability)
-                                if (random.NextDouble() < 0.5)
-                                {
-                                    // Random selection from available orders
-                                    int selectedIndex = random.Next(0, openOrders.Count);
-                                    int selectedOrderId = openOrders[selectedIndex].OrderId;
+                                // Random selection from available orders to vary logic
+                                int selectedIndex = random.Next(0, openOrders.Count);
+                                int selectedOrderId = openOrders[selectedIndex].OrderId;
 
-                                    selectionsToProcess.Add((courier, selectedOrderId));
-                                }
+                                selectionsToProcess.Add((courier, selectedOrderId));
                             }
                         }
                     }
                 }
             }
 
-            // 3. PROCESSING PHASE (Unlocked): Assign new orders and complete existing ones
-            // This runs without the main BlMutex, allowing other threads to read data
+            // 3. PROCESSING PHASE (Unlocked)
 
-            // 3A. Complete active orders (Locked per operation)
+            // 3A. Complete active orders
             foreach (var (courierId, deliveryId, completionStatus) in orderCompletions)
             {
+                int? orderIdToNotify = null;
                 try
                 {
                     lock (Helpers.AdminManager.BlMutex)
@@ -644,23 +665,21 @@ internal static class CourierManager
                                 EndOrderTime = Helpers.AdminManager.Now,
                                 EndType = completionStatus
                             });
+                            // Capture ID inside lock
+                            orderIdToNotify = delivery.OrderId;
                         }
                     }
 
                     // Notify outside lock
-                    lock (Helpers.AdminManager.BlMutex)
+                    if (orderIdToNotify.HasValue)
                     {
-                        var orderId = s_dal.Delivery.Read(deliveryId)?.OrderId;
-                        if (orderId.HasValue)
-                        {
-                            Observers.NotifyItemUpdated(courierId);
-                            Helpers.OrderManager.Observers.NotifyItemUpdated(orderId.Value);
-                        }
+                        Observers.NotifyItemUpdated(courierId);
+                        Helpers.OrderManager.Observers.NotifyItemUpdated(orderIdToNotify.Value);
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // Log or handle silently - simulated activity can fail
+                    // Log or handle silently
                 }
             }
 
@@ -669,13 +688,12 @@ internal static class CourierManager
             {
                 try
                 {
-                    // Call the order selection logic asynchronously
-                    // This will handle network calls for distance calculation, etc.
-                    await Helpers.OrderManager.OrderSelectionAsync(courier.Id, orderId);
+                    // Use Core method to bypass "Simulator Is Running" check
+                    await Helpers.OrderManager.SelectOrderCoreAsync(courier.Id, orderId);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                   
+                    // Ignore errors
                 }
             }
 

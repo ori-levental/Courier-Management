@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:PL.Courier"
         mc:Ignorable="d"
         Title="Courier List" Height="640" Width="800"
+        Icon="/Images/logistics-delievry.png"
         WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
     <Grid>
@@ -24,6 +25,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
+            
 
             <Label Content="Sort by:" HorizontalAlignment="Right" VerticalAlignment="Center" 
                    Margin="0,0,10,0" Grid.Column="0" FontWeight="Bold"/>
@@ -179,6 +181,7 @@
 
         <Button Content="Add Courier" Grid.Row="2" HorizontalAlignment="Left" 
                 Height="40" Width="150" Margin="325,10,0,10" FontWeight="Bold"
-                Click="BtnAddCourier_Click"/>
+                Click="BtnAddCourier_Click"
+                IsDefault="True"/>
     </Grid>
 </Window>

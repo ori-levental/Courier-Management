@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:PL.Order"
         mc:Ignorable="d"
         Title="Available Orders" Height="600" Width="900"
+        Icon="/Images/logistics-delievry.png"
         WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
@@ -110,7 +111,8 @@
         <Border Grid.Row="2" Background="#EEEEEE" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="15">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <Button Content="Pick Order" Click="BtnPickOrder_Click" Width="180" Height="40" Margin="15" 
-                        FontWeight="Bold" Background="#90EE90" IsEnabled="{Binding IsOrderSelected}"/>
+                        FontWeight="Bold" Background="#90EE90" IsEnabled="{Binding IsOrderSelected}"
+                        IsDefault="True"/>
 
                 <Button Content="Refresh List" Click="BtnRefresh_Click" Width="150" Height="40" Margin="15" FontWeight="SemiBold"/>
 

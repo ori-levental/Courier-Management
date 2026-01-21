@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:PL"
         mc:Ignorable="d"
         Title="Login System" Height="450" Width="800"
+        Icon="/Images/logistics-delievry.png"
         WindowStartupLocation="CenterScreen" LayoutTransform="{x:Null}">
 
     <Grid FlowDirection="LeftToRight" Background="#FFAFCACA">
@@ -42,7 +43,8 @@
                            Margin="0,10,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
 
                 <Button Content="Login" Click="BtnLogin_Click" 
-                        Height="35" Margin="0,20,0,0" FontWeight="Bold" Background="#DDDDDD"/>
+                        Height="35" Margin="0,20,0,0" FontWeight="Bold" Background="#DDDDDD"
+                        IsDefault="True"/>
             </StackPanel>
         </Border>
     </Grid>

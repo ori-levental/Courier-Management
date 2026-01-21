@@ -7,6 +7,7 @@
         xmlns:bo="clr-namespace:BO;assembly=BL" 
         mc:Ignorable="d"
         Title="Order List Management" Height="640" Width="1050"
+        Icon="/Images/logistics-delievry.png"
         WindowState="Maximized"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
 
@@ -221,6 +222,7 @@
 
         <Button Content="Add New Order" Grid.Row="2" HorizontalAlignment="Center" 
                 Height="40" Width="150" Margin="0,10,0,10" FontWeight="Bold"
-                Click="BtnAddOrder_Click"/>
+                Click="BtnAddOrder_Click"
+                IsDefault="True"/>
     </Grid>
 </Window>

@@ -458,7 +458,12 @@ internal static class OrderManager
     {
         // Stage 7: Block simulator
         Helpers.AdminManager.ThrowOnSimulatorIsRunning();
+        await SelectOrderCoreAsync(courierId, orderId);
 
+    }
+
+    internal static async Task SelectOrderCoreAsync(int courierId, int orderId)
+    {
         DO.Courier? courier;
         DO.Order? order;
 
@@ -649,7 +654,8 @@ internal static class OrderManager
                     bool isActive = orderDeliveries.Any(d => d?.EndOrderTime == null);
                     bool isClosed = orderDeliveries.Any(d =>
                         d?.EndType == DO.Enums.ShipmentCompletionStatus.Provided ||
-                        d?.EndType == DO.Enums.ShipmentCompletionStatus.Refused);
+                        d?.EndType == DO.Enums.ShipmentCompletionStatus.Refused ||
+                        d?.EndType == DO.Enums.ShipmentCompletionStatus.Cancelled);
 
                     // Keep only if NOT active and NOT closed
                     return !isActive && !isClosed;

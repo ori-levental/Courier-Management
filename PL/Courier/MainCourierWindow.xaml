@@ -8,6 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="Courier Dashboard" Height="680" Width="500"
+        Icon="/Images/logistics-delievry.png"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized"
 
@@ -237,7 +238,8 @@
         <UniformGrid Grid.Row="3" Rows="1" Columns="2" Margin="0,20,0,0">
             <Button Content="View History" Click="BtnHistory_Click" Background="#DDDDDD" Height="40"/>
             <Button Content="Pick New Order" Click="BtnPickOrder_Click" 
-                    IsEnabled="{Binding HasNoActiveOrder}" Background="#FFB6C1" Height="40"/>
+                    IsEnabled="{Binding HasNoActiveOrder}" Background="#FFB6C1" Height="40"
+                    IsDefault="True"/>
         </UniformGrid>
 
     </Grid>

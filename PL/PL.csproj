@@ -14,11 +14,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\logistics-delievry.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BL\BL.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Helpers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\logistics-delievry.png" />
   </ItemGroup>
 
 </Project>
