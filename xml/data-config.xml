@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config>
+  <NextOrderId>51</NextOrderId>
+  <NextDeliveryId>31</NextDeliveryId>
+  <Clock>2024-11-01T12:00:00</Clock>
+  <ManagerId>111111118</ManagerId>
+  <ManagerPassword>SV0Hd7tjCHtsSknWmSDUVQ==</ManagerPassword>
+  <CompanyAddress>Menachem Begin 132, Tel Aviv</CompanyAddress>
+  <Latitude>32.0749</Latitude>
+  <Longitude>34.7923</Longitude>
+  <MaxAirDistance>20</MaxAirDistance>
+  <AvgCarSpeed>40</AvgCarSpeed>
+  <AvgMotorcycleSpeed>45</AvgMotorcycleSpeed>
+  <AvgBicycleSpeed>8</AvgBicycleSpeed>
+  <AvgWalkSpeed>4</AvgWalkSpeed>
+  <MaxDeliveryTime>04:00:00</MaxDeliveryTime>
+  <RiskRange>00:30:00</RiskRange>
+  <CourierInactivityTime>180.00:00:00</CourierInactivityTime>
+</config>

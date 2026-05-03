@@ -1,0 +1,187 @@
+﻿<Window x:Class="PL.Courier.CourierListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PL.Courier"
+        mc:Ignorable="d"
+        Title="Courier List" Height="640" Width="800"
+        Icon="/Images/logistics-delievry.png"
+        WindowState="Maximized"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="39*"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="10,10,10,10" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+
+            <Label Content="Sort by:" HorizontalAlignment="Right" VerticalAlignment="Center" 
+                   Margin="0,0,10,0" Grid.Column="0" FontWeight="Bold"/>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+
+                <ComboBox ItemsSource="{Binding Source={StaticResource CourierEnumData}}"
+                          SelectedItem="{Binding CurrentSort}" 
+                          SelectionChanged="CbSort_SelectionChanged"
+                          VerticalAlignment="Center" 
+                          Width="150"/>
+
+                <TextBlock Text="Filter activity" VerticalAlignment="Center" Margin="20,0,5,0" FontWeight="Bold" Width="81"/>
+
+                <CheckBox IsThreeState="True"
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding FilterUI, Mode=TwoWay}"
+                          ToolTip="V = Active, X = Inactive, Empty = All">
+
+                    <CheckBox.Template>
+                        <ControlTemplate TargetType="CheckBox">
+                            <StackPanel Orientation="Horizontal">
+                                <Border Width="20" Height="20" BorderBrush="Gray" BorderThickness="1" Background="White" Margin="0,0,5,0">
+                                    <Grid>
+                                        <Path Name="PathV" Data="M 3,10 L 8,15 L 17,5" Stroke="Green" StrokeThickness="2" Visibility="Collapsed"/>
+                                        <Path Name="PathX" Data="M 4,4 L 16,16 M 16,4 L 4,16" Stroke="Red" StrokeThickness="2" Visibility="Collapsed"/>
+                                    </Grid>
+                                </Border>
+                                <ContentPresenter/>
+                            </StackPanel>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="PathV" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                                <Trigger Property="IsChecked" Value="{x:Null}">
+                                    <Setter TargetName="PathX" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </CheckBox.Template>
+
+                </CheckBox>
+            </StackPanel>
+        </Grid>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding Path=CourierList}" Margin="5">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding Id}" Width="50"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding FullName}" Width="120"/>
+
+                    <GridViewColumn Header="Active" Width="60">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsActive}" 
+                                          IsEnabled="False" 
+                                          HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding DeliveryType}" Width="80"/>
+
+                    <GridViewColumn Header="On Time" Width="70">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SumOrderInTime}" 
+                                           Foreground="Green" 
+                                           FontWeight="SemiBold" 
+                                           HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Late" Width="70">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding SumOrderInLate}" 
+                                           Foreground="Red" 
+                                           FontWeight="Bold" 
+                                           HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Cur. Order" 
+                                    DisplayMemberBinding="{Binding IdOrderInCare, TargetNullValue='-'}" 
+                                    Width="70"/>
+
+                    <GridViewColumn Header="Actions" Width="80">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Delete" 
+                                        Click="BtnDelete_Click"
+                                        FontWeight="Bold"
+                                        Foreground="White"
+                                        Padding="5,2">
+                                    <Button.Style>
+                                        <Style TargetType="Button">
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                            <Setter Property="Background" Value="LightGray"/>
+                                            <Setter Property="BorderBrush" Value="Gray"/>
+
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" 
+                                                                CornerRadius="4" 
+                                                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                                                BorderThickness="1">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+
+                                            <Style.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding SumOrderInTime}" Value="0"/>
+                                                        <Condition Binding="{Binding SumOrderInLate}" Value="0"/>
+                                                        <Condition Binding="{Binding IdOrderInCare}" Value="{x:Null}"/>
+                                                    </MultiDataTrigger.Conditions>
+
+                                                    <Setter Property="IsEnabled" Value="True"/>
+                                                    <Setter Property="Background" Value="#FF4444"/>
+                                                    <Setter Property="BorderBrush" Value="DarkRed"/>
+                                                    <Setter Property="Cursor" Value="Hand"/>
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="BorderBrush" Value="LightGray"/>
+                    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                    <Setter Property="Margin" Value="0,1,0,1"/>
+
+                    <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+
+        </ListView>
+
+        <Button Content="Add Courier" Grid.Row="2" HorizontalAlignment="Left" 
+                Height="40" Width="150" Margin="325,10,0,10" FontWeight="Bold"
+                Click="BtnAddCourier_Click"
+                IsDefault="True"/>
+    </Grid>
+</Window>

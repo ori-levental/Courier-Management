@@ -1,0 +1,165 @@
+﻿<Window x:Class="PL.Courier.OrdersHistory"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:PL.Courier"
+        Title="Order History" Height="700" Width="1000"
+        Icon="/Images/logistics-delievry.png"
+        WindowState="Maximized"
+        WindowStartupLocation="CenterScreen"
+        Background="White">
+
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="15,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="Gray" 
+                                BorderThickness="1" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#F0F8FF" BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="15">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Image Source="/Images/logistics-delievry.png" Height="40" Margin="0,0,15,0" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <StackPanel>
+                    <TextBlock Text="{Binding CourierInfo}" FontSize="22" FontWeight="Bold" Foreground="#333"/>
+                    <TextBlock Text="Closed Orders History Archive" FontSize="14" Foreground="Gray"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <GroupBox Grid.Row="1" Header="Filter Options" Margin="10" Padding="10" BorderBrush="#2196F3" Background="#FAFAFA">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock Text="Completion Status:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                    <ComboBox Name="CmbEndType" Width="180" Padding="5"
+                              SelectedValuePath="Content"
+                              SelectedValue="{Binding SelectedEndType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <ComboBoxItem>All</ComboBoxItem>
+                        <ComboBoxItem>Provided</ComboBoxItem>
+                        <ComboBoxItem>Cancelled</ComboBoxItem>
+                        <ComboBoxItem>Refused</ComboBoxItem>
+                        <ComboBoxItem>Failed</ComboBoxItem>
+                        <ComboBoxItem>NotFound</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,20,0">
+                    <TextBlock Text="Order Type:" FontWeight="SemiBold" Margin="0,0,0,3"/>
+                    <ComboBox Name="CmbOrderType" Width="180" Padding="5"
+                              SelectedValuePath="Content"
+                              SelectedValue="{Binding SelectedOrderType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                        <ComboBoxItem>All</ComboBoxItem>
+                        <ComboBoxItem>Private</ComboBoxItem>
+                        <ComboBoxItem>Business</ComboBoxItem>
+                        <ComboBoxItem>Wholesale</ComboBoxItem>
+                        <ComboBoxItem>PublicSector</ComboBoxItem>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="Clear Filters" Click="BtnClearFilters_Click" Background="#FFE4B5" Width="120" IsDefault="True"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <ListView Grid.Row="2" ItemsSource="{Binding ClosedOrdersList}" 
+                  Margin="10,0,10,0" BorderBrush="LightGray" BorderThickness="1"
+                  AlternationCount="2">
+
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Style.Triggers>
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="#F9F9F9"/>
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#E3F2FD"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+
+            <ListView.View>
+                <GridView AllowsColumnReorder="True">
+                    <GridViewColumn Header="Delivery ID" Width="90" DisplayMemberBinding="{Binding DeliveryId}"/>
+                    <GridViewColumn Header="Order ID" Width="90" DisplayMemberBinding="{Binding OrderId}"/>
+                    <GridViewColumn Header="Type" Width="100" DisplayMemberBinding="{Binding OrderType}"/>
+                    <GridViewColumn Header="Address" Width="250" DisplayMemberBinding="{Binding FullAddress}"/>
+
+                    <GridViewColumn Header="Status" Width="110">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding DeliveryEndTypeDisplay}" FontWeight="Bold"/>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
+                    <GridViewColumn Header="Completion Date" Width="160" DisplayMemberBinding="{Binding DeliveryEndTimeDisplay}"/>
+                    <GridViewColumn Header="Distance" Width="100" DisplayMemberBinding="{Binding ActualDistanceDisplay}"/>
+                    <GridViewColumn Header="Processing Time" Width="130" DisplayMemberBinding="{Binding TotalProcessingTimeDisplay}"/>
+                    <GridViewColumn Header="Shipping" Width="100" DisplayMemberBinding="{Binding ShippingType}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <GroupBox Grid.Row="3" Header="Performance Statistics" Margin="10" Padding="10" BorderBrush="#4CAF50" Background="#F0FFF0">
+            <UniformGrid Columns="4" Rows="1">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Total Deliveries" Foreground="Gray" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding TotalDeliveries}" FontSize="24" FontWeight="Bold" Foreground="#2196F3" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Successful" Foreground="Gray" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding SuccessfulDeliveries}" FontSize="24" FontWeight="Bold" Foreground="#4CAF50" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Cancelled" Foreground="Gray" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding CancelledDeliveries}" FontSize="24" FontWeight="Bold" Foreground="#F44336" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="Avg Processing Time" Foreground="Gray" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding AverageProcessingTime}" FontSize="24" FontWeight="Bold" Foreground="#FF9800" HorizontalAlignment="Center"/>
+                </StackPanel>
+            </UniformGrid>
+        </GroupBox>
+
+        <Border Grid.Row="4" Background="#EEEEEE" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="10">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Close" Click="BtnClose_Click" Background="#FFB6C1" Width="120" FontWeight="Bold"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
