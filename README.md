@@ -1,197 +1,128 @@
-# 🎁 בונוסים שמומשו בפרויקט
+# Delivery Management System
 
-## שימוש ב-C#
+![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=flat&logo=dotnet)
+![Platform](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?style=flat&logo=windows)
+![Status](https://img.shields.io/badge/Status-Completed-success)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-### ✓ שימוש נכון ומלא ב-TryParse בתוכניות בדיקה (1 נק')
+## Overview
+A desktop application built with C# and .NET 8.0 for managing logistics, couriers, and delivery orders. The main complexity of this project lies in coordinating a real-time background simulation engine with a responsive UI, ensuring safe cross-thread operations and concurrent data access.
 
-שימוש ב-TryParse עם בדיקה של ערך מוחזר ומשתנה מוגדר בתוך הזימון. 
-
-**מימושים:**
-- [`DalXml/XmlTools. cs` - `ToDoubleNullable`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/XmlTools.cs#L150-L155) - `double. TryParse` עם בדיקת ערך מוחזר
-- [`DalXml/XmlTools.cs` - `ToIntNullable`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/XmlTools. cs#L145-L150) - `int.TryParse` עם משתנה מוגדר בזימון
-- [`DalXml/XmlTools.cs` - `ToDateTimeNullable`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/XmlTools. cs#L156-L161) - `DateTime.TryParse`
-- [`DalXml/XmlTools.cs` - `ToTimeSpanNullable`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/XmlTools.cs#L162-L167) - `TimeSpan.TryParse`
-- [`DalXml/XmlTools.cs` - `ToEnumNullable`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/XmlTools.cs#L168-L173) - `Enum.TryParse`
-
-שימוש בכל Extension Methods ברחבי הפרויקט לטעינת נתונים מ-XML ��צורה בטוחה. 
+**Project Context:** This educational project was developed to apply solid architectural patterns (3-Tier Layered Architecture) and tackle real-world multithreading challenges in C#/.NET.
 
 ---
 
-## שכבת נתונים (DAL)
+## How the Simulation Works
 
-### ✓ הוספת תכונת סיסמא (2 נק')
+The simulation engine models fleet operations using a background tick-based loop. During each tick:
 
-תכונת סיסמה בכל שכבות הפרויקט מ-DO עד PL. 
-
-**מימושים:**
-- [`DalFacade/DO/Courier.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalFacade/DO/Courier.cs#L8) - `string Password` בישות DO
-- [`BL/BO/Courier.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/BO/Courier.cs#L37) - `required string Password` בישות BO
-- [`DalXml/CourierImplementation.cs` - getCourier](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/CourierImplementation.cs#L15-L32) - קריאת Password מ-XML
-- [`DalList/ConfigImplementation.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalList/ConfigImplementation.cs#L13-L20) - Password למנהל
-
-### ✓ Singleton עם Thread Safe ו-Lazy Initialization (2 נק')
-
-DAL מיושם כ-Singleton עם Lazy Initialization שמבטיח שלא יהיו מרובים אובייקטים וחוט-בטוח.
-
-**מימושים:**
-- [`DalXml/DalXml.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/DalXml/DalXml. cs#L12-L25) - `private static readonly Lazy<IDal> lazyInstance` עם `Instance` property
-  - `Lazy<T>` מטפל בـ Thread Safety אוטומטי
-  - `lazyInstance. Value` מבצע Lazy Initialization בעת הקריאה הראשונה
-  - אין אפשרות ליצור instance חוזר
+1. **Evaluate Active Deliveries:** Identify orders currently assigned or in transit.
+2. **Time Calculation:** Calculate the remaining time until arrival based on the configured speed and distance.
+3. **Status Transition:** Trigger discrete status changes (e.g., *Picked Up* → *In Transit* → *Delivered*) once the calculated duration has elapsed in simulation time.
+4. **UI Notification:** Dispatch updates to the PL via observer callbacks, safely invoking the main thread to update the datagrids dynamically.
 
 ---
 
-## שכבת הלוגיקה (BL)
+## Architecture
+The system enforces a clean separation of concerns, utilizing Factory Methods for dependency instantiation and maintaining a strict unidirectional data flow: 
 
-### ✓ סיסמה ראשונית ועדכון (1 נק')
-
-מנהל קובע סיסמה ראשונית לשליח, והשליח יכול לעדכן אותה. 
-
-**מימושים:**
-- [`BL/Helpers/CourierManager.cs` - UpdateCourier](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/CourierManager. cs#L270-L289) - הצפנת סיסמה חדשה עם `Tools. Encrypt()`
-- [`PL/Courier/MainCourierWindow.xaml. cs` - BtnUpdate_Click](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/MainCourierWindow. xaml.cs#L222-L233) - עדכון סיסמה דרך הממשק
-- [`BL/Helpers/CourierManager.cs` - DOToBOCourier](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/CourierManager.cs#L65-L76) - פענוח סיסמה בעת הוצאה מה-DB
-
-### ✓ בדיקה שהסיסמא חזקה (1 נק')
-
-סיסמה חייבת להכיל:  8 תווים מינימום, אות גדולה, אות קטנה וספרה. 
-
-**מימוש:**
-- [`BL/Helpers/CourierManager.cs` - CheckPassword](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/CourierManager.cs#L186-L196)
-  - בדיקת אורך:  `password.Length < 8`
-  - בדיקת Uppercase: `!password.Any(char.IsUpper)`
-  - בדיקת Lowercase:  `!password.Any(char.IsLower)`
-  - בדיקת Digit: `!password.Any(char.IsDigit)`
-
-### ✓ הצפנת סיסמא עם AES-256 (2 נק')
-
-סיסמאות מוצפנות בשמירה לבסיס הנתונים באמצעות AES-256.
-
-**מימושים:**
-- [`BL/Helpers/Tools.cs` - Encrypt](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/Tools.cs#L478-L507)
-  - Key: 32 תווים (256-bit)
-  - IV: zero-filled array בגודל 16
-  - Encoding: Base64 לשמירה
-- [`BL/Helpers/Tools.cs` - Decrypt](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/Tools.cs#L510-L548)
-  - פענוח בעזרת אותו Key ו-IV
-  - תמיכה בחוזרות לנתונים ישנים (fallback)
-- [`BL/Helpers/CourierManager.cs` - AddCourier](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/CourierManager. cs#L236-L260) - הצפנה לפני שמירה
-- [`BL/Helpers/Tools.cs` - CheckPasswordEntry](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/Tools.cs#L378-L398) - פענוח בעת בדיקת כניסה
+`UI Action → PL ViewModel → BL Validation → DAL Execution`
+```text
+┌─────────────────────────────────────────┐
+│  Presentation Layer (PL)                │
+│  WPF Desktop Application & UI Logic     │
+├─────────────────────────────────────────┤
+│  Business Logic Layer (BL)              │
+│  Core Business Rules & Validation       │
+├─────────────────────────────────────────┤
+│  Data Access Layer (DAL)                │
+│  Database Abstraction & Persistence     │
+└─────────────────────────────────────────┘
+```
 
 ---
 
-## שכבת התצוגה (PL)
+## Design Decisions & Technical Challenges
 
-### ✓ תצוגה גרפית אינטראקטיבית עם שינוי צבעים (1 נק')
-
-הממשק משתנה בזמן אמת בתגובה לטעינת קואורדינטות מרשת.
-
-**מימושים:**
-- [`PL/NetworkAwareWindow.cs` - ExecuteNetworkActionAsync](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/NetworkAwareWindow.cs#L37-L97)
-  - **כתום (Loading):** `AddressBorderBrush = Brushes.Orange;` + `Mouse.OverrideCursor = Cursors.Wait;`
-  - **ירוק (הצלחה):** `AddressBorderBrush = Brushes.Green;`
-  - **אדום (שגיאה):** `AddressBorderBrush = Brushes.Red;`
-- [`PL/Order/OrderWindow.xaml.cs` - BtnAction_Click](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Order/OrderWindow.xaml. cs#L67-L98) - שימוש ב-ExecuteNetworkActionAsync
-
-### ✓ אייקון של האפליקציה (1 נק')
-
-סמל מופיע בכותרת החלון ובשורת המשימות בכל החלונות.
-
-**מימושים:**
-- [`PL/MainWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/MainWindow.xaml#L5) - `Icon="/Images/logistics-delievry.png"`
-- [`PL/LoginWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/LoginWindow.xaml#L9) - `Icon="/Images/logistics-delievry.png"`
-- [`PL/Courier/CourierWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/CourierWindow.xaml#L13) - `Icon="/Images/logistics-delievry.png"`
-- [`PL/Order/OrderWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Order/OrderWindow. xaml#L14) - `Icon="/Images/logistics-delievry.png"`
-
-✓ ENTER שווה ללחיצה על כפתור (1 נק')
-בכל חלונות היישום, לחיצת ENTER מקדמת לחיצה על הכפתור הברירת מחדל בחלון.
-
-מימושים:
-
-PL/LoginWindow.xaml - IsDefault="True" על כפתור Login
-PL/Order/OrderWindow.xaml - IsDefault="True" על כפתור Action
-PL/Courier/CourierWindow.xaml - IsDefault="True" על כפתור Action
-PL/Courier/OrdersHistory.xaml - IsDefault="True" על כפתור Close
-PL/Order/OrdersToPick.xaml - IsDefault="True" על כפתור Pick Order
-PL/Courier/CourierListWindow.xaml - IsDefault="True" על כפתור
-PL/Order/OrderInListWindow.xaml - IsDefault="True" על כפתור
-PL/MainWindow.xaml - IsDefault="True" על כפתור ברירת מחדל
-
-### ✓ שימוש בטריגרים - DataTrigger (1 נק')
-
-שינוי מצב פקדים בהתאם לנתונים. 
-
-**מימושים:**
-- [`PL/MainWindow.xaml` - SimulatedButtonStyle](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/MainWindow.xaml#L11-L21)
-  - `<DataTrigger Binding="{Binding IsSimulatorRunning}" Value="True">`
-  - משבית כפתורים בעת הרצת סימולטור
-- [`PL/Courier/CourierWindow.xaml` - OrderDetailsVisibilityStyle](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/CourierWindow.xaml#L24-L31)
-  - `<DataTrigger Binding="{Binding CurrentCourier.OrderInCare}" Value="{x:Null}">`
-  - מסתיר פרטי הזמנה כשאין הזמנה פעילה
-
-### ✓ קיבוץ רשימות לפי סטטוס (2 נק')
-
-רשימת הזמנות מקובצת בהיררכיה לפי סוג או סטטוס.
-
-**מימוש:**
-- [`PL/Order/OrderInListWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Order/OrderInListWindow.xaml#L58-L66)
-  - `<ListView.GroupStyle>` עם `PropertyGroupDescription(nameof(BO.OrderInList.OrderStatus))`
-- [`PL/Order/OrderInListWindow.xaml. cs` - queryOrderList](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Order/OrderInListWindow.xaml. cs#L139-L172)
-  - `ListCollectionView view = new ListCollectionView(rawList. ToList());`
-  - `view.GroupDescriptions.Add(new PropertyGroupDescription(... ));`
-
-### ✓ סיסמה מוסתרת עם Toggle (1 נק')
-
-הצגת סיסמה רק בלחיצה על כפתור "עין". 
-
-**מימושים:**
-- [`PL/LoginWindow.xaml`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/LoginWindow.xaml#L28-L37)
-  - `PasswordBox` - מציג כוכביות
-  - `TextBox` - הצגת טקסט פתוח
-  - `Button` עם `👁` למעבר בין המצבים
-- [`PL/LoginWindow.xaml.cs` - BtnTogglePassword_Click](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/LoginWindow.xaml.cs#L40-L57)
-  - החלפת `Visibility` בין `PasswordBox` ל-`TextBox`
-- [`PL/Courier/MainCourierWindow.xaml. cs` - BtnTogglePassword_Click](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/MainCourierWindow.xaml.cs#L262-L276)
-
-### ✓ כפתור Delete בתנאי (2 נק')
-
-כפתור Delete בהצעות רשימה משנה את זמינותו בהתאם לתנאים.
-
-**מימוש:**
-- [`PL/Courier/CourierListWindow.xaml. cs` - BtnDelete_Click](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/CourierListWindow.xaml.cs#L145-L173)
-  - בדיקה אם אפשר למחוק את השליח (אין הזמנות פעילות)
-  - הצגת הודעת שגיאה אם לא ניתן למחוק
-  - ריענון הרשימה בעת הצלחה
-
-### ✓ הודעה על כישלון טעינת קואורדינטות (2 נק')
-
-תצוגה של סיבה מפורשת כאשר טעינת קואורדינטות נכשלה.
-
-**מימושים:**
-- [`PL/NetworkAwareWindow.cs` - ExecuteNetworkActionAsync](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/NetworkAwareWindow. cs#L62-L80)
-  - **Network Error:** `"Network Error:  {ex.Message}"`
-  - **Invalid Address:** `"Invalid Address: Could not find coordinates. "`
-  - **System Error:** `"System Error: {ex.Message}"`
-- [`PL/Order/OrderWindow.xaml.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Order/OrderWindow.xaml.cs#L1-L206) - שימוש ב-ExecuteNetworkActionAsync
+* **Database Agnosticism:** The DAL is abstracted via interfaces. Data is persisted using XML serialization or In-Memory structures (`DalXml`, `DalList`). This adheres to the Open/Closed Principle, allowing future migration to a relational database like SQL Server without touching the Business Logic layer.
+* **Concurrency & Race Conditions:** With the UI thread reading data and the simulation thread continuously writing updates, race conditions were imminent. Instead of complex concurrent collections, I utilized explicit `lock` mechanisms within the Singleton DAL instances. This ensured atomic transactions for order updates without incurring heavy performance overhead.
+* **Decoupled UI via Data Binding:** To prevent tight coupling, the PL relies strictly on XAML Data Binding and the `INotifyPropertyChanged` interface. Backend updates automatically reflect in the UI without direct DOM-like manipulation.
 
 ---
 
-## סימולטור
-
-### ✓ עדכון רשימה בזמן אמת עם Async (3 נק')
-
-רשימות מתעדכנות בזמן אמת כשהסימולטור משנה נתונים, עם Dispatcher ו-Mutex לניהול עומס.
-
-**מימושים:**
-- [`BL/Helpers/CourierManager.cs` - SimulateCourierActivityAsync](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/BL/Helpers/CourierManager.cs#L536-L755)
-  - עדכון סטטוס הזמנות בזמן אמת
-  - עדכון הערכות זמנים עם variance
-  - התראות observers אחרי כל שינוי
-- [`PL/Courier/CourierListWindow.xaml.cs` - courierListObserver](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Courier/CourierListWindow.xaml.cs#L212-L230)
-  - `ObserverMutex` למניעת flooding של עדכונים
-  - `Dispatcher.BeginInvoke()` לעדכון UI בחוט הראשי
-- [`PL/Helpers/ObserverMutex.cs`](https://github.com/ori-levental/dotNet5786_9587_3771/blob/main/PL/Helpers/ObserverMutex. cs#L10-L45)
-  - `CheckAndSetLoadInProgressOrRestartRequired()` - ניהול תור חכם
-  - `UnsetLoadInProgressAndCheckRestartRequested()` - בדיקת אם צריך להריץ שוב
+## Technology Stack
+* **Language:** C# 12
+* **Framework:** .NET 8.0
+* **UI:** WPF (Windows Presentation Foundation)
+* **Data Storage:** XML Serialization / In-Memory Collections
 
 ---
+
+## Project Structure
+```text
+Delivery-Management-System/
+├── xml/                     # XML database files & system configuration
+├── PL/                      # Presentation Layer (WPF)
+│   ├── MainWindow.xaml      # Admin Dashboard / Entry Point
+│   ├── LoginWindow.xaml     # Authentication UI
+│   ├── Order/               # Order management views
+│   ├── Courier/             # Courier management views
+│   ├── Helpers/             # Converters & Utilities
+│   └── Images/              # UI Assets
+├── BL/                      # Business Logic Layer
+│   ├── BlApi/               # Interfaces for BL operations
+│   ├── BlImplementation/    # Core business logic implementation
+│   ├── BO/                  # Business Objects (Models)
+│   └── Helpers/             # BL utilities
+├── DalFacade/               # Data Access Facade (Interfaces & DO)
+├── DalList/                 # In-Memory DAL Implementation
+├── DalXml/                  # XML-Based DAL Implementation
+├── BlTest/                  # Business Logic Unit Testing
+└── DalTest/                 # Data Access Unit Testing
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+* Windows 10/11
+* Visual Studio 2022 (or equivalent)
+* .NET 8.0 SDK
+
+### Installation & Run
+1. Clone the repository:
+   
+```sh
+   git clone [https://github.com/ori-levental/Delivery-Management-System.git](https://github.com/ori-levental/Delivery-Management-System.git)
+   ```
+2. Navigate to the project directory:
+   ```sh
+   cd Delivery-Management-System
+   ```
+3. Build the solution to restore dependencies:
+   ```sh
+   dotnet build dotNet5786_9587_3771.sln
+   ```
+4. Run the Presentation Layer:
+   ```sh
+   dotnet run --project PL/PL.csproj
+   ```
+
+### Demo Accounts
+* **Admin:** `Username: 111111118` | `Password: nxNsj544bh@?`
+* **Courier:** `Username: 350605200` | `Password: GxzHtnPQ1m1.B`
+
+---
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Authors & Contact
+
+**Ori Levental**
+* LinkedIn: [linkedin.com/in/ori-levental](https://www.linkedin.com/in/ori-levental)
+* Email: [orilevental@gmail.com](mailto:orilevental@gmail.com)
+* GitHub: [@ori-levental](https://github.com/ori-levental)
+
+**Mordechai Gitscher**
