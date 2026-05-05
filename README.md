@@ -122,7 +122,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 **Ori Levental**
 * LinkedIn: [linkedin.com/in/ori-levental](https://www.linkedin.com/in/ori-levental)
-* Email: [orilevental@gmail.com](mailto:orilevental@gmail.com)
 * GitHub: [@ori-levental](https://github.com/ori-levental)
 
 **Mordechai Gitscher**
